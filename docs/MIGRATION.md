@@ -187,17 +187,33 @@ cross-user RLS isolation from inside the `authenticated` role, and account-delet
 
 Nothing below can be done from this repo — they need a human with dashboard access.
 
-1. **Supabase project.** Create it, then put `NEXT_PUBLIC_SUPABASE_URL` and
-   `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` (and in Vercel). Apply migrations with
-   `supabase link --project-ref <ref>` then `supabase db push` — this keeps the database
-   password and service-role key on your machine.
+**Live instances (connected by the project owner, outside this session):**
+- Supabase project: `tpafatrunexexzadfprw` — `https://tpafatrunexexzadfprw.supabase.co`
+- Vercel deployment: `https://project-shred-one.vercel.app/` — deploying from
+  `claude/project-shred-migration-crjs5j` (not yet from `main`; `main` currently lags this
+  branch by whatever hasn't been explicitly merged — see the Sprint 4 CLAUDE.md note on why
+  merges to `main` only happen on direct request, not automatically every sprint)
+
+1. **Supabase migrations.** Not yet applied as of milestone 4. Run from a local clone (not
+   this remote session — `supabase link` needs an interactive browser login, and this keeps
+   the access token off any session transcript):
+   ```
+   npx supabase login
+   npx supabase link --project-ref tpafatrunexexzadfprw
+   npx supabase db push
+   ```
 2. **Google OAuth.** Create an OAuth 2.0 client in Google Cloud Console, then paste the
    client ID and secret into Supabase → Authentication → Providers → Google. Authorised
-   redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`. In Supabase →
+   redirect URI: `https://tpafatrunexexzadfprw.supabase.co/auth/v1/callback`. In Supabase →
    Authentication → URL Configuration, set the site URL and add
-   `http://localhost:3000/auth/callback` plus the Vercel preview and production callbacks as
-   redirect URLs.
-3. **Vercel.** Import the GitHub repo, add the two `NEXT_PUBLIC_*` variables.
+   `http://localhost:3000/auth/callback` plus the Vercel preview/production callback
+   (`https://project-shred-one.vercel.app/auth/callback` once milestone 5 adds that route)
+   as redirect URLs.
+3. **Vercel env vars.** `NEXT_PUBLIC_SUPABASE_URL=https://tpafatrunexexzadfprw.supabase.co`
+   plus `NEXT_PUBLIC_SUPABASE_ANON_KEY` (from Supabase → Project Settings → API — the anon
+   key, never the service-role key) need to be set in Vercel's project settings before
+   milestone 5's auth wiring will work there. The app doesn't call Supabase yet as of
+   milestone 4, so the deployment works today without them.
 
 The anon key is public by design (RLS is what protects the data) but is still kept out of
 git and injected as an environment variable. The service-role key is never needed by this
