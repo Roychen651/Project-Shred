@@ -13,13 +13,16 @@
 // lib/data/ exists, the app wires the real constants in at the call site; this
 // file needs no further changes.
 
-export interface PlateOption {
-  id: string;
-  name: string;
+export interface Macros {
   kcal: number;
   protein: number;
   carbs: number;
   fat: number;
+}
+
+export interface PlateOption extends Macros {
+  id: string;
+  name: string;
 }
 
 export interface ShumshumData {
@@ -38,11 +41,16 @@ export interface ChickenStationData {
 
 export type GoombaData = PlateOption[];
 
+// rice/veg/sauce are fixed, unnamed components in the artifact's own KANSAI
+// constant (e.g. `rice: { kcal: 150, protein: 3, fat: 0, carbs: 33 }` — no id/name),
+// and buildFoodLibrary() only ever reads their macros, never an id or name off
+// them. Typing them as bare Macros rather than PlateOption matches the real data
+// shape instead of silently requiring fields that don't exist on it.
 export interface KansaiData {
   protein: PlateOption[];
-  rice: PlateOption;
-  veg: PlateOption;
-  sauce: PlateOption;
+  rice: Macros;
+  veg: Macros;
+  sauce: Macros;
 }
 
 export interface HackData {
