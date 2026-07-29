@@ -82,8 +82,30 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen w-full" style={{ background: T.t.bgGrad, color: T.t.textPrimary, paddingBottom: 132 }}>
-      <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-8">
+    <main className="min-h-screen w-full relative" style={{ background: T.t.bgGrad, color: T.t.textPrimary, paddingBottom: 190 }}>
+      {/* Sprint 5: ambient background glow — two large, softly blurred, fixed
+          radial blobs in the accent + protein jewel tones. Fixed (not absolute)
+          so they read as page-level atmosphere rather than scrolling with
+          content; pointer-events-none + negative z-index keep them fully
+          decorative and never in the way of a tap. */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div
+          style={{
+            position: 'absolute', top: '-12%', insetInlineEnd: '-15%', width: '55vw', height: '55vw', maxWidth: 520, maxHeight: 520,
+            background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '3a' : '22'} 0%, transparent 70%)`,
+            filter: 'blur(60px)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute', bottom: '-8%', insetInlineStart: '-18%', width: '50vw', height: '50vw', maxWidth: 460, maxHeight: 460,
+            background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '30' : '1c'} 0%, transparent 70%)`,
+            filter: 'blur(70px)',
+          }}
+        />
+      </div>
+
+      <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-8 relative">
         {/* ===== header ===== */}
         <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
           <div className="flex items-center gap-3">

@@ -14,10 +14,20 @@
 // name a specific regional vendor in its UI. The action id changed from
 // 'cibus' to 'restaurants' to match; the underlying restaurant data
 // (lib/data/restaurants.ts) is untouched.
+//
+// Sprint 5: `bottom: 158` was a hand-computed magic number tied to the old
+// FAB_BOTTOM=84/size=58. Rather than re-deriving a new magic number when
+// ActionFab's position changed (exactly the class of bug the Sprint 15.7 note
+// in CLAUDE.md warns about), the panel now imports FAB_BOTTOM/FAB_SIZE and
+// computes its offset from them, so it can never drift out of sync again.
+// Panel styling also picked up the same glass treatment as GlassCard.
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wand2, UtensilsCrossed, Layers3, type LucideIcon } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { FAB_BOTTOM, FAB_SIZE } from './ActionFab';
+
+const MENU_BOTTOM = FAB_BOTTOM + FAB_SIZE + 16;
 
 export type FabActionId = 'quicklog' | 'restaurants' | 'plate';
 
@@ -65,7 +75,7 @@ export function FabMenu({ open, onClose, onPickAction }: FabMenuProps) {
         >
           <motion.div
             className="fixed left-1/2 flex flex-col gap-2"
-            style={{ bottom: 158, width: 240, x: '-50%' }}
+            style={{ bottom: MENU_BOTTOM, width: 240, x: '-50%' }}
             variants={listVariants}
             initial="hidden"
             animate="visible"
@@ -81,7 +91,14 @@ export function FabMenu({ open, onClose, onPickAction }: FabMenuProps) {
                   whileTap={{ scale: 0.96 }}
                   onClick={() => onPickAction(a.id)}
                   className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold w-full"
-                  style={{ background: T.t.modalBg, color: T.t.textPrimary, border: `1px solid ${T.t.border}`, boxShadow: '0 8px 20px -10px rgba(0,0,0,0.3)' }}
+                  style={{
+                    background: T.mode === 'dark' ? `${T.t.modalBg}D9` : `${T.t.modalBg}F5`,
+                    color: T.t.textPrimary,
+                    border: `1px solid ${T.mode === 'dark' ? 'rgba(255,255,255,0.1)' : T.t.border}`,
+                    backdropFilter: 'blur(18px) saturate(160%)',
+                    WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+                    boxShadow: '0 12px 28px -12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)',
+                  }}
                 >
                   <Icon size={16} color={T.accent} /> {a.label}
                 </motion.button>

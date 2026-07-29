@@ -5,7 +5,14 @@
 // arc. The center leads with calories CONSUMED (not remaining) as the primary
 // number — Sprint 15.2's fix for "unclear how much I've eaten" — with a colored
 // pill showing the signed delta against target below it.
+//
+// Sprint 5: each progress arc now renders twice — once through an SVG <filter>
+// (feGaussianBlur + feMerge) for a soft neon-tube glow, once crisp on top — the
+// standard SVG technique for glow-on-a-stroke, since `filter: drop-shadow` alone
+// blurs the whole element including its sharp edge. `useId()` keeps the filter
+// ids collision-safe if this ring is ever rendered more than once on a page.
 
+import { useId } from 'react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO } from '@/lib/theme/tokens';
 import type { MacroTotals } from '@/lib/domain/items';
@@ -18,6 +25,9 @@ export interface CompositeHeroRingProps {
 
 export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps) {
   const T = useTheme();
+  const uid = useId().replace(/:/g, '');
+  const glowOuterId = `hero-glow-outer-${uid}`;
+  const glowInnerId = `hero-glow-inner-${uid}`;
   const size = 220, strokeOuter = 16, strokeInner = 10;
   const rOuter = (size - strokeOuter) / 2;
   const rInner = rOuter - strokeOuter / 2 - strokeInner / 2 - 6;
@@ -30,17 +40,35 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
 
   return (
     <div className="relative flex items-center justify-center mx-auto" style={{ width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+        <defs>
+          <filter id={glowOuterId} x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="5.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id={glowInnerId} x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <circle cx={size / 2} cy={size / 2} r={rOuter} stroke={T.t.border} strokeWidth={strokeOuter} fill="none" />
         <circle
           cx={size / 2} cy={size / 2} r={rOuter} stroke={T.macro.kcal} strokeWidth={strokeOuter} fill="none"
           strokeDasharray={circOuter} strokeDashoffset={circOuter * (1 - kcalPct)} strokeLinecap="round"
+          filter={`url(#${glowOuterId})`}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
         />
         <circle cx={size / 2} cy={size / 2} r={rInner} stroke={T.t.border} strokeWidth={strokeInner} fill="none" />
         <circle
           cx={size / 2} cy={size / 2} r={rInner} stroke={T.macro.protein} strokeWidth={strokeInner} fill="none"
           strokeDasharray={circInner} strokeDashoffset={circInner * (1 - proteinPct)} strokeLinecap="round"
+          filter={`url(#${glowInnerId})`}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
         />
       </svg>

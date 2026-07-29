@@ -39,3 +39,16 @@ button:active {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.35);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+/* Static fallback — a live, accent-matched ::selection would need useTheme()
+ * at runtime; this jewel-toned default keeps text selection legible and on
+ * brand without wiring a theme style-injection component for one rule. */
+::selection {
+  background: rgba(63, 141, 110, 0.35);
+}
