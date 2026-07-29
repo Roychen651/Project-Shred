@@ -501,3 +501,36 @@ account deletion.
 **Remaining:** domain-logic extraction with tests pinned to the artifact's current outputs
 (next, and deliberately before any component moves), reference-data porting, auth, the
 sync store, the UI port, and JSON-backup import so existing artifact data can be brought in.
+
+---
+
+## סיכום ספרינט 2 — חילוץ לוגיקת הליבה ומנוע ה-State
+
+ספרינט זה חילץ את כל הלוגיקה הטהורה (ללא תלות ב-React) מהארטיפקט אל `lib/domain/`, כתב עליה בדיקות יחידה מוצמדות לערכי-זהב, ובנה את שכבת ה-state/סנכרון שתחליף את `window.storage`. שום נוסחה או התנהגות לא שונו — זו העברה 1:1, מאומתת.
+
+**פונקציות הדומיין שחולצו** (13 מודולים תחת `lib/domain/`, ללא תלות ב-React בכלל):
+
+- **`targets.ts`** — מנוע Mifflin-St Jeor המלא: `computeProfileTargets()`, כולל דלתת ה-Refeed הקבועה (+300 קל׳ / +75 גר׳ פחמימה ביום אימון).
+- **`items.ts`** — הסכימה המאוחדת: `makeLoggedItem`, `scaleLoggedItem` (הסקאלה לפי `grams/100`), `sumItems` (מסכם רק פריטים מסומנים).
+- **`ingredients.ts`** — המרת גולמי/מבושל: `getPer100`, `getIngredientMacros`, עם טיפוס Union מבחין (discriminated union) שמונע מקרה קצה של חלוקה ב-`undefined`.
+- **`dates.ts`** — `dateKey`, `addDays`, `shiftDateKey`, `formatShortDate`, `formatHebrewDate` — כולם מחויבים לזמן מקומי בלבד (לא `toISOString()`), עם בדיקת רגרסיה מוצמדת לתאריכים המדויקים מתיקון הבאג של ספרינט 15.2.
+- **`slots.ts`** — `SLOT_DEFS` (ללא רכיבי אייקון — אלה שכבת UI) ו-`getCurrentSlotId`.
+- **`analytics.ts`** — `scoreDayLog`, `heatColor`, `buildWeeklyReport`.
+- **`workouts.ts`** — `getLastLoggedSet` (מנוע ה-PR).
+- **`foodParser.ts`** — `FOOD_DB` (19 פריטים) ו-`parseFoodText`, כולל טיפול נכון בתארי גודל עבריים שבאים אחרי שם המאכל.
+- **`aiCoach.ts`** — `generateAiReport` ו-`MENTAL_TIPS`.
+- **`smartSwap.ts`** — `findBestMatches` ו-`buildFoodLibrary`, עם שינוי מכוון: נתוני הייחוס (שומשום/צ'יקן סטיישן/גומבה/קנסאי/האקים/אוכל בחוץ) מועברים כפרמטר במקום קבועי מודול, כי הם ממתינים לניוד ב-Milestone 3 — האלגוריתם עצמו זהה לחלוטין.
+- **`diagnostics.ts`** — `runIntegrityChecks`.
+- **`backup.ts`** — `buildFullBackup`, כולל השמטת מפתח ה-API כמו במקור.
+- **`util.ts`** — `roundNum`, `genId` המשותפים.
+
+**כיסוי בדיקות:** 96 בדיקות ב-14 קבצים, כולן עוברות. חלק גדול מהערכים (במיוחד `computeProfileTargets`, `buildWeeklyReport` ו-`generateAiReport`) חושבו ידנית צעד-אחר-צעד, ולאחר מכן אומתו פעם נוספת מול הרצה ישירה של הקוד המקורי מהארטיפקט (לא רק מול הנגזרת שלי) — כדי לשלול מצב של בדיקה שמאמתת את עצמה במקום את המקור. בדיקת הרגרסיה של ספרינט 15.2 (אתמול/מחר סביב 26.7.2026) מוצמדת מילולית לתרחיש שתועד ב-CLAUDE.md.
+
+**מנוע ה-State והסנכרון** (`lib/store/`):
+
+- **`sync-scheduler.ts`** — מימוש כללי ומבודד-פלטפורמה של דפוס ה-Debounce + רשת הביטחון מספרינט 16.2: `visibilitychange`/`pagehide`/`blur` מפעילים שמירה מיידית וללא Debounce, כדי שלא לאבד נתונים כשמישהו עוזב את האפליקציה לפני שהטיימר המקורי (350ms) הספיק להיורות. נבדק עם טיימרים מדומים, כולל הוכחה מפורשת שה-Flush ממחזור החיים "מקצר דרך" את ה-Debounce.
+- **`shred-store.ts`** — חנות Zustand עם צורת ה-State המדויקת של הארטיפקט (`itemsByDate`, `profiles`, `favorites`, `exerciseLogs`, `customIngredients/Hacks/Restaurants`, `metricEntries`, הגדרות ערכת נושא). `logItems(specs, slotId)` שומרת על החתימה וההתנהגות המדויקות מהארטיפקט — זהו הנתיב היחיד שכל משטח רישום באפליקציה (Cibus, Kitchen Hacks, בונה הצלחת, פרסר הטקסט החופשי, Smart Swap, מועדפים) עובר דרכו. `dailyLogs` הישן פוצל: הטוטלים נגזרים חי מ-`itemsByDate` (בדיוק כמו `consumed` בארטיפקט), ודגלי האימון/עריכות ה-DayEditor היחידות שאינן ניתנות לגזירה חיות ב-`dayMeta` (תואם ישירות לטבלת `day_meta` מ-Milestone 1).
+
+**היקף כן ושקוף:** `sync-scheduler.ts` ו-`shred-store.ts` בנויים ונבדקים במלואם, אך ה-Persist בפועל לטבלאות Supabase (מיפוי כל פרוסת State לשורות/upsert/delete בפועל) עדיין לא קיים — הוא ממתין למשתמש/הרשאות אמת ב-Milestone 4 (Auth), ואז יתחבר לתוך `persist()` הניתן להזרקה שכבר קיים ב-`createSyncScheduler`. זו לא בעיה טכנית שנמנעת ממנה — פשוט אין עדיין פרויקט Supabase חי לבדוק כנגדו, ובניית שכבת כתיבה שלא ניתנת לאימות תהיה עבודה גרועה יותר מהודאה מפורשת בסטטוס.
+
+**תוצאות בדיקה:** `npm test` (96/96), `npm run typecheck` (נקי), `npm run lint` (נקי), `npm run build` (עובר), `npm run test:schema` (27/27, ללא רגרסיה מ-Milestone 1).

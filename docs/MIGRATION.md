@@ -141,10 +141,12 @@ cross-user RLS isolation from inside the `authenticated` role, and account-delet
 ## Sequence
 
 - [x] **1 · Schema + RLS.** Migrations, views, bootstrap trigger, schema tests.
-- [ ] **2 · Domain extraction.** Move the ~15 pure functions into `lib/domain/*.ts` with unit
-      tests pinned against the artifact's current outputs, *before* touching any component.
-      This is the highest-value step in the migration: it is the "must not change" logic and
-      it is currently untested.
+- [x] **2 · Domain extraction + state engine.** 13 pure modules under `lib/domain/`, 96 golden
+      tests cross-checked against the verbatim artifact logic (not just self-consistency).
+      `lib/store/shred-store.ts` (Zustand, exact state shape, `logItems()` signature preserved)
+      and `lib/store/sync-scheduler.ts` (the Sprint 16.2 debounce + visibility/pagehide/blur
+      flush pattern, extracted and tested standalone). Actual Supabase persistence is not yet
+      wired in — see CLAUDE.md's Sprint 2 summary for the honest scope note.
 - [ ] **3 · Reference data.** `INGREDIENT_DB` / `HACKS` / `EATING_OUT_MENU` / Cibus /
       `WORKOUTS` → typed modules under `lib/data/`, with count assertions (279 / 64 / 73) so
       a bad transcription fails loudly.
