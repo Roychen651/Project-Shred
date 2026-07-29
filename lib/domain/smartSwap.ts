@@ -1,6 +1,6 @@
 // Smart Swap recommendation engine. ProjectShred.artifact.jsx:930-1004 (Sprint 11).
 //
-// buildFoodLibrary() enumerates every combination the built-in Cibus builders can
+// buildFoodLibrary() enumerates every combination the built-in Restaurant Matrix builders can
 // produce, plus custom restaurants, Kitchen Hacks and Eating-Out items; findBestMatches()
 // ranks the resulting library by distance from the day's remaining calorie/protein gap.
 //

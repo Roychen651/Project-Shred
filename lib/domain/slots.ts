@@ -1,7 +1,7 @@
 // The five daily timeline slots. ProjectShred.artifact.jsx:821-831, 5513-5526.
 //
 // Single source of truth for slot identity — every logging surface (Timeline,
-// Cibus, Kitchen Hacks, Plate Composer, every quick-log flow) reads from this one
+// Restaurant Matrix, Kitchen Hacks, Plate Composer, every quick-log flow) reads from this one
 // list rather than each screen inventing its own slot labels, which is how slot
 // mismatches happened before Sprint 15.
 //

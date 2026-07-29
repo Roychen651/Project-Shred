@@ -13,7 +13,7 @@ describe('FabMenu', () => {
   it('renders all 3 actions when open', () => {
     render(<ThemeProvider><FabMenu open onClose={vi.fn()} onPickAction={vi.fn()} /></ThemeProvider>);
     expect(screen.getByText('רישום חופשי')).toBeInTheDocument();
-    expect(screen.getByText('בחר ב-Cibus')).toBeInTheDocument();
+    expect(screen.getByText('מסעדות')).toBeInTheDocument();
     expect(screen.getByText('בנה צלחת')).toBeInTheDocument();
   });
 

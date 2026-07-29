@@ -1,5 +1,7 @@
-// The four built-in Cibus restaurants. ProjectShred.artifact.jsx:220-261 (Sprint 2).
-// Fixed/hardcoded by deliberate scope decision (Sprint 11): these four stay as
+// The four built-in Restaurant Matrix partners. ProjectShred.artifact.jsx:220-261
+// (Sprint 2, branded "Cibus" there — renamed Sprint 4: too localized/corporate a
+// name for a global app; the restaurant data itself is unchanged). Fixed/
+// hardcoded by deliberate scope decision (Sprint 11): these four stay as
 // reference examples; only newly-created custom restaurants get an editable
 // 3-part-formula. Transcribed verbatim.
 //

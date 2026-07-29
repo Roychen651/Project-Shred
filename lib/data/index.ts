@@ -4,7 +4,7 @@
 // real to read from yet.
 
 import type { StaticFoodData } from '../domain/smartSwap';
-import { SHUMSHUM, CHICKEN_STATION, GOOMBA, KANSAI } from './cibus';
+import { SHUMSHUM, CHICKEN_STATION, GOOMBA, KANSAI } from './restaurants';
 import { HACKS } from './hacks';
 import { EATING_OUT_MENU } from './eatingOut';
 
@@ -21,5 +21,5 @@ export { INGREDIENT_DB, INGREDIENT_CATEGORIES } from './ingredients';
 export { PORTION_UNITS } from './portionUnits';
 export { HACKS, HACK_CATEGORIES } from './hacks';
 export { EATING_OUT_MENU, EATING_OUT_CATEGORIES } from './eatingOut';
-export { SHUMSHUM, CHICKEN_STATION, GOOMBA, KANSAI } from './cibus';
+export { SHUMSHUM, CHICKEN_STATION, GOOMBA, KANSAI } from './restaurants';
 export { WORKOUTS } from './workouts';

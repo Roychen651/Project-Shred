@@ -25,7 +25,7 @@
 --     `profile_id` column on `logged_items`.
 --
 --  4. Reference data (INGREDIENT_DB 279 / HACKS 64 / EATING_OUT_MENU 73, the four
---     built-in Cibus restaurants, the A1/B1/A2/B2 workout templates) is NOT in this
+--     built-in Restaurant Matrix restaurants, the A1/B1/A2/B2 workout templates) is NOT in this
 --     schema. It lives in version-controlled TypeScript under `lib/data/` — it is
 --     static, read on every keystroke of the Plate Composer search, and feeds
 --     `buildFoodLibrary()`'s per-render combinatorial enumeration. Postgres would
@@ -144,7 +144,7 @@ create trigger user_settings_set_updated_at
 -- logged_items  <-  state.itemsByDate  (THE core table)
 --
 -- The unified item schema from Sprint 15, 1:1. Every logging surface in the app
--- (Cibus, Kitchen Hacks, Plate Composer, quick-log NLP parser, Smart Swap,
+-- (Restaurant Matrix, Kitchen Hacks, Plate Composer, quick-log NLP parser, Smart Swap,
 -- Favorites) normalizes through `makeLoggedItem()` into exactly this shape.
 -- ===========================================================================
 create table public.logged_items (
@@ -170,7 +170,7 @@ create table public.logged_items (
   is_completed   boolean not null default true,
 
   source         text not null default 'manual'
-                   check (source in ('cibus', 'hack', 'plate', 'quicklog', 'favorite', 'swap', 'manual')),
+                   check (source in ('restaurant', 'hack', 'plate', 'quicklog', 'favorite', 'swap', 'manual')),
 
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now()

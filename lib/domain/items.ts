@@ -1,7 +1,8 @@
 // The unified logged-item schema. ProjectShred.artifact.jsx:819-874 (Sprint 15).
 //
-// Every logging surface (Cibus, Kitchen Hacks, Plate Composer, quick-log parser,
-// Smart Swap, Favorites) normalizes through makeLoggedItem() into this exact shape.
+// Every logging surface (Restaurant Matrix, Kitchen Hacks, Plate Composer,
+// quick-log parser, Smart Swap, Favorites) normalizes through makeLoggedItem()
+// into this exact shape.
 // `grams` is a PORTION INDEX, not a literal weight, for anything that isn't a raw
 // ingredient: 100 = "the portion exactly as originally logged". Displayed macros
 // are always base * (grams / 100) via scaleLoggedItem() — never re-derived any
@@ -11,7 +12,7 @@ import { roundNum, genId } from './util';
 import type { SlotId } from './slots';
 
 export type { SlotId };
-export type ItemSource = 'cibus' | 'hack' | 'plate' | 'quicklog' | 'favorite' | 'swap' | 'manual';
+export type ItemSource = 'restaurant' | 'hack' | 'plate' | 'quicklog' | 'favorite' | 'swap' | 'manual';
 
 export interface LoggedItem {
   id: string;

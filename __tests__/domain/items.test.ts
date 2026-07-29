@@ -5,14 +5,14 @@ describe('makeLoggedItem', () => {
   it('rounds base macros the same way scaleLoggedItem later expects', () => {
     const item = makeLoggedItem({
       dateKey: '2026-07-20', slotId: 'lunch', name: 'Test',
-      calories: 500.4, protein: 40.06, carbs: 50.02, fats: 10.04, source: 'cibus',
+      calories: 500.4, protein: 40.06, carbs: 50.02, fats: 10.04, source: 'restaurant',
     });
     expect(item.id).toMatch(/^log-/);
     expect(item.dateKey).toBe('2026-07-20');
     expect(item.slotId).toBe('lunch');
     expect(item.grams).toBe(100);
     expect(item.isCompleted).toBe(true);
-    expect(item.source).toBe('cibus');
+    expect(item.source).toBe('restaurant');
     // Math.round(500.4) = 500; roundNum(40.06) = 40.1; roundNum(50.02) = 50; roundNum(10.04) = 10
     expect(item.baseCalories).toBe(500);
     expect(item.baseProtein).toBe(40.1);
@@ -32,7 +32,7 @@ describe('scaleLoggedItem — grams as a portion index, not a weight', () => {
     const item: LoggedItem = {
       id: 'log-x', dateKey: '2026-07-20', slotId: 'lunch', name: 'Test',
       baseCalories: 500, baseProtein: 40.1, baseCarbs: 50, baseFats: 10,
-      grams: 150, isCompleted: true, source: 'cibus',
+      grams: 150, isCompleted: true, source: 'restaurant',
     };
     const scaled = scaleLoggedItem(item);
     // factor = 1.5. protein: roundNum(40.1*1.5) = roundNum(60.15) = 60.2 (601.5 rounds up)
@@ -43,7 +43,7 @@ describe('scaleLoggedItem — grams as a portion index, not a weight', () => {
     const item: LoggedItem = {
       id: 'log-x', dateKey: '2026-07-20', slotId: 'lunch', name: 'Test',
       baseCalories: 500, baseProtein: 40.1, baseCarbs: 50, baseFats: 10,
-      grams: 100, isCompleted: true, source: 'cibus',
+      grams: 100, isCompleted: true, source: 'restaurant',
     };
     expect(scaleLoggedItem(item)).toEqual({ calories: 500, protein: 40.1, carbs: 50, fats: 10 });
   });
@@ -54,7 +54,7 @@ describe('sumItems — must match supabase daily_totals view exactly', () => {
   // two layers are asserted against the same numbers.
   it('excludes uncompleted items and scales completed ones by their portion index', () => {
     const items: LoggedItem[] = [
-      { id: 'a', dateKey: 'd', slotId: 'lunch', name: 'A', baseCalories: 500, baseProtein: 40, baseCarbs: 50, baseFats: 10, grams: 100, isCompleted: true, source: 'cibus' },
+      { id: 'a', dateKey: 'd', slotId: 'lunch', name: 'A', baseCalories: 500, baseProtein: 40, baseCarbs: 50, baseFats: 10, grams: 100, isCompleted: true, source: 'restaurant' },
       { id: 'b', dateKey: 'd', slotId: 'dinner', name: 'B', baseCalories: 300, baseProtein: 25, baseCarbs: 30, baseFats: 8, grams: 150, isCompleted: true, source: 'plate' },
       { id: 'c', dateKey: 'd', slotId: 'dinner', name: 'C', baseCalories: 900, baseProtein: 90, baseCarbs: 90, baseFats: 30, grams: 100, isCompleted: false, source: 'hack' },
     ];

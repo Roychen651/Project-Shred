@@ -13,8 +13,8 @@
 //
 // ABSOLUTE COMPATIBILITY: logItems(specs, slotId) keeps the artifact's exact
 // signature and behavior — it is the one function every logging surface in the
-// app (Cibus, Kitchen Hacks, Plate Composer, quick-log parser, Smart Swap,
-// Favorites) calls, and nothing about porting the UI should need to touch it.
+// app (Restaurant Matrix, Kitchen Hacks, Plate Composer, quick-log parser, Smart
+// Swap, Favorites) calls, and nothing about porting the UI should need to touch it.
 
 import { create } from 'zustand';
 import { makeLoggedItem, sumItems, type LoggedItem, type MacroTotals, type SlotId, type ItemSource } from '../domain/items';
@@ -147,7 +147,7 @@ export interface ShredState {
   // Sprint 13 — custom ingredients
   customIngredients: CustomIngredient[];
 
-  // Sprint 11 — custom Cibus/Hacks
+  // Sprint 11 — custom restaurants/Hacks
   customRestaurants: CustomRestaurant[];
   customHacks: CustomHack[];
 

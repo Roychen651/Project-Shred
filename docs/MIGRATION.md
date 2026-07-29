@@ -35,7 +35,7 @@ sent as a `date`. There is no server-side date defaulting anywhere in the schema
 ## Decisions taken, and where they differ from `docs/MIGRATION_BRIEF.original.md`
 
 **Reference data stays in the repo, not Postgres.** `INGREDIENT_DB` (279), `HACKS` (64),
-`EATING_OUT_MENU` (73), the four built-in Cibus restaurants and the A1/B1/A2/B2 workout
+`EATING_OUT_MENU` (73), the four built-in restaurants and the A1/B1/A2/B2 workout
 templates become typed TS modules under `lib/data/`. They are static, never user-written,
 read on every keystroke of the Plate Composer search, and feed `buildFoodLibrary()`'s
 per-render combinatorial enumeration. In Postgres they would add latency to the hottest UI
@@ -148,23 +148,38 @@ cross-user RLS isolation from inside the `authenticated` role, and account-delet
       flush pattern, extracted and tested standalone). Actual Supabase persistence is not yet
       wired in — see CLAUDE.md's Sprint 2 summary for the honest scope note.
 - [x] **3 · Reference data + UI foundation.** `INGREDIENT_DB` (279) / `HACKS` (64) /
-      `EATING_OUT_MENU` (73) / the 4 Cibus builders / `WORKOUTS` transcribed verbatim into
+      `EATING_OUT_MENU` (73) / the 4 built-in restaurants / `WORKOUTS` transcribed verbatim into
       `lib/data/`, count- and structure-tested, and cross-checked against the raw source
       independently of the transcription itself. `buildFoodLibrary()`'s milestone-2 deferred
       wiring is closed — it now runs against the real data. Theme tokens (`JEWEL`,
       `THEME_PRESETS`, fonts) ported into `lib/theme/`, plus a first slice of the app shell
       (`BottomNav`, `SheetModal`, `ActionFab`, `FabMenu`) rebuilt with framer-motion in place of
       the artifact's CSS transitions — verified in a real browser, not just unit tests.
-- [ ] **4 · Auth.** `@supabase/ssr` browser + server clients, middleware session refresh,
+- [x] **4 · Tab shell + first real screens, wired to the store.** `app/page.tsx` is a real
+      4-tab app (Today/Nutrition/Workouts/Insights) with `AnimatePresence` cross-fade/slide
+      between them, reading and writing `lib/store/shred-store.ts` directly — no more static
+      demo data. Today renders the ported `CompositeHeroRing` + `SmartContextCard` against live
+      `consumedForDate()`. Nutrition opens three sheets, each calling `store.logItems()` on
+      confirm: quick-log (the real NLP parser), a scoped-down restaurant/eating-out browser
+      (renamed from "Cibus" — see the rebrand note below), and a scoped-down plate composer.
+      Workouts/Insights are honest placeholders, not fabricated content. **Rebrand:** "Cibus" —
+      the artifact's real meal-benefit platform name — renamed to the generic "מסעדות" /
+      "Restaurant Matrix" throughout UI text, the `ItemSource` type, and the `source` DB check
+      constraint (edited in place in migration 0001; nothing has been deployed against it yet).
+      The underlying restaurant data is untouched, only the umbrella name changed.
+- [ ] **5 · Auth.** `@supabase/ssr` browser + server clients, middleware session refresh,
       `/login` with Google, `/auth/callback` code exchange, route guard.
-- [ ] **5 · Wire the sync scheduler to Supabase.** `lib/store/sync-scheduler.ts`'s `persist()`
+- [ ] **6 · Wire the sync scheduler to Supabase.** `lib/store/sync-scheduler.ts`'s `persist()`
       is currently a mock in tests; give it a real Supabase-backed implementation once
       credentials exist.
-- [ ] **6 · UI port.** The remaining components (Timeline, CibusMatrix, PlateComposerWidget,
-      WorkoutPanel, AiCoachWidget, etc.) moved into the shell, wired to the store.
-- [ ] **7 · Backup import.** Read an exported `project-shred-backup-v*.json` and load it into
+- [ ] **7 · Full UI port.** The remaining components (Timeline, the full restaurant-matrix
+      builders per restaurant, the full multi-region PlateComposerWidget, WorkoutPanel,
+      AiCoachWidget, ComplianceHeatmap, etc.) moved into the shell, replacing milestone 4's
+      scoped-down sheet bodies where they fall short of the artifact's full functionality.
+- [ ] **8 · Backup import.** Read an exported `project-shred-backup-v*.json` and load it into
       the account — this is how existing artifact data (including real body metrics) gets in.
-- [ ] **8 · CI/CD.** Vercel preview-per-PR and production on `main`.
+- [ ] **9 · CI/CD.** Vercel preview-per-PR and production on `main`. Not yet connected as far
+      as this session can verify — see the note in the Sprint 4 summary in `CLAUDE.md`.
 
 ---
 

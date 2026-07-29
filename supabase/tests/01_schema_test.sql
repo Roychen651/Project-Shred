@@ -87,7 +87,7 @@ select tests.assert(
 insert into public.logged_items
   (user_id, date_key, slot_id, name, base_calories, base_protein, base_carbs, base_fats, grams, is_completed, source)
 values
-  ('11111111-1111-1111-1111-111111111111', '2026-07-20', 'lunch',  'A', 500, 40, 50, 10, 100, true,  'cibus'),
+  ('11111111-1111-1111-1111-111111111111', '2026-07-20', 'lunch',  'A', 500, 40, 50, 10, 100, true,  'restaurant'),
   ('11111111-1111-1111-1111-111111111111', '2026-07-20', 'dinner', 'B', 300, 25, 30,  8, 150, true,  'plate'),
   ('11111111-1111-1111-1111-111111111111', '2026-07-20', 'dinner', 'C', 900, 90, 90, 30, 100, false, 'hack');
 

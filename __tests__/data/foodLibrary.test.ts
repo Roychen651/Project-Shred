@@ -3,8 +3,9 @@ import { STATIC_FOOD_DATA } from '@/lib/data';
 import { buildFoodLibrary, findBestMatches } from '@/lib/domain/smartSwap';
 
 // Closes the wiring milestone 2's smartSwap.ts deliberately deferred: this is
-// the real STATIC_FOOD_DATA (built from the actual ported Cibus/Hacks/Eating-Out
-// data), not a synthetic fixture, run through the unchanged algorithm.
+// the real STATIC_FOOD_DATA (built from the actual ported Restaurant Matrix/
+// Hacks/Eating-Out data), not a synthetic fixture, run through the unchanged
+// algorithm.
 describe('buildFoodLibrary — wired to the real reference data', () => {
   it('enumerates a non-trivial library with no custom restaurants/hacks', () => {
     const lib = buildFoodLibrary([], [], STATIC_FOOD_DATA);

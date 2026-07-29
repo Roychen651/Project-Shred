@@ -1,18 +1,25 @@
 'use client';
 
 // ProjectShred.artifact.jsx:5640-5674 (Sprint 14). The three actions, their
-// labels/icons, and the panel's position (bottom: 158 — precisely computed to
-// clear the FAB's own height, per the Sprint 15.7 bugfix note in CLAUDE.md) are
+// icons, and the panel's position (bottom: 158 — precisely computed to clear
+// the FAB's own height, per the Sprint 15.7 bugfix note in CLAUDE.md) are
 // unchanged. The CSS opacity/translateY transition is replaced with an
 // AnimatePresence + spring, plus a staggered entrance across the 3 buttons — a
 // new touch (the artifact animated all three as one block) in the spirit of the
 // sprint 3 "fluid, deeply responsive" mandate.
+//
+// Sprint 4 rebrand: the artifact's second action was "בחר ב-Cibus" (Cibus is
+// the real Israeli meal-benefit platform this app's restaurant data comes
+// from) — renamed to the generic "מסעדות" since a global-facing app shouldn't
+// name a specific regional vendor in its UI. The action id changed from
+// 'cibus' to 'restaurants' to match; the underlying restaurant data
+// (lib/data/restaurants.ts) is untouched.
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wand2, UtensilsCrossed, Layers3, type LucideIcon } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 
-export type FabActionId = 'quicklog' | 'cibus' | 'plate';
+export type FabActionId = 'quicklog' | 'restaurants' | 'plate';
 
 interface FabAction {
   id: FabActionId;
@@ -22,7 +29,7 @@ interface FabAction {
 
 const ACTIONS: FabAction[] = [
   { id: 'quicklog', label: 'רישום חופשי', icon: Wand2 },
-  { id: 'cibus', label: 'בחר ב-Cibus', icon: UtensilsCrossed },
+  { id: 'restaurants', label: 'מסעדות', icon: UtensilsCrossed },
   { id: 'plate', label: 'בנה צלחת', icon: Layers3 },
 ];
 
