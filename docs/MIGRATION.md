@@ -147,16 +147,21 @@ cross-user RLS isolation from inside the `authenticated` role, and account-delet
       and `lib/store/sync-scheduler.ts` (the Sprint 16.2 debounce + visibility/pagehide/blur
       flush pattern, extracted and tested standalone). Actual Supabase persistence is not yet
       wired in — see CLAUDE.md's Sprint 2 summary for the honest scope note.
-- [ ] **3 · Reference data.** `INGREDIENT_DB` / `HACKS` / `EATING_OUT_MENU` / Cibus /
-      `WORKOUTS` → typed modules under `lib/data/`, with count assertions (279 / 64 / 73) so
-      a bad transcription fails loudly.
+- [x] **3 · Reference data + UI foundation.** `INGREDIENT_DB` (279) / `HACKS` (64) /
+      `EATING_OUT_MENU` (73) / the 4 Cibus builders / `WORKOUTS` transcribed verbatim into
+      `lib/data/`, count- and structure-tested, and cross-checked against the raw source
+      independently of the transcription itself. `buildFoodLibrary()`'s milestone-2 deferred
+      wiring is closed — it now runs against the real data. Theme tokens (`JEWEL`,
+      `THEME_PRESETS`, fonts) ported into `lib/theme/`, plus a first slice of the app shell
+      (`BottomNav`, `SheetModal`, `ActionFab`, `FabMenu`) rebuilt with framer-motion in place of
+      the artifact's CSS transitions — verified in a real browser, not just unit tests.
 - [ ] **4 · Auth.** `@supabase/ssr` browser + server clients, middleware session refresh,
       `/login` with Google, `/auth/callback` code exchange, route guard.
-- [ ] **5 · Store + sync.** Zustand store mirroring today's state shape; hydrate from
-      Supabase on mount, optimistic local mutation, debounced write-through plus the
-      `visibilitychange`/`pagehide` flush.
-- [ ] **6 · UI port.** Components moved largely verbatim, `window.storage` swapped for store
-      actions. Styling untouched.
+- [ ] **5 · Wire the sync scheduler to Supabase.** `lib/store/sync-scheduler.ts`'s `persist()`
+      is currently a mock in tests; give it a real Supabase-backed implementation once
+      credentials exist.
+- [ ] **6 · UI port.** The remaining components (Timeline, CibusMatrix, PlateComposerWidget,
+      WorkoutPanel, AiCoachWidget, etc.) moved into the shell, wired to the store.
 - [ ] **7 · Backup import.** Read an exported `project-shred-backup-v*.json` and load it into
       the account — this is how existing artifact data (including real body metrics) gets in.
 - [ ] **8 · CI/CD.** Vercel preview-per-PR and production on `main`.

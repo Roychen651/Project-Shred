@@ -1,0 +1,117 @@
+'use client';
+
+// ProjectShred.artifact.jsx:5287-5328 (Sprint 14, hardened through Sprints
+// 15.8-15.22 — see CLAUDE.md for the long history of viewport/scroll bugs this
+// exact structure fixes). Layout, sizing (useViewportHeight-measured pixels, not
+// a CSS vh guess), and the `bare` prop's three-region contract are unchanged.
+//
+// New in Sprint 3, per the "no clunky CSS transitions" mandate: the slide-up is
+// a real spring (AnimatePresence + motion), and the sheet can be dragged down by
+// its handle/header to dismiss — a native-feeling gesture the artifact never had.
+// The drag is bound to the handle only (via useDragControls + dragListener=false)
+// rather than the whole panel, so it can never fight the body's own scroll.
+
+import { useRef, type ReactNode } from 'react';
+import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
+import { X } from 'lucide-react';
+import { useTheme } from '@/lib/theme/ThemeContext';
+import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
+import { FONT_DISPLAY } from '@/lib/theme/tokens';
+
+export interface SheetModalProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+  /** When set, the child fully owns its internal layout (a flex-1/min-height:0/
+   * overflow:hidden container) instead of a single auto-scroll region. */
+  bare?: boolean;
+}
+
+const DISMISS_OFFSET = 120; // px dragged down
+const DISMISS_VELOCITY = 600; // px/s
+
+export function SheetModal({ open, onClose, title, children, bare }: SheetModalProps) {
+  const T = useTheme();
+  const vh = useViewportHeight();
+  const panelHeight = Math.round(vh * 0.85);
+  const dragControls = useDragControls();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const handleDragEnd = (_e: PointerEvent | MouseEvent | TouchEvent, info: PanInfo) => {
+    if (info.offset.y > DISMISS_OFFSET || info.velocity.y > DISMISS_VELOCITY) {
+      onClose();
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-40 flex items-end justify-center"
+          style={{ background: T.t.overlayBg }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.22 }}
+          onClick={onClose}
+        >
+          <motion.div
+            ref={panelRef}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full rounded-t-3xl flex flex-col"
+            style={{
+              maxWidth: 640,
+              height: panelHeight, maxHeight: panelHeight,
+              background: T.t.modalBg, borderTop: `1px solid ${T.t.border}`,
+              boxShadow: '0 -20px 50px -20px rgba(0,0,0,0.35)',
+              overflow: 'hidden',
+              touchAction: 'none',
+            }}
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 400 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragEnd={handleDragEnd}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            <div
+              className="flex-shrink-0 rounded-t-3xl"
+              style={{ background: T.t.modalBg, touchAction: 'none', cursor: 'grab' }}
+              onPointerDown={(e) => dragControls.start(e)}
+            >
+              <div className="flex justify-center pt-3 pb-1">
+                <span className="rounded-full" style={{ width: 36, height: 4, background: T.t.border }} />
+              </div>
+              <div className="flex items-center justify-between px-5 pb-3">
+                <h3 className="text-base font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>{title}</h3>
+                <button
+                  onClick={onClose}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="p-1.5 rounded-lg"
+                  style={{ background: T.t.chipBg }}
+                >
+                  <X size={15} color={T.t.textSecondary} />
+                </button>
+              </div>
+            </div>
+            {bare ? (
+              <div className="flex-1 flex flex-col" style={{ minHeight: 0, overflow: 'hidden', touchAction: 'pan-y' }}>{children}</div>
+            ) : (
+              <div
+                className="px-5 pb-8 flex-1"
+                style={{ minHeight: 0, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+              >
+                {children}
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
