@@ -18,8 +18,11 @@ import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles } 
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
+import { useWireSync } from '@/lib/store/wireSync';
 import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/targets';
 import type { SlotId } from '@/lib/domain/slots';
+import type { WorkoutDayKey } from '@/lib/data/workouts';
+import type { ExerciseSet } from '@/lib/domain/workouts';
 
 import { BottomNav, type NavTabId } from '@/components/shell/BottomNav';
 import { ActionFab } from '@/components/shell/ActionFab';
@@ -33,6 +36,8 @@ import { SmartContextCard } from '@/components/today/SmartContextCard';
 import { QuickLogSheetBody } from '@/components/nutrition/QuickLogSheetBody';
 import { RestaurantMatrixSheetBody } from '@/components/nutrition/RestaurantMatrixSheetBody';
 import { PlateComposerSheetBody } from '@/components/nutrition/PlateComposerSheetBody';
+
+import { WorkoutPanel } from '@/components/workouts/WorkoutPanel';
 
 type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
 type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | null;
@@ -51,6 +56,7 @@ function SegBtn({ active, onClick, children }: { active: boolean; onClick: () =>
 }
 
 export default function Home() {
+  useWireSync();
   const T = useTheme();
   const store = useShredStore();
   const [activeTab, setActiveTab] = useState<NavTabId>('today');
@@ -183,9 +189,16 @@ export default function Home() {
             )}
 
             {activeTab === 'workouts' && (
-              <div className="rounded-2xl p-6 text-center" style={{ background: T.t.card, border: `1px solid ${T.t.border}`, color: T.t.textDim }}>
-                מעקב אימונים — בקרוב בספרינט הבא.
-              </div>
+              <WorkoutPanel
+                exerciseLogs={store.exerciseLogs}
+                selectedDateKey={store.selectedDateKey}
+                onWorkoutActivity={(done: boolean, workoutDayKey: WorkoutDayKey) =>
+                  store.setWorkoutActivity(store.selectedDateKey, done, workoutDayKey)
+                }
+                onLogSet={(exerciseName: string, patch: ExerciseSet) =>
+                  store.logExerciseSet(store.selectedDateKey, exerciseName, patch)
+                }
+              />
             )}
 
             {activeTab === 'insights' && (
