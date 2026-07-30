@@ -15,9 +15,23 @@ p, span, div, button, input, textarea, li {
 h1, h2, h3 {
   line-height: 1.25;
 }
+/* Sprint 11 — the previous rule here only dimmed the native spin buttons
+ * (opacity: 0.35); it never actually removed them, so every number input in
+ * the app still showed the browser's default 1990s-style up/down arrows.
+ * Genuinely hidden now, app-wide, in one place — the new Stepper component
+ * (components/ui/Stepper.tsx) replaces them with a real custom control on
+ * the highest-visibility numeric fields (onboarding, profile settings); this
+ * rule is what keeps every OTHER number input (metric tracker, exercise
+ * weight/reps, day editor, portion quantity) clean too, without needing a
+ * Stepper everywhere a number can be typed. */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-  opacity: 0.35;
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
 }
 input,
 textarea {

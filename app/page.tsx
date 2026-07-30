@@ -58,16 +58,21 @@ import { useSyncStatusStore } from '@/lib/store/sync-status';
 type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
 type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | null;
 
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
+
 function SegBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   const T = useTheme();
   return (
-    <button
+    <motion.button
       onClick={onClick}
+      whileTap={{ scale: 0.94 }}
+      whileHover={{ scale: 1.03 }}
+      transition={tapSpring}
       className="px-3 py-1.5 rounded-lg text-xs font-bold"
       style={{ background: active ? T.accent : 'transparent', color: active ? '#07080B' : T.t.textSecondary }}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }
 
@@ -181,22 +186,28 @@ export default function Home() {
               deleteProfile={store.deleteProfile}
             />
             <SyncStatusIndicator />
-            <button
+            <motion.button
               onClick={() => setSettingsOpen(true)}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.06 }}
+              transition={tapSpring}
               className="flex items-center justify-center rounded-xl"
               style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
               aria-label="הגדרות"
             >
               <Settings2 size={16} color={T.t.textSecondary} />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => T.setMode(T.mode === 'dark' ? 'light' : 'dark')}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.06 }}
+              transition={tapSpring}
               className="flex items-center justify-center rounded-xl"
               style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
               aria-label="מצב תצוגה"
             >
               {T.mode === 'dark' ? <MoonIcon size={16} color={T.t.textSecondary} /> : <SunIcon size={16} color={T.t.textSecondary} />}
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -225,24 +236,30 @@ export default function Home() {
 
             {activeTab === 'nutrition' && (
               <div className="grid grid-cols-2 gap-3">
-                <button
+                <motion.button
                   onClick={() => setActiveSheet('restaurants')}
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.02 }}
+                  transition={tapSpring}
                   className="flex flex-col items-start gap-2 p-4 rounded-2xl text-right"
                   style={{ background: T.t.card, border: `1.5px solid ${T.t.border}` }}
                 >
                   <UtensilsCrossed size={20} color={T.accent} />
                   <span className="text-sm font-bold">מטריצת מסעדות</span>
                   <span className="text-xs" style={{ color: T.t.textDim }}>מסעדות ואוכל בחוץ</span>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => setActiveSheet('plate')}
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.02 }}
+                  transition={tapSpring}
                   className="flex flex-col items-start gap-2 p-4 rounded-2xl text-right"
                   style={{ background: T.t.card, border: `1.5px solid ${T.t.border}` }}
                 >
                   <Layers3 size={20} color={T.accent} />
                   <span className="text-sm font-bold">בנה צלחת אישית</span>
                   <span className="text-xs" style={{ color: T.t.textDim }}>גולמי/מבושל · גרם מדויק</span>
-                </button>
+                </motion.button>
               </div>
             )}
 
@@ -261,8 +278,11 @@ export default function Home() {
 
             {activeTab === 'insights' && (
               <div className="flex flex-col gap-4">
-                <button
+                <motion.button
                   onClick={() => setWeeklyReportOpen(true)}
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01 }}
+                  transition={tapSpring}
                   className="flex items-center justify-between p-4 rounded-2xl text-right"
                   style={{ background: T.t.card, border: `1.5px solid ${T.t.border}` }}
                 >
@@ -271,7 +291,7 @@ export default function Home() {
                     <span className="text-sm font-bold" style={{ color: T.t.textPrimary }}>דוח שבועי מנהלים</span>
                   </div>
                   <span className="text-xs" style={{ color: T.t.textDim }}>דיוק ממוצע {weeklyReport.avgCompliance}%</span>
-                </button>
+                </motion.button>
 
                 <MetabolicInsightCard metricEntries={store.metricEntries} goal={activeProfile.goal} />
 

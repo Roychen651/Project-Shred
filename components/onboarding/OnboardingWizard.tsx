@@ -24,6 +24,7 @@ import { Sparkles, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 import { FieldInput } from '@/components/settings/FieldInput';
+import { Stepper } from '@/components/ui/Stepper';
 import { ACTIVITY_LEVELS, GOALS, computeProfileTargets, type ActivityKey, type GoalKey } from '@/lib/domain/targets';
 import type { Profile } from '@/lib/store/shred-store';
 
@@ -36,6 +37,7 @@ export interface OnboardingWizardProps {
 type Draft = { name: string; age: number; weight: number; height: number; waist: number; activity: ActivityKey; goal: GoalKey };
 
 const STEP_TITLES = ['ברוכים הבאים', 'נתונים גופניים', 'מטרה ורמת פעילות'];
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export function OnboardingWizard({ profile, updateProfile, onComplete }: OnboardingWizardProps) {
   const T = useTheme();
@@ -70,9 +72,9 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
           maxHeight: '90vh',
           background: T.mode === 'dark' ? `${T.t.modalBg}E8` : `${T.t.modalBg}F7`,
           border: `1px solid ${T.accent}33`,
-          boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 24, '35')}`,
-          backdropFilter: 'blur(20px) saturate(160%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+          boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 28, '35')}, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.75)'}, inset 0 0 0 1px ${T.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)'}`,
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
         }}
       >
         {/* progress dots */}
@@ -119,10 +121,10 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
                 <div className="flex flex-col gap-4 py-2">
                   <h3 className="text-base font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>נתונים גופניים</h3>
                   <div className="grid grid-cols-2 gap-3">
-                    <FieldInput label="גיל" type="number" suffix="שנים" value={draft.age} onChange={(v) => setDraft((d) => ({ ...d, age: Number(v) || 0 }))} />
-                    <FieldInput label="משקל" type="number" suffix="ק״ג" value={draft.weight} onChange={(v) => setDraft((d) => ({ ...d, weight: Number(v) || 0 }))} />
-                    <FieldInput label="גובה" type="number" suffix="ס״מ" value={draft.height} onChange={(v) => setDraft((d) => ({ ...d, height: Number(v) || 0 }))} />
-                    <FieldInput label="היקף מותן" type="number" suffix="ס״מ" value={draft.waist} onChange={(v) => setDraft((d) => ({ ...d, waist: Number(v) || 0 }))} />
+                    <Stepper label="גיל" suffix="שנים" value={draft.age} onChange={(v) => setDraft((d) => ({ ...d, age: v }))} min={10} max={100} />
+                    <Stepper label="משקל" suffix="ק״ג" value={draft.weight} onChange={(v) => setDraft((d) => ({ ...d, weight: v }))} step={0.5} min={30} max={300} />
+                    <Stepper label="גובה" suffix="ס״מ" value={draft.height} onChange={(v) => setDraft((d) => ({ ...d, height: v }))} min={100} max={250} />
+                    <Stepper label="היקף מותן" suffix="ס״מ" value={draft.waist} onChange={(v) => setDraft((d) => ({ ...d, waist: v }))} min={40} max={200} />
                   </div>
                 </div>
               )}
@@ -133,9 +135,12 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
                     <h3 className="text-base font-bold mb-2" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>רמת פעילות</h3>
                     <div className="grid grid-cols-1 gap-2">
                       {(Object.entries(ACTIVITY_LEVELS) as [ActivityKey, { label: string; mult: number }][]).map(([key, a]) => (
-                        <button
+                        <motion.button
                           key={key}
                           onClick={() => setDraft((d) => ({ ...d, activity: key }))}
+                          whileTap={{ scale: 0.97 }}
+                          whileHover={{ scale: 1.015 }}
+                          transition={tapSpring}
                           className="flex items-center justify-between py-2.5 px-3.5 rounded-lg text-sm font-semibold text-right"
                           style={{
                             background: draft.activity === key ? T.accent : T.t.chipBg,
@@ -145,7 +150,7 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
                         >
                           <span>{a.label}</span>
                           <span style={{ opacity: 0.7 }}>×{a.mult}</span>
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
@@ -153,9 +158,12 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
                     <h3 className="text-base font-bold mb-2" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>מטרה</h3>
                     <div className="grid grid-cols-2 gap-2">
                       {(Object.entries(GOALS) as [GoalKey, { label: string; pct: number }][]).map(([key, g]) => (
-                        <button
+                        <motion.button
                           key={key}
                           onClick={() => setDraft((d) => ({ ...d, goal: key }))}
+                          whileTap={{ scale: 0.97 }}
+                          whileHover={{ scale: 1.015 }}
+                          transition={tapSpring}
                           className="py-2.5 px-3 rounded-lg text-sm font-semibold"
                           style={{
                             background: draft.goal === key ? T.accent : T.t.chipBg,
@@ -164,7 +172,7 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
                           }}
                         >
                           {g.label}
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
@@ -179,31 +187,40 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
         </div>
 
         <div className="flex items-center justify-between gap-3 p-5 flex-shrink-0" style={{ borderTop: `1px solid ${T.t.border}` }}>
-          <button
+          <motion.button
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
+            whileTap={step === 0 ? undefined : { scale: 0.94 }}
+            whileHover={step === 0 ? undefined : { scale: 1.03 }}
+            transition={tapSpring}
             className="flex items-center gap-1 px-3 py-2.5 rounded-xl text-sm font-semibold"
             style={{ color: T.t.textSecondary, opacity: step === 0 ? 0.35 : 1 }}
           >
             <ChevronRight size={16} /> חזרה
-          </button>
+          </motion.button>
           {step < STEP_TITLES.length - 1 ? (
-            <button
+            <motion.button
               onClick={() => setStep((s) => Math.min(STEP_TITLES.length - 1, s + 1))}
               disabled={!canAdvance}
+              whileTap={canAdvance ? { scale: 0.96 } : undefined}
+              whileHover={canAdvance ? { scale: 1.02 } : undefined}
+              transition={tapSpring}
               className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold"
-              style={{ background: T.accent, color: '#07080B', opacity: canAdvance ? 1 : 0.5 }}
+              style={{ background: T.accent, color: '#07080B', opacity: canAdvance ? 1 : 0.5, boxShadow: canAdvance ? T.glow(T.accent, 16, '30') : 'none' }}
             >
               המשך <ChevronLeft size={16} />
-            </button>
+            </motion.button>
           ) : (
-            <button
+            <motion.button
               onClick={finish}
+              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.02 }}
+              transition={tapSpring}
               className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold"
-              style={{ background: T.accent, color: '#07080B' }}
+              style={{ background: T.accent, color: '#07080B', boxShadow: T.glow(T.accent, 16, '30') }}
             >
               <Check size={16} /> בואו נתחיל
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
