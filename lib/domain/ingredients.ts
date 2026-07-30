@@ -49,6 +49,37 @@ export function getPer100(ingredient: Ingredient, state: IngredientState): Macro
   return ingredient.raw;
 }
 
+// Structural, not a store import (lib/domain must not depend on lib/store —
+// the store depends on the domain layer, never the reverse). Matches the
+// shape of shred-store.ts's CustomIngredient exactly; category is widened to
+// `string` there because it round-trips through a DB check-constraint rather
+// than this file's IngredientCategory union, so it's narrowed defensively
+// here instead of trusted blindly.
+export interface CustomIngredientLike {
+  id: string;
+  name: string;
+  category: string;
+  hasCookedVariant: boolean;
+  cookedFactor?: number;
+  raw: Macros100;
+}
+
+const VALID_CATEGORIES = new Set<IngredientCategory>(['protein', 'carb', 'fat', 'veg', 'fruit', 'dairy_snacks', 'condiments']);
+
+// A saved custom ingredient is always single-state (see CLAUDE.md — a
+// packaged product's label already reflects how it's normally weighed), so
+// this always returns the `hasCookedVariant: false` branch regardless of
+// what was stored — matching the artifact's own custom-ingredient behavior.
+export function customIngredientToIngredient(ci: CustomIngredientLike): Ingredient {
+  return {
+    id: ci.id,
+    name: ci.name,
+    category: VALID_CATEGORIES.has(ci.category as IngredientCategory) ? (ci.category as IngredientCategory) : 'protein',
+    hasCookedVariant: false,
+    raw: ci.raw,
+  };
+}
+
 export function getIngredientMacros(ingredient: Ingredient, state: IngredientState, grams: number): Macros100 {
   const per100 = getPer100(ingredient, state);
   const factor = grams / 100;

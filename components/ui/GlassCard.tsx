@@ -43,13 +43,17 @@ export function GlassCard({ children, className = '', style = {}, accent }: Glas
   const a = accent || T.accent;
   const isDark = T.mode === 'dark';
 
-  const glassBg = isDark ? `${T.t.card}B8` : `${T.t.card}F0`; // ~72% dark / ~94% light
-  const innerHighlight = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.75)';
+  // Sprint 13: dark-mode alpha nudged down (B8 -> AA, ~67% opaque) so the
+  // brightened ambient blobs behind the card (see page.tsx) actually read
+  // through the glass instead of the card reading as a near-opaque patch on
+  // top of them — the two changes only work together.
+  const glassBg = isDark ? `${T.t.card}AA` : `${T.t.card}F0`; // ~67% dark / ~94% light
+  const innerHighlight = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.75)';
   // Full-perimeter inset ring — the "1px light-reflection edge" — distinct
   // from the actual border below, which still carries accent color when set.
-  const innerRing = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.55)';
+  const innerRing = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.55)';
   const glassBorder = accent === null
-    ? (isDark ? 'rgba(255,255,255,0.09)' : T.t.border)
+    ? (isDark ? 'rgba(255,255,255,0.13)' : T.t.border)
     : `${a}45`;
 
   const nearShadow = isDark ? '0 6px 14px -8px rgba(0,0,0,0.55)' : '0 4px 10px -6px rgba(36,31,26,0.12)';

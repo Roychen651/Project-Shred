@@ -92,8 +92,12 @@ export default function Home() {
   // see AddToHomeScreenPrompt/ExerciseRow/WorkoutPanel). hydrationSettled
   // distinguishes "haven't checked yet" from "checked, and onboarding really
   // hasn't been seen" — see sync-status.ts for why that distinction matters.
+  // Sprint 13 — also requires !hydrationFailed: a real backend configured but
+  // a failed hydrate fetch must NOT show onboarding to a returning user just
+  // because hasSeenOnboarding never got the chance to load (see sync-status.ts).
   const hydrationSettled = useSyncStatusStore((s) => s.hydrationSettled);
-  const showOnboarding = hydrationSettled && !store.hasSeenOnboarding;
+  const hydrationFailed = useSyncStatusStore((s) => s.hydrationFailed);
+  const showOnboarding = hydrationSettled && !hydrationFailed && !store.hasSeenOnboarding;
 
   const activeProfile = store.profiles[store.activeProfileId];
   const computed = computeProfileTargets(activeProfile);
@@ -134,26 +138,33 @@ export default function Home() {
 
   return (
     <main className="min-h-screen w-full relative" style={{ background: T.t.bgGrad, color: T.t.textPrimary, paddingBottom: 190 }}>
-      {/* Sprint 5, brightened in Sprint 8: ambient background glow — two large,
-          softly blurred, fixed radial blobs in the accent + protein jewel
-          tones. Fixed (not absolute) so they read as page-level atmosphere
-          rather than scrolling with content; pointer-events-none + negative
-          z-index keep them fully decorative and never in the way of a tap.
-          Sprint 8 raised the alpha and shrank the blur slightly — screenshots
-          showed them reading as nearly flat black at the original values. */}
+      {/* Sprint 5, brightened in Sprint 8, deepened again in Sprint 13: ambient
+          background glow — two large, softly blurred, fixed radial blobs in
+          the accent + protein jewel tones. Fixed (not absolute) so they read
+          as page-level atmosphere rather than scrolling with content;
+          pointer-events-none + negative z-index keep them fully decorative
+          and never in the way of a tap. Sprint 8 raised the alpha and shrank
+          the blur slightly — screenshots showed them reading as nearly flat
+          black at the original values. Sprint 13's screenshots showed the
+          same thing one step further: the blobs were real but too faint
+          against the card directly on top of them, reading as "flat" in a
+          screenshot even though the glass itself (blur/shadow/border — see
+          GlassCard.tsx) was doing real work. Raised alpha again here, still
+          inside the existing accent/jewel palette — not a new color, not a
+          neon override, just more of what was already there. */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
         <div
           style={{
             position: 'absolute', top: '-12%', insetInlineEnd: '-15%', width: '55vw', height: '55vw', maxWidth: 520, maxHeight: 520,
-            background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '4d' : '2c'} 0%, transparent 70%)`,
-            filter: 'blur(52px)',
+            background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '5c' : '36'} 0%, transparent 70%)`,
+            filter: 'blur(48px)',
           }}
         />
         <div
           style={{
             position: 'absolute', bottom: '-8%', insetInlineStart: '-18%', width: '50vw', height: '50vw', maxWidth: 460, maxHeight: 460,
-            background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '40' : '26'} 0%, transparent 70%)`,
-            filter: 'blur(62px)',
+            background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '52' : '30'} 0%, transparent 70%)`,
+            filter: 'blur(56px)',
           }}
         />
       </div>
@@ -331,7 +342,7 @@ export default function Home() {
       </SheetModal>
 
       <SheetModal open={activeSheet === 'plate'} onClose={() => setActiveSheet(null)} title="בונה צלחת אישית">
-        <PlateComposerSheetBody onConfirm={handleLog} />
+        <PlateComposerSheetBody onConfirm={handleLog} customIngredients={store.customIngredients} onSaveCustomIngredient={store.saveCustomIngredient} />
       </SheetModal>
 
       <SheetModal open={activeSheet === 'caloriemath'} onClose={() => setActiveSheet(null)} title="מאיפה היעד הקלורי הזה?">

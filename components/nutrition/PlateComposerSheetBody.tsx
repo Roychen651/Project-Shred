@@ -15,16 +15,33 @@
 // component never actually rendered them, only a grams-only slider — a real
 // gap flagged directly by feedback. Now wired via PortionInput, ported from
 // the artifact's Sprint 15.3 component.
+//
+// Sprint 12 — ISRAELI_INGREDIENTS (105 generic, non-branded staples) merged
+// in alongside INGREDIENT_DB, plus the signed-in person's own
+// customIngredients (mapped through customIngredientToIngredient() —
+// CustomIngredient's category is a wider `string`, round-tripping through a
+// DB check-constraint rather than the Ingredient union, so it isn't
+// structurally assignable without narrowing). STATIC_INGREDIENTS is computed
+// ONCE at module scope, not per-render or even per-mount, so merging in 105
+// more items costs nothing on every keystroke of the search box — the
+// .filter() below still runs over one flat array exactly like it did with
+// INGREDIENT_DB alone. customIngredients changes rarely (only when the
+// person saves a new one), so it's the only piece that needs its own
+// useMemo dependency.
 
 import { useMemo, useState } from 'react';
-import { Search, Plus, Trash2 } from 'lucide-react';
+import { Search, Plus, Trash2, UserPlus } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { INGREDIENT_DB, INGREDIENT_CATEGORIES } from '@/lib/data/ingredients';
-import { getIngredientMacros, type Ingredient, type IngredientState } from '@/lib/domain/ingredients';
+import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
+import { getIngredientMacros, customIngredientToIngredient, type Ingredient, type IngredientState } from '@/lib/domain/ingredients';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
 import { MacroStrip } from '@/components/ui/MacroStrip';
 import { PortionInput, gramsForPortion, formatPortionLabel } from './PortionInput';
-import type { LogItemSpec } from '@/lib/store/shred-store';
+import { CustomIngredientModal } from './CustomIngredientModal';
+import type { LogItemSpec, CustomIngredient } from '@/lib/store/shred-store';
+
+const STATIC_INGREDIENTS: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS];
 
 interface PlateLine {
   id: string;
@@ -38,25 +55,33 @@ interface PlateLine {
 export interface PlateComposerSheetBodyProps {
   onConfirm: (specs: LogItemSpec[], slotId: SlotId) => void;
   defaultSlotId?: SlotId;
+  customIngredients?: CustomIngredient[];
+  onSaveCustomIngredient?: (ing: CustomIngredient) => void;
 }
 
-export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateComposerSheetBodyProps) {
+export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredients = [], onSaveCustomIngredient }: PlateComposerSheetBodyProps) {
   const T = useTheme();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState(INGREDIENT_CATEGORIES[0].id);
-  const [selectedId, setSelectedId] = useState(INGREDIENT_DB[0].id);
+  const [selectedId, setSelectedId] = useState(STATIC_INGREDIENTS[0].id);
   const [state, setState] = useState<IngredientState>('raw');
   const [unit, setUnit] = useState('gram');
   const [qty, setQty] = useState(100);
   const [plate, setPlate] = useState<PlateLine[]>([]);
   const [slotId, setSlotId] = useState<SlotId>(defaultSlotId || 'lunch');
+  const [customModalOpen, setCustomModalOpen] = useState(false);
+
+  const allIngredients = useMemo(
+    () => (customIngredients.length ? [...STATIC_INGREDIENTS, ...customIngredients.map(customIngredientToIngredient)] : STATIC_INGREDIENTS),
+    [customIngredients]
+  );
 
   const filtered = useMemo(() => {
-    if (search.trim()) return INGREDIENT_DB.filter((i) => i.name.includes(search.trim()));
-    return INGREDIENT_DB.filter((i) => i.category === category);
-  }, [search, category]);
+    if (search.trim()) return allIngredients.filter((i) => i.name.includes(search.trim()));
+    return allIngredients.filter((i) => i.category === category);
+  }, [allIngredients, search, category]);
 
-  const selected = INGREDIENT_DB.find((i) => i.id === selectedId) || filtered[0] || INGREDIENT_DB[0];
+  const selected = allIngredients.find((i) => i.id === selectedId) || filtered[0] || allIngredients[0];
   const grams = gramsForPortion(unit, qty);
   const selectedMacros = getIngredientMacros(selected, state, grams);
 
@@ -88,15 +113,26 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateCompos
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative">
-        <Search size={15} color={T.t.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="חפשו מרכיב..."
-          className="w-full py-2.5 pr-9 pl-3 rounded-xl text-sm outline-none"
-          style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary }}
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search size={15} color={T.t.textDim} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="חפשו מרכיב..."
+            className="w-full py-2.5 pr-9 pl-3 rounded-xl text-sm outline-none"
+            style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary }}
+          />
+        </div>
+        <button
+          onClick={() => setCustomModalOpen(true)}
+          className="flex-shrink-0 flex items-center justify-center rounded-xl"
+          style={{ width: 42, background: T.t.inputBg, border: `1.5px solid ${T.t.border}` }}
+          aria-label="הוספת מרכיב אישי"
+          title="לא מצאתם? הוסיפו מרכיב אישי מהתווית"
+        >
+          <UserPlus size={16} color={T.accent} />
+        </button>
       </div>
 
       {!search.trim() && (
@@ -196,6 +232,15 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateCompos
           </button>
         </div>
       )}
+
+      <CustomIngredientModal
+        open={customModalOpen}
+        onClose={() => setCustomModalOpen(false)}
+        onSave={(ing) => {
+          onSaveCustomIngredient?.(ing);
+          setSelectedId(ing.id);
+        }}
+      />
     </div>
   );
 }

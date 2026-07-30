@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getPer100, getIngredientMacros, type Ingredient } from '@/lib/domain/ingredients';
+import { getPer100, getIngredientMacros, customIngredientToIngredient, type Ingredient } from '@/lib/domain/ingredients';
 
 // Fixture matches INGREDIENT_DB's actual חזה עוף entry (artifact:432).
 const chickenBreast: Ingredient = {
@@ -47,5 +47,29 @@ describe('getIngredientMacros — scales getPer100 by grams/100', () => {
 
   it('grams=0 yields all-zero macros, not NaN or division error', () => {
     expect(getIngredientMacros(chickenBreast, 'raw', 0)).toEqual({ kcal: 0, protein: 0, carbs: 0, fat: 0 });
+  });
+});
+
+describe('customIngredientToIngredient — Sprint 12, bridges the store shape into the domain shape', () => {
+  it('maps a well-formed custom ingredient straight through, forcing hasCookedVariant to false', () => {
+    const result = customIngredientToIngredient({
+      id: 'abc-123', name: 'מוצר לדוגמה', category: 'dairy_snacks',
+      hasCookedVariant: true, cookedFactor: 0.8, // even if stored true, single-state is enforced
+      raw: { kcal: 150, protein: 10, carbs: 12, fat: 5 },
+    });
+    expect(result).toEqual({
+      id: 'abc-123', name: 'מוצר לדוגמה', category: 'dairy_snacks',
+      hasCookedVariant: false,
+      raw: { kcal: 150, protein: 10, carbs: 12, fat: 5 },
+    });
+  });
+
+  it('falls back to "protein" for a category outside the known union rather than producing invalid data', () => {
+    const result = customIngredientToIngredient({
+      id: 'x', name: 'קטגוריה משונה', category: 'not-a-real-category',
+      hasCookedVariant: false,
+      raw: { kcal: 100, protein: 5, carbs: 5, fat: 5 },
+    });
+    expect(result.category).toBe('protein');
   });
 });

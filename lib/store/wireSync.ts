@@ -39,6 +39,14 @@ export function useWireSync(): void {
     let unsubscribe: (() => void) | null = null;
     let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
 
+    // Known BEFORE the try/catch so the catch block can tell "no backend to
+    // even attempt" apart from "a real backend call failed" — see
+    // sync-status.ts's Sprint 13 note on hydrationFailed for why that
+    // distinction is load-bearing for the onboarding gate.
+    const hasBackendConfigured = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+
     (async () => {
       try {
         // createClient() throws synchronously if the two NEXT_PUBLIC_SUPABASE_*
@@ -69,6 +77,11 @@ export function useWireSync(): void {
         // no real Supabase project configured at all). The app keeps working
         // fully offline-local; nothing here should ever crash the UI.
         useSyncStatusStore.getState().setStatus('error');
+        // A real backend WAS configured and the fetch still failed — this is
+        // the case hydrationFailed exists for. If no backend is configured at
+        // all, leave it false: there's no session concept to have "lost", so
+        // the local-preview onboarding flow is still the reasonable default.
+        if (hasBackendConfigured && !disposed) useSyncStatusStore.getState().setHydrationFailed(true);
       } finally {
         // Settles exactly once, success or failure — see sync-status.ts for
         // why the onboarding wizard needs this distinct from "checked, and
