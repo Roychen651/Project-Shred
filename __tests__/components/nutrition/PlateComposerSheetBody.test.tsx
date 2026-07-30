@@ -11,7 +11,12 @@ describe('PlateComposerSheetBody', () => {
     // חזה עוף (chicken-breast) — appears both in the picker list and the
     // selected-detail header, so scope to the latter with 'selector'.
     expect(screen.getByText('חזה עוף', { selector: 'span' })).toBeInTheDocument();
-    expect(screen.getByText('100 גר\'')).toBeInTheDocument();
+    // Default portion is the "gram" unit at qty 100 — PortionInput shows the
+    // quantity in its own number field and the unit's short label (גר׳,
+    // PORTION_UNITS' own geresh-punctuated label) separately, not
+    // concatenated into one text node like the old grams-only slider did.
+    expect(screen.getByLabelText('כמות')).toHaveValue(100);
+    expect(screen.getByText('גר׳')).toBeInTheDocument();
   });
 
   it('search finds an ingredient outside the currently-selected category', async () => {

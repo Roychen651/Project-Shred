@@ -6,25 +6,32 @@
 // multi-region component that went through 15+ dedicated bugfix sprints
 // (15.6-15.24 in CLAUDE.md) to reach its current layout — porting that exact
 // structure is future work. This ships a single, working, scrollable flow:
-// search/browse → pick an ingredient → raw/cooked + grams → add to plate →
-// repeat → assign the composed plate to a time slot. No portion units besides
-// grams yet, and no drag/sticky-region layout — genuinely functional, not
-// visually final.
+// search/browse → pick an ingredient → raw/cooked + portion → add to plate →
+// repeat → assign the composed plate to a time slot. No drag/sticky-region
+// layout yet — genuinely functional, not visually final.
+//
+// Sprint 9.1: PORTION_UNITS (12 units — gram/ml/tbsp/tsp/pinch/cup/piece/
+// handful/slice/can/palm/plate) existed in lib/data/ since Sprint 8 but this
+// component never actually rendered them, only a grams-only slider — a real
+// gap flagged directly by feedback. Now wired via PortionInput, ported from
+// the artifact's Sprint 15.3 component.
 
 import { useMemo, useState } from 'react';
 import { Search, Plus, Trash2 } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
 import { INGREDIENT_DB, INGREDIENT_CATEGORIES } from '@/lib/data/ingredients';
 import { getIngredientMacros, type Ingredient, type IngredientState } from '@/lib/domain/ingredients';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
 import { MacroStrip } from '@/components/ui/MacroStrip';
+import { PortionInput, gramsForPortion, formatPortionLabel } from './PortionInput';
 import type { LogItemSpec } from '@/lib/store/shred-store';
 
 interface PlateLine {
   id: string;
   ingredient: Ingredient;
   state: IngredientState;
+  unit: string;
+  qty: number;
   grams: number;
 }
 
@@ -39,7 +46,8 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateCompos
   const [category, setCategory] = useState(INGREDIENT_CATEGORIES[0].id);
   const [selectedId, setSelectedId] = useState(INGREDIENT_DB[0].id);
   const [state, setState] = useState<IngredientState>('raw');
-  const [grams, setGrams] = useState(100);
+  const [unit, setUnit] = useState('gram');
+  const [qty, setQty] = useState(100);
   const [plate, setPlate] = useState<PlateLine[]>([]);
   const [slotId, setSlotId] = useState<SlotId>(defaultSlotId || 'lunch');
 
@@ -49,10 +57,11 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateCompos
   }, [search, category]);
 
   const selected = INGREDIENT_DB.find((i) => i.id === selectedId) || filtered[0] || INGREDIENT_DB[0];
+  const grams = gramsForPortion(unit, qty);
   const selectedMacros = getIngredientMacros(selected, state, grams);
 
   const addToPlate = () => {
-    setPlate((p) => [...p, { id: `${selected.id}-${Date.now()}`, ingredient: selected, state, grams }]);
+    setPlate((p) => [...p, { id: `${selected.id}-${Date.now()}`, ingredient: selected, state, unit, qty, grams }]);
   };
 
   const removeLine = (id: string) => setPlate((p) => p.filter((l) => l.id !== id));
@@ -70,7 +79,7 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateCompos
     onConfirm(
       plate.map((line) => {
         const m = getIngredientMacros(line.ingredient, line.state, line.grams);
-        return { name: `${line.ingredient.name} (${line.grams} גר')`, calories: m.kcal, protein: m.protein, carbs: m.carbs, fats: m.fat, source: 'plate' as const };
+        return { name: `${line.ingredient.name} (${formatPortionLabel(line.unit, line.qty)})`, calories: m.kcal, protein: m.protein, carbs: m.carbs, fats: m.fat, source: 'plate' as const };
       }),
       slotId
     );
@@ -141,19 +150,12 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateCompos
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="range"
-            min={5}
-            max={500}
-            step={5}
-            value={grams}
-            onChange={(e) => setGrams(Number(e.target.value))}
-            className="flex-1"
-            style={{ accentColor: T.accent }}
-          />
-          <span className="text-sm font-bold w-16 text-left" style={{ fontFamily: FONT_MONO, color: T.t.textPrimary }}>{grams} גר&apos;</span>
-        </div>
+        <PortionInput
+          unit={unit}
+          qty={qty}
+          onUnitChange={(u, defaultQty) => { setUnit(u); setQty(defaultQty); }}
+          onQtyChange={setQty}
+        />
         <MacroStrip totals={selectedMacros} />
         <button onClick={addToPlate} className="py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5" style={{ background: T.accent, color: '#07080B' }}>
           <Plus size={14} /> הוסף לצלחת
@@ -165,7 +167,7 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId }: PlateCompos
           <p className="text-xs font-semibold" style={{ color: T.t.textSecondary }}>הצלחת שלכם ({plate.length} פריטים)</p>
           {plate.map((line) => (
             <div key={line.id} className="flex items-center justify-between gap-2 p-2 rounded-lg" style={{ background: T.t.chipBg }}>
-              <span className="text-sm" style={{ color: T.t.textPrimary }}>{line.ingredient.name} · {line.grams} גר&apos;</span>
+              <span className="text-sm" style={{ color: T.t.textPrimary }}>{line.ingredient.name} · {formatPortionLabel(line.unit, line.qty)}</span>
               <button onClick={() => removeLine(line.id)} style={{ color: T.t.textDim }}><Trash2 size={14} /></button>
             </div>
           ))}
