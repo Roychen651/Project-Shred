@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { scoreDayLog, heatColor, buildWeeklyReport, type MacroColorSet, type DayLog } from '@/lib/domain/analytics';
+import { scoreDayLog, heatColor, buildWeeklyReport, buildDailyLog, buildHeatmapColumns, type MacroColorSet, type DayLog, type DayMetaLike } from '@/lib/domain/analytics';
 import type { ComputedTargets } from '@/lib/domain/targets';
+import type { LoggedItem } from '@/lib/domain/items';
 
 describe('scoreDayLog', () => {
   const targets = { label: 'יום מנוחה', kcal: 2330, protein: 168, fat: 59, carbs: 282 };
@@ -82,5 +83,69 @@ describe('buildWeeklyReport', () => {
   it('handles an entirely empty week without dividing by zero', () => {
     const report = buildWeeklyReport({}, [], computed, new Date(2026, 6, 26));
     expect(report).toEqual({ avgCompliance: 0, avgProtein: 0, workoutDays: 0, weightDelta: 0, waistDelta: 0, loggedDays: 0 });
+  });
+});
+
+function item(overrides: Partial<LoggedItem> = {}): LoggedItem {
+  return {
+    id: 'i1', dateKey: '2026-07-20', slotId: 'lunch', name: 'Test',
+    baseCalories: 500, baseProtein: 40, baseCarbs: 50, baseFats: 10,
+    grams: 100, isCompleted: true, source: 'manual',
+    ...overrides,
+  };
+}
+
+const emptyMeta: DayMetaLike = { workoutDone: false, workoutDay: null, manualKcal: null, manualProtein: null, manualCarbs: null, manualFat: null };
+
+describe('buildDailyLog — mirrors the daily_log SQL view (supabase/migrations/0003)', () => {
+  it('returns null for a date with neither items nor meta (genuinely unlogged)', () => {
+    expect(buildDailyLog(undefined, undefined)).toBeNull();
+    expect(buildDailyLog([], undefined)).toBeNull();
+  });
+
+  it('derives totals from completed items via sumItems when there is no manual override', () => {
+    const log = buildDailyLog([item({ isCompleted: true }), item({ id: 'i2', isCompleted: false, baseCalories: 999 })], undefined);
+    // sumItems skips the incomplete item entirely — only the first counts.
+    expect(log).toEqual({ kcal: 500, protein: 40, carbs: 50, fat: 10, workoutDone: false, workoutDay: null });
+  });
+
+  it('a manual override wins over the derived sum, field by field', () => {
+    const meta: DayMetaLike = { ...emptyMeta, manualKcal: 1800, workoutDone: true, workoutDay: 'A1' };
+    const log = buildDailyLog([item()], meta);
+    expect(log).toEqual({ kcal: 1800, protein: 40, carbs: 50, fat: 10, workoutDone: true, workoutDay: 'A1' });
+  });
+
+  it('a workout-only day (meta but no items) still produces a real entry, all-zero macros', () => {
+    const meta: DayMetaLike = { ...emptyMeta, workoutDone: true, workoutDay: 'B1' };
+    expect(buildDailyLog(undefined, meta)).toEqual({ kcal: 0, protein: 0, carbs: 0, fat: 0, workoutDone: true, workoutDay: 'B1' });
+  });
+});
+
+describe('buildHeatmapColumns', () => {
+  const computed: ComputedTargets = {
+    bmr: 1769, tdee: 2742,
+    rest: { label: 'יום מנוחה', kcal: 2330, protein: 168, fat: 59, carbs: 282 },
+    training: { label: 'יום אימון', kcal: 2630, protein: 168, fat: 59, carbs: 357 },
+  };
+
+  it('produces `weeks` columns of 7 cells each, sequential (not calendar-aligned)', () => {
+    const columns = buildHeatmapColumns({}, computed, 6, new Date(2026, 6, 26));
+    expect(columns).toHaveLength(6);
+    columns.forEach((col) => expect(col).toHaveLength(7));
+    expect(columns[5][6].key).toBe('2026-07-26'); // last cell is "today"
+    expect(columns[0][0].key).toBe('2026-06-15'); // first cell is 41 days before today
+  });
+
+  it('scores each cell against training or rest targets based on that day\'s log', () => {
+    const columns = buildHeatmapColumns({ '2026-07-26': { kcal: 2630, protein: 168, workoutDone: true } }, computed, 1, new Date(2026, 6, 26));
+    const todayCell = columns[0][6];
+    expect(todayCell.log?.workoutDone).toBe(true);
+    expect(todayCell.score).toBe(100);
+  });
+
+  it('a genuinely unlogged day has a null log and null score, not a zeroed-out one', () => {
+    const columns = buildHeatmapColumns({}, computed, 1, new Date(2026, 6, 26));
+    expect(columns[0][6].log).toBeNull();
+    expect(columns[0][6].score).toBeNull();
   });
 });

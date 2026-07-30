@@ -10,13 +10,22 @@
 // Hebrew — NOT JetBrains Mono, which has zero Hebrew glyph coverage and silently
 // broke mixed Hebrew/numeral text (Sprint 15.14) — is reserved for every number
 // in the app, with tabular figures so columns of digits align.
+//
+// Sprint 7: the artifact loaded these via a plain `<link>` to the Google Fonts
+// CSS API (GOOGLE_FONTS_IMPORT, now removed). That's a real third-party runtime
+// request — it can be slow, render-blocking, or silently dropped by an ad/
+// tracker blocker, a strict corporate proxy, or a flaky connection, any of
+// which falls back to the browser's default sans-serif with no visible error.
+// `next/font/google` self-hosts the exact same font files at build time (no
+// runtime request to Google at all) and exposes them as CSS custom properties
+// via `variable` in app/layout.tsx; FONT_DISPLAY/FONT_BODY/FONT_MONO below
+// reference those variables first, with the original family-name fallback
+// chain kept after them for any environment where the variable isn't defined
+// (e.g. a component rendered outside the root layout in a test).
 // ---------------------------------------------------------------------------
-export const FONT_DISPLAY = "'Frank Ruhl Libre', 'Heebo', serif";
-export const FONT_BODY = "'Heebo', 'Segoe UI', sans-serif";
-export const FONT_MONO = "'IBM Plex Sans Hebrew', 'Heebo', sans-serif";
-
-export const GOOGLE_FONTS_IMPORT =
-  "https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;600;700;800;900&family=Heebo:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&display=swap";
+export const FONT_DISPLAY = "var(--font-display), 'Frank Ruhl Libre', 'Heebo', serif";
+export const FONT_BODY = "var(--font-body), 'Heebo', 'Segoe UI', sans-serif";
+export const FONT_MONO = "var(--font-mono), 'IBM Plex Sans Hebrew', 'Heebo', sans-serif";
 
 // Restrained elevation, not neon ambient glow: small radius blur, low opacity,
 // used sparingly (active/selected states, the tour spotlight) rather than on

@@ -2,6 +2,7 @@
 
 import { roundNum } from './util';
 import { addDays, dateKey } from './dates';
+import { sumItems, type LoggedItem } from './items';
 import type { DayTargets, ComputedTargets } from './targets';
 
 export const TARGET_WAIST_CM = 90;
@@ -81,4 +82,67 @@ export function buildWeeklyReport(
   const waistDelta = recent.length === 2 ? Math.round((recent[1].waist ?? 0) - (recent[0].waist ?? 0)) : 0;
 
   return { avgCompliance, avgProtein, workoutDays, weightDelta, waistDelta, loggedDays: last7Logs.length };
+}
+
+// ---------------------------------------------------------------------------
+// Sprint 7 — the heatmap/weekly-report/certificate surfaces all read a
+// dailyLogs[dateKey] shape (ProjectShred.artifact.jsx:3677-3692), but the
+// Next.js port's real state has no such dict: Sprint 15's unified schema split
+// it into itemsByDate (logged food) and day_meta-equivalent workout/manual-
+// override fields (see supabase/migrations/0003's `daily_log` view). This is
+// the client-side mirror of that exact view: manual overrides win, otherwise a
+// derived sum, otherwise a date with neither has no entry at all (null) so the
+// heatmap can still tell "unlogged" apart from "logged and zero."
+// ---------------------------------------------------------------------------
+export interface DayMetaLike {
+  workoutDone: boolean;
+  workoutDay: string | null;
+  manualKcal: number | null;
+  manualProtein: number | null;
+  manualCarbs: number | null;
+  manualFat: number | null;
+}
+
+export function buildDailyLog(items: LoggedItem[] | undefined, meta: DayMetaLike | undefined): DayLog | null {
+  const hasItems = Boolean(items && items.length);
+  if (!hasItems && !meta) return null;
+  const sums = hasItems ? sumItems(items!) : null;
+  return {
+    kcal: meta?.manualKcal ?? sums?.kcal ?? 0,
+    protein: meta?.manualProtein ?? sums?.protein ?? 0,
+    carbs: meta?.manualCarbs ?? sums?.carbs ?? 0,
+    fat: meta?.manualFat ?? sums?.fat ?? 0,
+    workoutDone: meta?.workoutDone ?? false,
+    workoutDay: meta?.workoutDay ?? null,
+  };
+}
+
+export interface HeatmapCell {
+  key: string;
+  date: Date;
+  log: DayLog | null;
+  score: number | null;
+}
+
+// Sequential 7-day chunks, not calendar-aligned Sunday-start weeks — same
+// documented simplification as the artifact (CLAUDE.md, Sprint 10).
+export function buildHeatmapColumns(
+  dailyLogs: Record<string, DayLog | null>,
+  computed: ComputedTargets,
+  weeks: number = HEATMAP_WEEKS,
+  today: Date = new Date()
+): HeatmapCell[][] {
+  const totalDays = weeks * 7;
+  const days: HeatmapCell[] = [];
+  for (let i = totalDays - 1; i >= 0; i--) {
+    const d = addDays(today, -i);
+    const key = dateKey(d);
+    const log = dailyLogs[key] || null;
+    const dayTargets = log?.workoutDone ? computed.training : computed.rest;
+    const score = log ? scoreDayLog(log, dayTargets) : null;
+    days.push({ key, date: d, log, score });
+  }
+  const columns: HeatmapCell[][] = [];
+  for (let c = 0; c < weeks; c++) columns.push(days.slice(c * 7, (c + 1) * 7));
+  return columns;
 }

@@ -8,13 +8,14 @@
 // store.logItems() directly — so a log made in any sheet immediately moves
 // the Today tab's ring and SmartContextCard, exactly like the artifact.
 //
-// Workouts and Insights are honest placeholders — porting WorkoutPanel,
-// AiCoachWidget, ComplianceHeatmap etc. is future-sprint work, not something
-// to fake here.
+// Workouts are ported (Sprint 6). Insights now carries real analytics
+// (Sprint 7): metric tracker + dual trendline, a derived compliance heatmap
+// with retroactive day editing, and a weekly WhatsApp-ready report — see
+// components/insights/ for the per-component porting notes.
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
@@ -23,6 +24,8 @@ import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/target
 import type { SlotId } from '@/lib/domain/slots';
 import type { WorkoutDayKey } from '@/lib/data/workouts';
 import type { ExerciseSet } from '@/lib/domain/workouts';
+import { buildDailyLog, buildWeeklyReport, type DayLog } from '@/lib/domain/analytics';
+import { dateKey, addDays } from '@/lib/domain/dates';
 
 import { BottomNav, type NavTabId } from '@/components/shell/BottomNav';
 import { ActionFab } from '@/components/shell/ActionFab';
@@ -39,8 +42,17 @@ import { PlateComposerSheetBody } from '@/components/nutrition/PlateComposerShee
 
 import { WorkoutPanel } from '@/components/workouts/WorkoutPanel';
 
+import { GlassCard } from '@/components/ui/GlassCard';
+import { ProfileSwitcher } from '@/components/settings/ProfileSwitcher';
+import { SettingsModal } from '@/components/settings/SettingsModal';
+import { CalorieMathSheetBody } from '@/components/insights/CalorieMathSheetBody';
+import { MetricTracker } from '@/components/insights/MetricTracker';
+import { DualTrendChart } from '@/components/insights/DualTrendChart';
+import { ComplianceHeatmap } from '@/components/insights/ComplianceHeatmap';
+import { WeeklyReportModal } from '@/components/insights/WeeklyReportModal';
+
 type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
-type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | null;
+type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | null;
 
 function SegBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   const T = useTheme();
@@ -63,6 +75,8 @@ export default function Home() {
   const [dayMode, setDayMode] = useState<DayMode>('training');
   const [fabOpen, setFabOpen] = useState(false);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [weeklyReportOpen, setWeeklyReportOpen] = useState(false);
 
   const activeProfile = store.profiles[store.activeProfileId];
   const computed = computeProfileTargets(activeProfile);
@@ -71,10 +85,24 @@ export default function Home() {
   const consumed = store.consumedForDate(store.selectedDateKey);
 
   // Matches the artifact's anyOverlayOpen guard (Sprint 15.7): the FAB must
-  // never float above a sheet's own action buttons. fabOpen is deliberately
-  // NOT part of this — the FAB stays visible (and rotated to "×") while its
-  // own menu is open, so tapping it again closes the menu.
-  const anyOverlayOpen = activeSheet !== null;
+  // never float above ANY overlay's own action buttons, sheet or modal alike.
+  // fabOpen is deliberately NOT part of this — the FAB stays visible (and
+  // rotated to "×") while its own menu is open, so tapping it again closes it.
+  const anyOverlayOpen = activeSheet !== null || settingsOpen || weeklyReportOpen;
+
+  // Sprint 7 — derives the last 7 days' DayLog entries from real itemsByDate/
+  // dayMeta (mirroring supabase/migrations/0003's daily_log view) to feed the
+  // exact same buildWeeklyReport() used since Milestone 2.
+  const last7DailyLogs: Record<string, DayLog> = {};
+  for (let i = 0; i < 7; i++) {
+    const key = dateKey(addDays(new Date(), -i));
+    const log = buildDailyLog(store.itemsByDate[key], store.dayMeta[key]);
+    if (log) last7DailyLogs[key] = log;
+  }
+  const weeklyReport = buildWeeklyReport(last7DailyLogs, store.metricEntries, computed);
+  const trendEntries = store.metricEntries.filter(
+    (e): e is typeof e & { weight: number; waist: number } => e.weight !== undefined && e.waist !== undefined
+  );
 
   const handlePickAction = (id: FabActionId) => {
     setFabOpen(false);
@@ -126,11 +154,26 @@ export default function Home() {
               <p className="text-xs" style={{ color: T.t.textDim }}>{activeProfile.name} · {targets.label}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="flex p-1 rounded-xl gap-1" style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}` }}>
               <SegBtn active={dayMode === 'training'} onClick={() => setDayMode('training')}>אימון</SegBtn>
               <SegBtn active={dayMode === 'rest'} onClick={() => setDayMode('rest')}>מנוחה</SegBtn>
             </div>
+            <ProfileSwitcher
+              profiles={store.profiles}
+              activeId={store.activeProfileId}
+              setActiveId={store.setActiveProfileId}
+              addProfile={store.addProfile}
+              deleteProfile={store.deleteProfile}
+            />
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center justify-center rounded-xl"
+              style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+              aria-label="הגדרות"
+            >
+              <Settings2 size={16} color={T.t.textSecondary} />
+            </button>
             <button
               onClick={() => T.setMode(T.mode === 'dark' ? 'light' : 'dark')}
               className="flex items-center justify-center rounded-xl"
@@ -202,8 +245,36 @@ export default function Home() {
             )}
 
             {activeTab === 'insights' && (
-              <div className="rounded-2xl p-6 text-center" style={{ background: T.t.card, border: `1px solid ${T.t.border}`, color: T.t.textDim }}>
-                תובנות ואנליטיקה — בקרוב בספרינט הבא.
+              <div className="flex flex-col gap-4">
+                <button
+                  onClick={() => setWeeklyReportOpen(true)}
+                  className="flex items-center justify-between p-4 rounded-2xl text-right"
+                  style={{ background: T.t.card, border: `1.5px solid ${T.t.border}` }}
+                >
+                  <div className="flex items-center gap-2">
+                    <ClipboardList size={20} color={T.accent} />
+                    <span className="text-sm font-bold" style={{ color: T.t.textPrimary }}>דוח שבועי מנהלים</span>
+                  </div>
+                  <span className="text-xs" style={{ color: T.t.textDim }}>דיוק ממוצע {weeklyReport.avgCompliance}%</span>
+                </button>
+
+                <ComplianceHeatmap
+                  itemsByDate={store.itemsByDate}
+                  dayMeta={store.dayMeta}
+                  computed={computed}
+                  onSaveDay={(dk, patch) => {
+                    store.setManualDayOverride(dk, { manualKcal: patch.kcal, manualProtein: patch.protein });
+                    store.setWorkoutActivity(dk, patch.workoutDone, store.dayMeta[dk]?.workoutDay ?? null);
+                  }}
+                />
+
+                {trendEntries.length > 0 && (
+                  <GlassCard className="p-5">
+                    <DualTrendChart entries={trendEntries} />
+                  </GlassCard>
+                )}
+
+                <MetricTracker entries={store.metricEntries} onAddEntry={store.addMetricEntry} />
               </div>
             )}
           </motion.div>
@@ -225,6 +296,27 @@ export default function Home() {
       <SheetModal open={activeSheet === 'plate'} onClose={() => setActiveSheet(null)} title="בונה צלחת אישית">
         <PlateComposerSheetBody onConfirm={handleLog} />
       </SheetModal>
+
+      <SheetModal open={activeSheet === 'caloriemath'} onClose={() => setActiveSheet(null)} title="מאיפה היעד הקלורי הזה?">
+        <CalorieMathSheetBody profile={activeProfile} computed={computed} dayMode={dayMode} />
+      </SheetModal>
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        profile={activeProfile}
+        updateProfile={store.updateActiveProfile}
+        bmr={computed.bmr}
+        tdee={computed.tdee}
+        onOpenCalorieMath={() => { setSettingsOpen(false); setActiveSheet('caloriemath'); }}
+      />
+
+      <WeeklyReportModal
+        open={weeklyReportOpen}
+        onClose={() => setWeeklyReportOpen(false)}
+        report={weeklyReport}
+        profile={activeProfile}
+      />
     </main>
   );
 }
