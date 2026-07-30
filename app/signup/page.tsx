@@ -8,6 +8,7 @@ import { FONT_MONO } from '@/lib/theme/tokens';
 import { createClient } from '@/lib/supabase/client';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
+import { AuthError } from '@/components/auth/AuthError';
 
 export default function SignupPage() {
   const T = useTheme();
@@ -70,7 +71,7 @@ export default function SignupPage() {
         <AuthField label="אימייל" type="email" value={email} onChange={setEmail} autoComplete="email" placeholder="you@example.com" />
         <AuthField label="סיסמה" type="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="לפחות 8 תווים" />
         <AuthField label="אימות סיסמה" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
-        {error && <p className="text-xs" style={{ color: T.macro.kcal }}>{error}</p>}
+        <AuthError message={error} />
         <button
           type="submit"
           disabled={loading}

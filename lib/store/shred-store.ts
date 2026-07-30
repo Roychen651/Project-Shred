@@ -36,6 +36,14 @@ export interface Profile {
   activity: ActivityKey;
   goal: GoalKey;
   locked: boolean;
+  // Sprint 9 — resolves the id-mismatch this app shipped with since Sprint 6:
+  // the artifact (and this port, until now) keyed builtin profiles by the
+  // literal strings 'mine'/'guest', but profiles.id in Postgres is a real
+  // uuid with 'mine'/'guest' living in a SEPARATE builtin_key column. Once
+  // hydrated from the server, `id` for every profile (builtin or custom) IS
+  // that real uuid; `builtinKey` is the only remaining way to ask "which one
+  // is the non-deletable default to fall back to" — see deleteProfile below.
+  builtinKey: 'mine' | 'guest' | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,17 +180,31 @@ export interface ShredState {
 
   setSelectedDateKey: (dateKey: string) => void;
 
-  /** Sprint 8 — bulk-replaces the four Supabase-backed slices after a
-   * successful hydrateShredData() read on sign-in. Never used for anything
-   * else (no per-field partial semantics), so it stays a single blunt
-   * replace rather than a merge — merging server truth with default-empty
-   * local state has no correct general answer, and at sign-in local state IS
-   * still the untouched defaults. */
+  /** Sprint 8 (food/workout data), extended Sprint 9 (profiles/settings) —
+   * bulk-replaces the Supabase-backed slices after a successful
+   * hydrateShredData() read on sign-in. Never used for anything else (no
+   * per-field partial semantics), so it stays a single blunt replace rather
+   * than a merge — merging server truth with default-empty local state has no
+   * correct general answer, and at sign-in local state IS still the
+   * untouched defaults (this app has no local persistence layer of its own
+   * to reconcile against — see supabaseSync.ts's file header).
+   * profiles/activeProfileId/theme fields are OPTIONAL: if the profiles/
+   * user_settings fetch comes back empty (e.g. hydration racing the
+   * handle_new_user() trigger on a brand-new account), the caller omits them
+   * so the local placeholder defaults stay in place rather than being wiped
+   * to nothing. */
   hydrateFromServer: (data: {
     itemsByDate: Record<string, LoggedItem[]>;
     dayMeta: DayMetaByDate;
     exerciseLogs: ExerciseLogsByDate;
     metricEntries: MetricEntry[];
+    profiles?: Record<string, Profile>;
+    activeProfileId?: string;
+    mode?: ThemeMode;
+    accentKey?: AccentKey;
+    density?: Density;
+    feedback?: boolean;
+    hasSeenOnboarding?: boolean;
   }) => void;
 
   /** THE single path every logging surface in the app uses. Signature and
@@ -239,9 +261,13 @@ export interface LogItemSpec {
   source?: ItemSource;
 }
 
+// The pre-hydration placeholder shown for the instant between first paint and
+// hydrateShredData() resolving — 'mine'/'guest' string keys here are purely
+// local and get fully replaced by the server's real uuid-keyed rows once
+// hydration lands (see hydrateFromServer below). Never persisted as-is.
 const DEFAULT_PROFILES: Record<string, Profile> = {
-  mine: { id: 'mine', name: 'הפרופיל שלי', age: 28, weight: 75, height: 175, waist: 90, activity: 'office', goal: 'maintain', locked: true },
-  guest: { id: 'guest', name: 'פרופיל אורח / חבר', age: 30, weight: 78, height: 175, waist: 92, activity: 'sedentary', goal: 'maintain', locked: true },
+  mine: { id: 'mine', name: 'הפרופיל שלי', age: 28, weight: 75, height: 175, waist: 90, activity: 'office', goal: 'maintain', locked: true, builtinKey: 'mine' },
+  guest: { id: 'guest', name: 'פרופיל אורח / חבר', age: 30, weight: 78, height: 175, waist: 92, activity: 'sedentary', goal: 'maintain', locked: true, builtinKey: 'guest' },
 };
 
 const DEFAULT_FAVORITES: Favorite[] = [
@@ -278,6 +304,13 @@ export function createShredStore(initial?: Partial<ShredState>) {
       dayMeta: data.dayMeta,
       exerciseLogs: data.exerciseLogs,
       metricEntries: data.metricEntries,
+      ...(data.profiles ? { profiles: data.profiles } : {}),
+      ...(data.activeProfileId ? { activeProfileId: data.activeProfileId } : {}),
+      ...(data.mode ? { mode: data.mode } : {}),
+      ...(data.accentKey ? { accentKey: data.accentKey } : {}),
+      ...(data.density ? { density: data.density } : {}),
+      ...(data.feedback !== undefined ? { feedback: data.feedback } : {}),
+      ...(data.hasSeenOnboarding !== undefined ? { hasSeenOnboarding: data.hasSeenOnboarding } : {}),
     }),
 
     logItems: (specs, slotId) => set((state) => {
@@ -339,14 +372,18 @@ export function createShredStore(initial?: Partial<ShredState>) {
     addProfile: (name) => set((state) => {
       const id = genUuid();
       return {
-        profiles: { ...state.profiles, [id]: { id, name, age: 28, weight: 75, height: 175, waist: 90, activity: 'office', goal: 'maintain', locked: false } },
+        profiles: { ...state.profiles, [id]: { id, name, age: 28, weight: 75, height: 175, waist: 90, activity: 'office', goal: 'maintain', locked: false, builtinKey: null } },
         activeProfileId: id,
       };
     }),
     deleteProfile: (id) => set((state) => {
       const next = { ...state.profiles };
       delete next[id];
-      return { profiles: next, activeProfileId: state.activeProfileId === id ? 'mine' : state.activeProfileId };
+      // Sprint 9: 'mine' is no longer a reliable literal key post-hydration —
+      // it's whichever profile's builtinKey says so, and its real id is a uuid.
+      const mine = Object.values(next).find((p) => p.builtinKey === 'mine');
+      const fallbackId = mine?.id ?? Object.keys(next)[0] ?? state.activeProfileId;
+      return { profiles: next, activeProfileId: state.activeProfileId === id ? fallbackId : state.activeProfileId };
     }),
     setActiveProfileId: (id) => set({ activeProfileId: id }),
 

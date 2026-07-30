@@ -1,6 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { hydrateShredData, createShredPersist } from '@/lib/store/supabaseSync';
 import type { LoggedItem } from '@/lib/domain/items';
+import type { Profile } from '@/lib/store/shred-store';
+
+// Sprint 8 fields every persist() call needs, unrelated to whatever a given
+// test is actually exercising — spread this in and override just the slice
+// under test, instead of repeating all eleven fields in every call site.
+function basePersistState() {
+  return {
+    itemsByDate: {} as Record<string, LoggedItem[]>,
+    dayMeta: {},
+    exerciseLogs: {},
+    metricEntries: [] as { id: string; date: string; weight?: number; waist?: number }[],
+    profiles: {} as Record<string, Profile>,
+    activeProfileId: '',
+    mode: 'dark' as const,
+    accentKey: 'emerald' as const,
+    density: 'comfortable' as const,
+    feedback: true,
+    hasSeenOnboarding: false,
+  };
+}
 
 // A minimal fake matching just the chained shape supabaseSync.ts actually
 // calls (.from(table).select(...) / .upsert(rows, opts) / .delete().in(...)).
@@ -38,9 +58,11 @@ function makeFakeSupabase(tableData: Record<string, unknown[]>) {
   return { client, calls };
 }
 
-// hydrateShredData chains .order() after .select() only for metric_entries —
-// the fake's `select` above resolves immediately without `.order`, so give
-// metric_entries its own shape that supports both call patterns.
+// hydrateShredData chains .order() after .select() (metric_entries) and
+// .maybeSingle() after .select() (user_settings) — the fake's `select` above
+// resolves immediately without either, so give the hydrate-side tables their
+// own shape supporting all three call patterns. `tableData.user_settings`, if
+// present, is a one-element array whose single row .maybeSingle() unwraps.
 function makeFakeSupabaseWithOrder(tableData: Record<string, unknown[]>) {
   const calls: { table: string; op: string; args: unknown[] }[] = [];
   const client = {
@@ -54,6 +76,10 @@ function makeFakeSupabaseWithOrder(tableData: Record<string, unknown[]>) {
             order: (col: string, opts: unknown) => {
               calls.push({ table, op: 'order', args: [col, opts] });
               return resolved;
+            },
+            maybeSingle: () => {
+              calls.push({ table, op: 'maybeSingle', args: [] });
+              return Promise.resolve({ data: rows[0] ?? null, error: null });
             },
             then: resolved.then.bind(resolved),
             catch: resolved.catch.bind(resolved),
@@ -119,6 +145,49 @@ describe('hydrateShredData', () => {
     expect(result.exerciseLogs).toEqual({});
     expect(result.metricEntries).toEqual([]);
     expect(result.syncedItemIds.size).toBe(0);
+    // No profiles fetched -> profiles/activeProfileId stay undefined so the
+    // caller keeps its local placeholder defaults (see hydrateFromServer).
+    expect(result.profiles).toBeUndefined();
+    expect(result.activeProfileId).toBeUndefined();
+  });
+
+  it('Sprint 9: maps profiles keyed by their real uuid, resolving activeProfileId from user_settings', async () => {
+    const { client } = makeFakeSupabaseWithOrder({
+      profiles: [
+        { id: '11111111-0000-0000-0000-000000000001', name: 'הפרופיל שלי', age: 28, weight: 75, height: 175, waist: 90, activity: 'office', goal: 'maintain', is_builtin: true, builtin_key: 'mine' },
+        { id: '22222222-0000-0000-0000-000000000002', name: 'פרופיל אורח / חבר', age: 30, weight: 78, height: 175, waist: 92, activity: 'sedentary', goal: 'maintain', is_builtin: true, builtin_key: 'guest' },
+      ],
+      user_settings: [
+        { active_profile_id: '22222222-0000-0000-0000-000000000002', theme_mode: 'light', accent_key: 'violet', density: 'compact', feedback_enabled: false, has_seen_onboarding: true },
+      ],
+    });
+    // @ts-expect-error - fake client
+    const result = await hydrateShredData(client);
+
+    expect(Object.keys(result.profiles!)).toEqual(['11111111-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000002']);
+    expect(result.profiles!['11111111-0000-0000-0000-000000000001']).toEqual({
+      id: '11111111-0000-0000-0000-000000000001', name: 'הפרופיל שלי', age: 28, weight: 75, height: 175, waist: 90,
+      activity: 'office', goal: 'maintain', locked: true, builtinKey: 'mine',
+    });
+    // user_settings.active_profile_id wins over the 'mine' fallback.
+    expect(result.activeProfileId).toBe('22222222-0000-0000-0000-000000000002');
+    expect(result.syncedProfileIds.has('11111111-0000-0000-0000-000000000001')).toBe(true);
+    expect(result.mode).toBe('light');
+    expect(result.accentKey).toBe('violet');
+    expect(result.density).toBe('compact');
+    expect(result.feedback).toBe(false);
+    expect(result.hasSeenOnboarding).toBe(true);
+  });
+
+  it('falls back to the "mine"-builtin profile when user_settings has no active_profile_id yet', async () => {
+    const { client } = makeFakeSupabaseWithOrder({
+      profiles: [
+        { id: '11111111-0000-0000-0000-000000000001', name: 'הפרופיל שלי', age: 28, weight: 75, height: 175, waist: 90, activity: 'office', goal: 'maintain', is_builtin: true, builtin_key: 'mine' },
+      ],
+    });
+    // @ts-expect-error - fake client
+    const result = await hydrateShredData(client);
+    expect(result.activeProfileId).toBe('11111111-0000-0000-0000-000000000001');
   });
 });
 
@@ -136,7 +205,7 @@ describe('createShredPersist', () => {
     const { client, calls } = makeFakeSupabase({});
     // @ts-expect-error - fake client
     const persist = createShredPersist(client, new Set());
-    await persist({ itemsByDate: { '2026-07-29': [item()] }, dayMeta: {}, exerciseLogs: {}, metricEntries: [] });
+    await persist({ ...basePersistState(), itemsByDate: { '2026-07-29': [item()] } });
 
     const upsertCall = calls.find((c) => c.table === 'logged_items' && c.op === 'upsert');
     expect(upsertCall).toBeTruthy();
@@ -154,7 +223,7 @@ describe('createShredPersist', () => {
     // @ts-expect-error - fake client
     const persist = createShredPersist(client, previouslySynced);
     // Locally, only the second item still exists — the first was deleted by the user.
-    await persist({ itemsByDate: { '2026-07-29': [item({ id: 'dddddddd-0000-0000-0000-000000000002' })] }, dayMeta: {}, exerciseLogs: {}, metricEntries: [] });
+    await persist({ ...basePersistState(), itemsByDate: { '2026-07-29': [item({ id: 'dddddddd-0000-0000-0000-000000000002' })] } });
 
     const deleteCall = calls.find((c) => c.table === 'logged_items' && c.op === 'delete');
     expect(deleteCall).toBeTruthy();
@@ -165,7 +234,7 @@ describe('createShredPersist', () => {
     const { client, calls } = makeFakeSupabase({});
     // @ts-expect-error - fake client
     const persist = createShredPersist(client, new Set());
-    await persist({ itemsByDate: {}, dayMeta: {}, exerciseLogs: {}, metricEntries: [] });
+    await persist(basePersistState());
     expect(calls.some((c) => c.op === 'delete')).toBe(false);
   });
 
@@ -174,10 +243,8 @@ describe('createShredPersist', () => {
     // @ts-expect-error - fake client
     const persist = createShredPersist(client, new Set());
     await persist({
-      itemsByDate: {},
+      ...basePersistState(),
       dayMeta: { '2026-07-29': { workoutDone: true, workoutDay: 'B1', manualKcal: 1800, manualProtein: null, manualCarbs: null, manualFat: null } },
-      exerciseLogs: {},
-      metricEntries: [],
     });
     const call = calls.find((c) => c.table === 'day_meta' && c.op === 'upsert');
     expect(call!.args[0]).toEqual([{
@@ -191,9 +258,8 @@ describe('createShredPersist', () => {
     // @ts-expect-error - fake client
     const persist = createShredPersist(client, new Set());
     await persist({
-      itemsByDate: {}, dayMeta: {},
+      ...basePersistState(),
       exerciseLogs: { '2026-07-29': { 'סקוואט גב': { weight: 100, reps: 5 } } },
-      metricEntries: [],
     });
     const call = calls.find((c) => c.table === 'exercise_logs' && c.op === 'upsert');
     expect(call!.args[0]).toEqual([{ date_key: '2026-07-29', exercise_name: 'סקוואט גב', weight: 100, reps: 5 }]);
@@ -205,7 +271,7 @@ describe('createShredPersist', () => {
     // @ts-expect-error - fake client
     const persist = createShredPersist(client, new Set());
     await persist({
-      itemsByDate: {}, dayMeta: {}, exerciseLogs: {},
+      ...basePersistState(),
       metricEntries: [{ id: 'local-only-id', date: '2026-07-20', weight: 84, waist: 91 }],
     });
     const call = calls.find((c) => c.table === 'metric_entries' && c.op === 'upsert');
@@ -230,13 +296,81 @@ describe('createShredPersist', () => {
     // @ts-expect-error - fake client
     const persist = createShredPersist(client, new Set());
     await persist({
+      ...basePersistState(),
       itemsByDate: { '2026-07-29': [item()] },
       dayMeta: { '2026-07-29': { workoutDone: true, workoutDay: 'A1', manualKcal: null, manualProtein: null, manualCarbs: null, manualFat: null } },
-      exerciseLogs: {},
-      metricEntries: [],
     });
     // day_meta still got its upsert call despite logged_items rejecting.
     expect(calls.some((c) => c.table === 'day_meta' && c.op === 'upsert')).toBe(true);
+  });
+
+  function profile(overrides: Partial<Profile> = {}): Profile {
+    return {
+      id: '11111111-0000-0000-0000-000000000001', name: 'הפרופיל שלי', age: 28, weight: 75, height: 175, waist: 90,
+      activity: 'office', goal: 'maintain', locked: true, builtinKey: 'mine',
+      ...overrides,
+    };
+  }
+
+  it('Sprint 9: upserts profiles with onConflict: id, mapping locked/builtinKey to is_builtin/builtin_key', async () => {
+    const { client, calls } = makeFakeSupabase({});
+    // @ts-expect-error - fake client
+    const persist = createShredPersist(client, new Set(), new Set());
+    await persist({ ...basePersistState(), profiles: { [profile().id]: profile() } });
+
+    const call = calls.find((c) => c.table === 'profiles' && c.op === 'upsert');
+    expect(call!.args[0]).toEqual([{
+      id: '11111111-0000-0000-0000-000000000001', name: 'הפרופיל שלי', age: 28, weight: 75, height: 175, waist: 90,
+      activity: 'office', goal: 'maintain', is_builtin: true, builtin_key: 'mine',
+    }]);
+    expect(call!.args[1]).toEqual({ onConflict: 'id' });
+  });
+
+  it('deletes a custom profile that was previously synced but is no longer present locally', async () => {
+    const { client, calls } = makeFakeSupabase({});
+    const previouslySynced = new Set(['11111111-0000-0000-0000-000000000001', '33333333-0000-0000-0000-000000000003']);
+    // @ts-expect-error - fake client
+    const persist = createShredPersist(client, new Set(), previouslySynced);
+    // The custom profile (…003) was deleted locally; only the builtin remains.
+    await persist({ ...basePersistState(), profiles: { [profile().id]: profile() } });
+
+    const deleteCall = calls.find((c) => c.table === 'profiles' && c.op === 'delete');
+    expect(deleteCall).toBeTruthy();
+    expect(deleteCall!.args).toEqual(['id', ['33333333-0000-0000-0000-000000000003']]);
+  });
+
+  it('upserts user_settings on onConflict: user_id, mapping every theme/profile field', async () => {
+    const { client, calls } = makeFakeSupabase({});
+    // @ts-expect-error - fake client
+    const persist = createShredPersist(client, new Set(), new Set());
+    await persist({
+      ...basePersistState(),
+      activeProfileId: '11111111-0000-0000-0000-000000000001',
+      mode: 'light', accentKey: 'violet', density: 'compact', feedback: false, hasSeenOnboarding: true,
+    });
+
+    const call = calls.find((c) => c.table === 'user_settings' && c.op === 'upsert');
+    expect(call!.args[0]).toEqual({
+      active_profile_id: '11111111-0000-0000-0000-000000000001',
+      theme_mode: 'light', accent_key: 'violet', density: 'compact', feedback_enabled: false, has_seen_onboarding: true,
+    });
+    expect(call!.args[1]).toEqual({ onConflict: 'user_id' });
+  });
+
+  it('always commits the profiles upsert before the user_settings upsert (the FK ordering guarantee)', async () => {
+    const { client, calls } = makeFakeSupabase({});
+    // @ts-expect-error - fake client
+    const persist = createShredPersist(client, new Set(), new Set());
+    await persist({
+      ...basePersistState(),
+      profiles: { [profile().id]: profile() },
+      activeProfileId: profile().id,
+    });
+
+    const profilesIdx = calls.findIndex((c) => c.table === 'profiles' && c.op === 'upsert');
+    const settingsIdx = calls.findIndex((c) => c.table === 'user_settings' && c.op === 'upsert');
+    expect(profilesIdx).toBeGreaterThanOrEqual(0);
+    expect(settingsIdx).toBeGreaterThan(profilesIdx);
   });
 });
 

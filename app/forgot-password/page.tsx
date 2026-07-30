@@ -8,6 +8,7 @@ import { FONT_MONO } from '@/lib/theme/tokens';
 import { createClient } from '@/lib/supabase/client';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
+import { AuthError } from '@/components/auth/AuthError';
 
 export default function ForgotPasswordPage() {
   const T = useTheme();
@@ -51,7 +52,7 @@ export default function ForgotPasswordPage() {
     <AuthShell title="שכחתם סיסמה?" subtitle="נשלח לכם קישור לבחירת סיסמה חדשה">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AuthField label="אימייל" type="email" value={email} onChange={setEmail} autoComplete="email" placeholder="you@example.com" />
-        {error && <p className="text-xs" style={{ color: T.macro.kcal }}>{error}</p>}
+        <AuthError message={error} />
         <button
           type="submit"
           disabled={loading}

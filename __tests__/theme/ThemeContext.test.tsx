@@ -1,7 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ThemeProvider, useTheme } from '@/lib/theme/ThemeContext';
+import { useShredStore } from '@/lib/store/shred-store';
 import { JEWEL } from '@/lib/theme/tokens';
+
+// Sprint 9: ThemeProvider now derives from the shared shred-store singleton
+// (previously its own isolated useState — see the file header in
+// ThemeContext.tsx for why that was itself a bug). That singleton persists
+// across tests in this file unless reset, so each test needs a known baseline.
+beforeEach(() => {
+  useShredStore.setState({ mode: 'dark', accentKey: 'emerald', density: 'comfortable', feedback: true });
+});
 
 function Probe() {
   const t = useTheme();

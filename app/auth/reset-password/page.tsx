@@ -13,6 +13,7 @@ import { useTheme } from '@/lib/theme/ThemeContext';
 import { createClient } from '@/lib/supabase/client';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
+import { AuthError } from '@/components/auth/AuthError';
 
 export default function ResetPasswordPage() {
   const T = useTheme();
@@ -52,7 +53,7 @@ export default function ResetPasswordPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AuthField label="סיסמה חדשה" type="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="לפחות 8 תווים" />
         <AuthField label="אימות סיסמה" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
-        {error && <p className="text-xs" style={{ color: T.macro.kcal }}>{error}</p>}
+        <AuthError message={error} />
         <button
           type="submit"
           disabled={loading}

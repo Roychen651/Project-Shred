@@ -25,12 +25,31 @@ textarea {
 }
 button {
   transition: transform 0.16s cubic-bezier(0.32, 0.72, 0, 1), filter 0.16s ease, box-shadow 0.2s ease;
+  /* Sprint 9 — removes the ~300ms delay mobile browsers otherwise insert
+   * before firing `click`, while they wait to see if a second tap turns this
+   * into a double-tap-to-zoom gesture. `manipulation` tells the browser this
+   * element never needs that disambiguation, so taps register instantly. */
+  touch-action: manipulation;
 }
 button:hover {
   filter: brightness(1.05);
 }
 button:active {
   transform: scale(0.96);
+}
+/* Sprint 9 — iOS Safari auto-zooms the whole page on focus of any input/
+ * textarea/select whose COMPUTED font-size is under 16px. Most of this app's
+ * form fields use Tailwind's text-xs/text-sm (12-14px) for visual density,
+ * which is fine on desktop but triggers that zoom on mobile. Scoped to mobile
+ * widths only (Tailwind's own `md` breakpoint) so desktop keeps its intended
+ * density; `!important` is required here because a plain element selector's
+ * specificity loses to any of those utility classes otherwise. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }
 ::-webkit-scrollbar {
   width: 9px;

@@ -3,21 +3,21 @@
 // Connects the live shred-store to Supabase, in two ordered phases:
 //
 //  1. HYDRATE — once, on mount: fetch logged_items/day_meta/exercise_logs/
-//     metric_entries for the signed-in user and replace the store's (empty
-//     default) state with them, via hydrateFromServer(). Must happen BEFORE
-//     phase 2 starts, or the very first debounced flush would upload the
-//     untouched defaults over whatever was already saved.
+//     metric_entries/profiles/user_settings for the signed-in user and
+//     replace the store's (empty default) state with them, via
+//     hydrateFromServer(). Must happen BEFORE phase 2 starts, or the very
+//     first debounced flush would upload the untouched defaults over
+//     whatever was already saved.
 //  2. SYNC — after hydration resolves: wires the Sprint 16.2 debounce+flush
 //     scheduler (sync-scheduler.ts) to createShredPersist(), seeded with the
-//     ids hydration just saw (so logged_items deletions diff correctly from
-//     the start — see supabaseSync.ts's file header for why).
+//     ids hydration just saw (so logged_items/profiles deletions diff
+//     correctly from the start — see supabaseSync.ts's file header for why).
 //
-// Scope note (Sprint 8, see CLAUDE.md): only these four tables are wired.
-// profiles/user_settings/favorites/custom_* are deliberately NOT synced yet —
-// profiles specifically needs its own id-reconciliation design (the client
-// keys profiles by semantic strings like 'mine'/'guest'; the DB uses real
-// uuids with a separate builtin_key column), which is real design work, not
-// something to bolt on blind in the same pass as everything else here.
+// Sprint 9 closes the profiles/user_settings gap Sprint 8 deliberately left
+// open: every profile is now keyed by its real Postgres uuid post-hydration
+// (see Profile.builtinKey in shred-store.ts), so there's no more id scheme to
+// reconcile. favorites/custom_ingredients/custom_hacks/custom_restaurants
+// remain unwired — lower-frequency, not what blocked this sprint.
 //
 // WHY A SEPARATE useSyncStatusStore INSTEAD OF A FIELD ON ShredState: the
 // scheduler's onSaving/onSaved/onError callbacks fire as a *result* of a
@@ -50,7 +50,7 @@ export function useWireSync(): void {
         if (disposed) return;
         useShredStore.getState().hydrateFromServer(hydrated);
 
-        const persist = createShredPersist(supabase, hydrated.syncedItemIds);
+        const persist = createShredPersist(supabase, hydrated.syncedItemIds, hydrated.syncedProfileIds);
         scheduler = createSyncScheduler({
           getLatestState: () => useShredStore.getState(),
           persist,

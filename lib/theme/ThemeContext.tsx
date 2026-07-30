@@ -4,10 +4,19 @@
 // reads `const T = useTheme()` instead of importing a hardcoded color object."
 // This is the single structural change that makes live theme/accent/density
 // switching possible without prop-drilling through every component.
-
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+//
+// Sprint 9: this used to hold its own independent useState for mode/accentKey/
+// density/feedback — a real, previously-undiagnosed bug, since shred-store.ts
+// ALSO had mode/accentKey/density/feedback fields with setters that nothing
+// ever called. Two disconnected copies of "the current theme" existed; the
+// one actually driving the UI was never the one Sprint 8/9's sync layer could
+// see or persist. Now the store is the only copy — this file is a thin
+// derived-values wrapper around it, so theme preferences round-trip through
+// hydrateFromServer/supabaseSync exactly like everything else in user_settings.
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { useShredStore } from '@/lib/store/shred-store';
 import {
-  THEME_PRESETS, DENSITY_PRESETS, DEFAULT_THEME_SETTINGS,
+  THEME_PRESETS, DENSITY_PRESETS,
   getAccentHex, getMacroColors, glow,
   type ThemeMode, type AccentKey, type Density, type ThemePreset, type DensityPreset, type MacroColors,
 } from './tokens';
@@ -37,10 +46,14 @@ export function useTheme(): ShredTheme {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>(DEFAULT_THEME_SETTINGS.mode);
-  const [accentKey, setAccentKey] = useState<AccentKey>(DEFAULT_THEME_SETTINGS.accentKey);
-  const [density, setDensity] = useState<Density>(DEFAULT_THEME_SETTINGS.density);
-  const [feedback, setFeedback] = useState(DEFAULT_THEME_SETTINGS.feedback);
+  const mode = useShredStore((s) => s.mode);
+  const accentKey = useShredStore((s) => s.accentKey);
+  const density = useShredStore((s) => s.density);
+  const feedback = useShredStore((s) => s.feedback);
+  const setMode = useShredStore((s) => s.setMode);
+  const setAccentKey = useShredStore((s) => s.setAccentKey);
+  const setDensity = useShredStore((s) => s.setDensity);
+  const setFeedback = useShredStore((s) => s.setFeedback);
 
   const value = useMemo<ShredTheme>(() => ({
     mode, accentKey, density, feedback,
@@ -50,7 +63,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     spacing: DENSITY_PRESETS[density],
     glow,
     setMode, setAccentKey, setDensity, setFeedback,
-  }), [mode, accentKey, density, feedback]);
+  }), [mode, accentKey, density, feedback, setMode, setAccentKey, setDensity, setFeedback]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
