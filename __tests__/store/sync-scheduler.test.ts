@@ -105,4 +105,90 @@ describe('createSyncScheduler', () => {
 
     addSpy.mockRestore(); removeSpy.mockRestore(); windowAddSpy.mockRestore(); windowRemoveSpy.mockRestore();
   });
+
+  it('OFFLINE: skips the network call and fires onOffline instead of onSaving/persist', async () => {
+    const state = 'x';
+    const persist = vi.fn().mockResolvedValue(undefined);
+    const onSaving = vi.fn();
+    const onOffline = vi.fn();
+    const s = createSyncScheduler({
+      getLatestState: () => state,
+      persist,
+      debounceMs: 10,
+      onSaving,
+      onOffline,
+      addPageHideListeners: () => () => {},
+      isOffline: () => true,
+      addConnectivityListeners: () => () => {},
+    });
+
+    s.notify();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(persist).not.toHaveBeenCalled();
+    expect(onSaving).not.toHaveBeenCalled();
+    expect(onOffline).toHaveBeenCalledTimes(1);
+    s.dispose();
+  });
+
+  it('OFFLINE RETRY: a failed-offline flush retries automatically the instant the online event fires', async () => {
+    let state = 'unsaved-while-offline';
+    const persist = vi.fn().mockResolvedValue(undefined);
+    let offline = true;
+    const captured: { onOnline: (() => void) | null } = { onOnline: null };
+    const s = createSyncScheduler({
+      getLatestState: () => state,
+      persist,
+      debounceMs: 10,
+      addPageHideListeners: () => () => {},
+      isOffline: () => offline,
+      addConnectivityListeners: (onOnline) => { captured.onOnline = onOnline; return () => {}; },
+    });
+
+    s.notify();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(persist).not.toHaveBeenCalled(); // offline, so the debounced flush was skipped
+
+    // connection comes back
+    offline = false;
+    state = 'unsaved-while-offline'; // still the same pending state
+    captured.onOnline?.();
+    await Promise.resolve();
+    expect(persist).toHaveBeenCalledTimes(1);
+    expect(persist).toHaveBeenCalledWith('unsaved-while-offline');
+    s.dispose();
+  });
+
+  it('OFFLINE RETRY: the online event does nothing if there was no pending write', async () => {
+    const state = 'never-changed';
+    const persist = vi.fn().mockResolvedValue(undefined);
+    const captured: { onOnline: (() => void) | null } = { onOnline: null };
+    const s = createSyncScheduler({
+      getLatestState: () => state,
+      persist,
+      debounceMs: 10,
+      addPageHideListeners: () => () => {},
+      isOffline: () => false,
+      addConnectivityListeners: (onOnline) => { captured.onOnline = onOnline; return () => {}; },
+    });
+
+    captured.onOnline?.();
+    await Promise.resolve();
+    expect(persist).not.toHaveBeenCalled();
+    s.dispose();
+  });
+
+  it('registers and unregisters real connectivity listeners by default', () => {
+    const windowAddSpy = vi.spyOn(window, 'addEventListener');
+    const windowRemoveSpy = vi.spyOn(window, 'removeEventListener');
+
+    const s = createSyncScheduler({ getLatestState: () => null, persist: async () => {}, addPageHideListeners: () => () => {} });
+    expect(windowAddSpy).toHaveBeenCalledWith('online', expect.any(Function));
+    expect(windowAddSpy).toHaveBeenCalledWith('offline', expect.any(Function));
+
+    s.dispose();
+    expect(windowRemoveSpy).toHaveBeenCalledWith('online', expect.any(Function));
+    expect(windowRemoveSpy).toHaveBeenCalledWith('offline', expect.any(Function));
+
+    windowAddSpy.mockRestore(); windowRemoveSpy.mockRestore();
+  });
 });

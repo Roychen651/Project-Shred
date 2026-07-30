@@ -57,6 +57,7 @@ export function useWireSync(): void {
           onSaving: () => useSyncStatusStore.getState().setStatus('saving'),
           onSaved: () => useSyncStatusStore.getState().setStatus('saved'),
           onError: () => useSyncStatusStore.getState().setStatus('error'),
+          onOffline: () => useSyncStatusStore.getState().setStatus('offline'),
         });
         if (disposed) {
           scheduler.dispose();
@@ -68,6 +69,11 @@ export function useWireSync(): void {
         // no real Supabase project configured at all). The app keeps working
         // fully offline-local; nothing here should ever crash the UI.
         useSyncStatusStore.getState().setStatus('error');
+      } finally {
+        // Settles exactly once, success or failure — see sync-status.ts for
+        // why the onboarding wizard needs this distinct from "checked, and
+        // hasSeenOnboarding is false" rather than "haven't checked yet".
+        if (!disposed) useSyncStatusStore.getState().setHydrationSettled(true);
       }
     })();
 

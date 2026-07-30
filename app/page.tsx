@@ -31,6 +31,7 @@ import { BottomNav, type NavTabId } from '@/components/shell/BottomNav';
 import { ActionFab } from '@/components/shell/ActionFab';
 import { FabMenu, type FabActionId } from '@/components/shell/FabMenu';
 import { SheetModal } from '@/components/shell/SheetModal';
+import { SyncStatusIndicator } from '@/components/shell/SyncStatusIndicator';
 
 import { CompositeHeroRing } from '@/components/today/CompositeHeroRing';
 import { HeroRingLegend } from '@/components/today/HeroRingLegend';
@@ -50,6 +51,9 @@ import { MetricTracker } from '@/components/insights/MetricTracker';
 import { DualTrendChart } from '@/components/insights/DualTrendChart';
 import { ComplianceHeatmap } from '@/components/insights/ComplianceHeatmap';
 import { WeeklyReportModal } from '@/components/insights/WeeklyReportModal';
+import { MetabolicInsightCard } from '@/components/insights/MetabolicInsightCard';
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
+import { useSyncStatusStore } from '@/lib/store/sync-status';
 
 type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
 type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | null;
@@ -78,6 +82,14 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [weeklyReportOpen, setWeeklyReportOpen] = useState(false);
 
+  // Sprint 10 — computed directly during render, not via useEffect+state (this
+  // codebase has hit the react-hooks/set-state-in-effect trap repeatedly —
+  // see AddToHomeScreenPrompt/ExerciseRow/WorkoutPanel). hydrationSettled
+  // distinguishes "haven't checked yet" from "checked, and onboarding really
+  // hasn't been seen" — see sync-status.ts for why that distinction matters.
+  const hydrationSettled = useSyncStatusStore((s) => s.hydrationSettled);
+  const showOnboarding = hydrationSettled && !store.hasSeenOnboarding;
+
   const activeProfile = store.profiles[store.activeProfileId];
   const computed = computeProfileTargets(activeProfile);
   const targets = computed[dayMode];
@@ -88,7 +100,7 @@ export default function Home() {
   // never float above ANY overlay's own action buttons, sheet or modal alike.
   // fabOpen is deliberately NOT part of this — the FAB stays visible (and
   // rotated to "×") while its own menu is open, so tapping it again closes it.
-  const anyOverlayOpen = activeSheet !== null || settingsOpen || weeklyReportOpen;
+  const anyOverlayOpen = activeSheet !== null || settingsOpen || weeklyReportOpen || showOnboarding;
 
   // Sprint 7 — derives the last 7 days' DayLog entries from real itemsByDate/
   // dayMeta (mirroring supabase/migrations/0003's daily_log view) to feed the
@@ -168,6 +180,7 @@ export default function Home() {
               addProfile={store.addProfile}
               deleteProfile={store.deleteProfile}
             />
+            <SyncStatusIndicator />
             <button
               onClick={() => setSettingsOpen(true)}
               className="flex items-center justify-center rounded-xl"
@@ -260,6 +273,8 @@ export default function Home() {
                   <span className="text-xs" style={{ color: T.t.textDim }}>דיוק ממוצע {weeklyReport.avgCompliance}%</span>
                 </button>
 
+                <MetabolicInsightCard metricEntries={store.metricEntries} goal={activeProfile.goal} />
+
                 <ComplianceHeatmap
                   itemsByDate={store.itemsByDate}
                   dayMeta={store.dayMeta}
@@ -319,6 +334,14 @@ export default function Home() {
         report={weeklyReport}
         profile={activeProfile}
       />
+
+      {showOnboarding && (
+        <OnboardingWizard
+          profile={activeProfile}
+          updateProfile={store.updateActiveProfile}
+          onComplete={() => store.setHasSeenOnboarding(true)}
+        />
+      )}
     </main>
   );
 }
