@@ -8,7 +8,7 @@
 // are always base * (grams / 100) via scaleLoggedItem() — never re-derived any
 // other way, and never computed in the database (see supabase/migrations/0003).
 
-import { roundNum, genId } from './util';
+import { roundNum, genUuid } from './util';
 import type { SlotId } from './slots';
 
 export type { SlotId };
@@ -52,7 +52,7 @@ export function makeLoggedItem({
   isCompleted = true,
 }: MakeLoggedItemInput): LoggedItem {
   return {
-    id: genId('log'),
+    id: genUuid(),
     dateKey,
     slotId,
     name,

@@ -20,6 +20,7 @@ import { create } from 'zustand';
 import { makeLoggedItem, sumItems, type LoggedItem, type MacroTotals, type SlotId, type ItemSource } from '../domain/items';
 import { getCurrentSlotId } from '../domain/slots';
 import { dateKey } from '../domain/dates';
+import { genUuid } from '../domain/util';
 import type { ActivityKey, GoalKey } from '../domain/targets';
 
 // ---------------------------------------------------------------------------
@@ -171,6 +172,19 @@ export interface ShredState {
 
   setSelectedDateKey: (dateKey: string) => void;
 
+  /** Sprint 8 — bulk-replaces the four Supabase-backed slices after a
+   * successful hydrateShredData() read on sign-in. Never used for anything
+   * else (no per-field partial semantics), so it stays a single blunt
+   * replace rather than a merge — merging server truth with default-empty
+   * local state has no correct general answer, and at sign-in local state IS
+   * still the untouched defaults. */
+  hydrateFromServer: (data: {
+    itemsByDate: Record<string, LoggedItem[]>;
+    dayMeta: DayMetaByDate;
+    exerciseLogs: ExerciseLogsByDate;
+    metricEntries: MetricEntry[];
+  }) => void;
+
   /** THE single path every logging surface in the app uses. Signature and
    * behavior are load-bearing — see the file header. Logs to `selectedDateKey`,
    * exactly like the artifact's closure-captured `logItems`. */
@@ -259,6 +273,13 @@ export function createShredStore(initial?: Partial<ShredState>) {
 
     setSelectedDateKey: (newDateKey) => set({ selectedDateKey: newDateKey }),
 
+    hydrateFromServer: (data) => set({
+      itemsByDate: data.itemsByDate,
+      dayMeta: data.dayMeta,
+      exerciseLogs: data.exerciseLogs,
+      metricEntries: data.metricEntries,
+    }),
+
     logItems: (specs, slotId) => set((state) => {
       const dk = state.selectedDateKey;
       const newOnes = specs.map((s) => makeLoggedItem({ dateKey: dk, slotId, ...s }));
@@ -316,7 +337,7 @@ export function createShredStore(initial?: Partial<ShredState>) {
       profiles: { ...state.profiles, [state.activeProfileId]: { ...state.profiles[state.activeProfileId], ...patch } },
     })),
     addProfile: (name) => set((state) => {
-      const id = `custom-${Date.now()}`;
+      const id = genUuid();
       return {
         profiles: { ...state.profiles, [id]: { id, name, age: 28, weight: 75, height: 175, waist: 90, activity: 'office', goal: 'maintain', locked: false } },
         activeProfileId: id,
@@ -340,7 +361,7 @@ export function createShredStore(initial?: Partial<ShredState>) {
     }),
     deleteHack: (id) => set((state) => ({ customHacks: state.customHacks.filter((h) => h.id !== id) })),
 
-    addMetricEntry: (entry) => set((state) => ({ metricEntries: [...state.metricEntries, { ...entry, id: `metric-${Date.now()}` }] })),
+    addMetricEntry: (entry) => set((state) => ({ metricEntries: [...state.metricEntries, { ...entry, id: genUuid() }] })),
 
     setWorkoutActivity: (dk, done, dayKey) => set((state) => ({
       dayMeta: { ...state.dayMeta, [dk]: { ...(state.dayMeta[dk] || EMPTY_DAY_META), workoutDone: done, workoutDay: dayKey } },

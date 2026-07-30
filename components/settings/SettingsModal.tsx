@@ -10,12 +10,14 @@
 // here), so they're left out rather than half-wired. Future-sprint scope,
 // same honesty pattern as RestaurantMatrixSheetBody/PlateComposerSheetBody.
 
-import { X, Settings2, Calculator } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Settings2, Calculator, LogOut } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, ACCENT_PRESETS, getAccentHex, type AccentKey } from '@/lib/theme/tokens';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { FieldInput } from './FieldInput';
 import { ACTIVITY_LEVELS, GOALS, type ActivityKey, type GoalKey } from '@/lib/domain/targets';
+import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/store/shred-store';
 
 export interface SettingsModalProps {
@@ -30,7 +32,15 @@ export interface SettingsModalProps {
 
 export function SettingsModal({ open, onClose, profile, updateProfile, bmr, tdee, onOpenCalorieMath }: SettingsModalProps) {
   const T = useTheme();
+  const router = useRouter();
   if (!open) return null;
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
   return (
     <div
@@ -150,6 +160,14 @@ export function SettingsModal({ open, onClose, profile, updateProfile, bmr, tdee
               })}
             </div>
           </div>
+
+          <button
+            onClick={handleSignOut}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
+            style={{ background: T.t.chipBg, color: T.macro.kcal, border: `1px solid ${T.t.border}` }}
+          >
+            <LogOut size={15} /> התנתקות
+          </button>
         </div>
       </div>
     </div>

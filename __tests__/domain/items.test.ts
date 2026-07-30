@@ -7,7 +7,9 @@ describe('makeLoggedItem', () => {
       dateKey: '2026-07-20', slotId: 'lunch', name: 'Test',
       calories: 500.4, protein: 40.06, carbs: 50.02, fats: 10.04, source: 'restaurant',
     });
-    expect(item.id).toMatch(/^log-/);
+    // Sprint 8: must be a real UUID (not the old `log-<timestamp>-<rand>` shape) —
+    // logged_items.id is a Postgres `uuid primary key`, which rejects anything else.
+    expect(item.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     expect(item.dateKey).toBe('2026-07-20');
     expect(item.slotId).toBe('lunch');
     expect(item.grams).toBe(100);

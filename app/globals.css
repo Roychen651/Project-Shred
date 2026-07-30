@@ -52,3 +52,21 @@ button:active {
 ::selection {
   background: rgba(63, 141, 110, 0.35);
 }
+
+/* Sprint 8 — a subtle film-grain texture over the whole app, the one cheap
+ * technique that reliably separates "flat CSS gradient" from "designed
+ * surface": a tiny inline SVG turbulence filter tiled as a fixed background,
+ * blended with mix-blend-mode so it reads as texture, not a visible pattern.
+ * Lives on body::before (not a per-page div) so every route — the main app
+ * shell AND the new Auth pages — gets it from one place. Opacity is tuned
+ * low enough to be felt, not seen as "noise." */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
