@@ -11,6 +11,13 @@
 // standard SVG technique for glow-on-a-stroke, since `filter: drop-shadow` alone
 // blurs the whole element including its sharp edge. `useId()` keeps the filter
 // ids collision-safe if this ring is ever rendered more than once on a page.
+//
+// Sprint 14: with dark mode now permanent, the glow went from a single soft
+// blur pass to a genuine two-layer neon-tube halo — a wide, soft outer bloom
+// (large stdDeviation) merged with a tighter inner bloom (small stdDeviation)
+// before the crisp source stroke, the same layering real neon signage photos
+// show (a broad ambient glow plus a brighter near-tube halo), rather than one
+// blur radius doing both jobs at once.
 
 import { useId } from 'react';
 import { useTheme } from '@/lib/theme/ThemeContext';
@@ -42,17 +49,21 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
     <div className="relative flex items-center justify-center mx-auto" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
         <defs>
-          <filter id={glowOuterId} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="5.5" result="blur" />
+          <filter id={glowOuterId} x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="wideBloom" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="tightBloom" />
             <feMerge>
-              <feMergeNode in="blur" />
+              <feMergeNode in="wideBloom" />
+              <feMergeNode in="tightBloom" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <filter id={glowInnerId} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+          <filter id={glowInnerId} x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="wideBloom" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="tightBloom" />
             <feMerge>
-              <feMergeNode in="blur" />
+              <feMergeNode in="wideBloom" />
+              <feMergeNode in="tightBloom" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>

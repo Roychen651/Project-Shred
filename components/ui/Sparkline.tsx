@@ -3,7 +3,13 @@
 // ProjectShred.artifact.jsx:2542-2585. A hand-rolled SVG sparkline — no
 // charting library anywhere in this app, matching the rest of the port
 // (custom rings, dual trendlines, heatmap).
+//
+// Sprint 14 — the trend line and its endpoint dot now glow with the same
+// two-layer neon-tube technique used on CompositeHeroRing (a wide soft bloom
+// + a tighter bright bloom, merged under the crisp source stroke), matching
+// dark mode's now-unchained aesthetic.
 
+import { useId } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { FONT_MONO } from '@/lib/theme/tokens';
 import { formatShortDate } from '@/lib/domain/dates';
@@ -20,6 +26,7 @@ export interface SparklineProps {
 }
 
 export function Sparkline({ data, color, unit }: SparklineProps) {
+  const glowId = `sparkline-glow-${useId().replace(/:/g, '')}`;
   const w = 280, h = 70, pad = 6;
   const vals = data.map((d) => d.value);
   const min = Math.min(...vals) - 0.5;
@@ -45,11 +52,20 @@ export function Sparkline({ data, color, unit }: SparklineProps) {
             <stop offset="0%" stopColor={color} stopOpacity="0.35" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
+          <filter id={glowId} x="-60%" y="-100%" width="220%" height="300%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="wideBloom" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="tightBloom" />
+            <feMerge>
+              <feMergeNode in="wideBloom" />
+              <feMergeNode in="tightBloom" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
         <path d={areaPath} fill={`url(#${gradId})`} stroke="none" />
-        <path d={path} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={path} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" filter={`url(#${glowId})`} />
         {points.map((p, i) => (
-          <circle key={i} cx={p[0]} cy={p[1]} r={i === points.length - 1 ? 4 : 2.5} fill={color} />
+          <circle key={i} cx={p[0]} cy={p[1]} r={i === points.length - 1 ? 4 : 2.5} fill={color} filter={`url(#${glowId})`} />
         ))}
       </svg>
       <div className="flex items-center justify-between mt-2">

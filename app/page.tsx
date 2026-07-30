@@ -15,9 +15,9 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
+import { UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, JEWEL } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
 import { useWireSync } from '@/lib/store/wireSync';
 import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/targets';
@@ -138,35 +138,39 @@ export default function Home() {
 
   return (
     <main className="min-h-screen w-full relative" style={{ background: T.t.bgGrad, color: T.t.textPrimary, paddingBottom: 190 }}>
-      {/* Sprint 5, brightened in Sprint 8, deepened again in Sprint 13: ambient
-          background glow — two large, softly blurred, fixed radial blobs in
-          the accent + protein jewel tones. Fixed (not absolute) so they read
-          as page-level atmosphere rather than scrolling with content;
-          pointer-events-none + negative z-index keep them fully decorative
-          and never in the way of a tap. Sprint 8 raised the alpha and shrank
-          the blur slightly — screenshots showed them reading as nearly flat
-          black at the original values. Sprint 13's screenshots showed the
-          same thing one step further: the blobs were real but too faint
-          against the card directly on top of them, reading as "flat" in a
-          screenshot even though the glass itself (blur/shadow/border — see
-          GlassCard.tsx) was doing real work. Raised alpha again here, still
-          inside the existing accent/jewel palette — not a new color, not a
-          neon override, just more of what was already there. */}
+      {/* Sprint 5, brightened in Sprint 8, deepened in Sprint 13, unchained in
+          Sprint 14: with dark mode now the app's only reachable mode, this
+          went from "two brightened blobs in the existing accent/protein
+          tones" to a genuine three-point neon corner glow (accent + jade +
+          plum) over a near-obsidian base (THEME_PRESETS.dark, tokens.ts) —
+          the "endless dark void with light leaks" look. Fixed (not absolute)
+          so they read as page-level atmosphere rather than scrolling with
+          content; pointer-events-none + negative z-index keep them fully
+          decorative and never in the way of a tap. */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
         <div
           style={{
-            position: 'absolute', top: '-12%', insetInlineEnd: '-15%', width: '55vw', height: '55vw', maxWidth: 520, maxHeight: 520,
-            background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '5c' : '36'} 0%, transparent 70%)`,
-            filter: 'blur(48px)',
+            position: 'absolute', top: '-16%', insetInlineEnd: '-18%', width: '60vw', height: '60vw', maxWidth: 620, maxHeight: 620,
+            background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '85' : '36'} 0%, transparent 68%)`,
+            filter: 'blur(64px)',
           }}
         />
         <div
           style={{
-            position: 'absolute', bottom: '-8%', insetInlineStart: '-18%', width: '50vw', height: '50vw', maxWidth: 460, maxHeight: 460,
-            background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '52' : '30'} 0%, transparent 70%)`,
-            filter: 'blur(56px)',
+            position: 'absolute', bottom: '-12%', insetInlineStart: '-20%', width: '55vw', height: '55vw', maxWidth: 540, maxHeight: 540,
+            background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '78' : '30'} 0%, transparent 68%)`,
+            filter: 'blur(70px)',
           }}
         />
+        {T.mode === 'dark' && (
+          <div
+            style={{
+              position: 'absolute', top: '32%', left: '50%', transform: 'translateX(-50%)', width: '48vw', height: '48vw', maxWidth: 460, maxHeight: 460,
+              background: `radial-gradient(circle, ${JEWEL.dark.plum}55 0%, transparent 70%)`,
+              filter: 'blur(80px)',
+            }}
+          />
+        )}
       </div>
 
       <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-8 relative">
@@ -207,17 +211,6 @@ export default function Home() {
               aria-label="הגדרות"
             >
               <Settings2 size={16} color={T.t.textSecondary} />
-            </motion.button>
-            <motion.button
-              onClick={() => T.setMode(T.mode === 'dark' ? 'light' : 'dark')}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.06 }}
-              transition={tapSpring}
-              className="flex items-center justify-center rounded-xl"
-              style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
-              aria-label="מצב תצוגה"
-            >
-              {T.mode === 'dark' ? <MoonIcon size={16} color={T.t.textSecondary} /> : <SunIcon size={16} color={T.t.textSecondary} />}
             </motion.button>
           </div>
         </div>

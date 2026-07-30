@@ -299,6 +299,12 @@ export function createShredStore(initial?: Partial<ShredState>) {
 
     setSelectedDateKey: (newDateKey) => set({ selectedDateKey: newDateKey }),
 
+    // Sprint 14 — `data.mode` is intentionally never applied here. Dark mode
+    // is now the permanent, forced aesthetic (see ThemeContext.tsx); a
+    // pre-Sprint-14 account with 'light' saved in user_settings must not be
+    // able to flip the app back via hydration once the UI toggle to do so no
+    // longer exists. accent_key/density/feedback still round-trip normally —
+    // this is a dark-mode lock, not a full settings freeze.
     hydrateFromServer: (data) => set({
       itemsByDate: data.itemsByDate,
       dayMeta: data.dayMeta,
@@ -306,7 +312,6 @@ export function createShredStore(initial?: Partial<ShredState>) {
       metricEntries: data.metricEntries,
       ...(data.profiles ? { profiles: data.profiles } : {}),
       ...(data.activeProfileId ? { activeProfileId: data.activeProfileId } : {}),
-      ...(data.mode ? { mode: data.mode } : {}),
       ...(data.accentKey ? { accentKey: data.accentKey } : {}),
       ...(data.density ? { density: data.density } : {}),
       ...(data.feedback !== undefined ? { feedback: data.feedback } : {}),

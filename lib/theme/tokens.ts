@@ -110,26 +110,33 @@ export interface ThemePreset {
   modalShadowExtra: string;
 }
 
+// Sprint 14 — dark mode is now permanent (see ThemeContext.tsx), so its base
+// went deeper toward genuine obsidian (#07070A, close to the requested
+// #050505 but not literal flat black — pure #000 reads as a rendering
+// error/unstyled void rather than a designed surface, the same reason the
+// original Design Quality Pass avoided pure black to begin with) rather than
+// the previous warm-charcoal compromise, which was tuned to also work as a
+// *light-mode-adjacent* dark theme. That constraint is gone.
 export const THEME_PRESETS: Record<ThemeMode, ThemePreset> = {
   dark: {
-    bg: '#0E0C0A',
-    bgGrad: 'radial-gradient(ellipse 130% 80% at 50% -10%, #1D1712 0%, #0E0C0A 55%)',
-    card: '#17130F',
-    cardSolid: '#17130F',
-    cardBorder: '#2A241E',
-    elevated: '#211B16',
-    border: '#2A241E',
-    textPrimary: '#F3EFE9',
-    textSecondary: '#B4A99B',
-    textDim: '#7A6F62',
-    inputBg: '#171310',
-    chipBg: '#1C1712',
-    popover: '#1C1712',
-    modalBg: '#19140F',
-    overlayBg: 'rgba(10,8,6,0.72)',
-    shadowCard: '0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 30px -18px rgba(0,0,0,0.7)',
-    dropdownShadow: '0 20px 45px -16px rgba(0,0,0,0.65)',
-    modalShadowExtra: '0 30px 70px -24px rgba(0,0,0,0.75)',
+    bg: '#07070A',
+    bgGrad: 'radial-gradient(ellipse 140% 90% at 50% -15%, #15121C 0%, #07070A 55%)',
+    card: '#100E14',
+    cardSolid: '#100E14',
+    cardBorder: '#24202E',
+    elevated: '#191621',
+    border: '#24202E',
+    textPrimary: '#F5F3F8',
+    textSecondary: '#B0ABC0',
+    textDim: '#726C82',
+    inputBg: '#100E14',
+    chipBg: '#161320',
+    popover: '#161320',
+    modalBg: '#0F0D14',
+    overlayBg: 'rgba(4,3,8,0.82)',
+    shadowCard: '0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 30px -18px rgba(0,0,0,0.85)',
+    dropdownShadow: '0 20px 45px -16px rgba(0,0,0,0.8)',
+    modalShadowExtra: '0 30px 70px -24px rgba(0,0,0,0.9)',
   },
   light: {
     bg: '#FBF9F6',

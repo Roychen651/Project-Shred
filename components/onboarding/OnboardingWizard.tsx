@@ -72,9 +72,9 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
           maxHeight: '90vh',
           background: T.mode === 'dark' ? `${T.t.modalBg}E8` : `${T.t.modalBg}F7`,
           border: `1px solid ${T.accent}33`,
-          boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 28, '35')}, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.75)'}, inset 0 0 0 1px ${T.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)'}`,
-          backdropFilter: 'blur(28px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 28, '35')}, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.75)'}, inset 0 0 0 1px ${T.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)'}`,
+          backdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'blur(28px) saturate(180%)',
         }}
       >
         {/* progress dots */}
