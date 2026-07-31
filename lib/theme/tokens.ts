@@ -4,12 +4,11 @@
 // see CLAUDE.md's Design System section for why each choice was made.
 
 // ---------------------------------------------------------------------------
-// Typography — a real pairing, not "Heebo everywhere". Frank Ruhl Libre is a
-// serif purpose-built for Hebrew+Latin (Israeli editorial design), used for
-// headings only. Heebo is the neutral, highly-legible body face. IBM Plex Sans
-// Hebrew — NOT JetBrains Mono, which has zero Hebrew glyph coverage and silently
-// broke mixed Hebrew/numeral text (Sprint 15.14) — is reserved for every number
-// in the app, with tabular figures so columns of digits align.
+// Typography — a real pairing, not "Heebo everywhere". Heebo is the neutral,
+// highly-legible body face. IBM Plex Sans Hebrew — NOT JetBrains Mono, which
+// has zero Hebrew glyph coverage and silently broke mixed Hebrew/numeral text
+// (Sprint 15.14) — is reserved for every number in the app, with tabular
+// figures so columns of digits align.
 //
 // Sprint 7: the artifact loaded these via a plain `<link>` to the Google Fonts
 // CSS API (GOOGLE_FONTS_IMPORT, now removed). That's a real third-party runtime
@@ -22,8 +21,18 @@
 // reference those variables first, with the original family-name fallback
 // chain kept after them for any environment where the variable isn't defined
 // (e.g. a component rendered outside the root layout in a test).
-// ---------------------------------------------------------------------------
-export const FONT_DISPLAY = "var(--font-display), 'Frank Ruhl Libre', 'Heebo', serif";
+//
+// Sprint 16: FONT_DISPLAY switched from Frank Ruhl Libre (a serif) to Rubik —
+// a heavy-weight, geometric, rounded Hebrew-native sans. This directly reverses
+// the original "Design Quality Pass" rationale for the serif pairing (see
+// CLAUDE.md's Design System section) — that was a deliberate response to
+// looking "too generic-AI-sans-everywhere" at the time. The new reference
+// direction (health/wearable apps like Nixtio's Biosora) explicitly wants the
+// opposite register: big, bold, black-weight sans numerals and headings, no
+// serif anywhere. Per direct user feedback with visual references, that call
+// stands — same reasoning discipline as the Sprint 14→15 dark/light reversal,
+// documented here rather than silently overwritten.
+export const FONT_DISPLAY = "var(--font-display), 'Rubik', 'Heebo', sans-serif";
 export const FONT_BODY = "var(--font-body), 'Heebo', 'Segoe UI', sans-serif";
 export const FONT_MONO = "var(--font-mono), 'IBM Plex Sans Hebrew', 'Heebo', sans-serif";
 

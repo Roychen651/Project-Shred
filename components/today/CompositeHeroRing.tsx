@@ -18,10 +18,21 @@
 // before the crisp source stroke, the same layering real neon signage photos
 // show (a broad ambient glow plus a brighter near-tube halo), rather than one
 // blur radius doing both jobs at once.
+//
+// Sprint 16: two changes per direct reference-driven feedback (health/wearable
+// app UI — huge, bold, flat black numerals, no glow). (1) The center number
+// now renders in FONT_DISPLAY (Rubik, black weight) at a substantially larger
+// size instead of the tabular mono face — reads as the single dominant
+// element the reference treats it as, rather than a data-table figure.
+// FONT_MONO is still used everywhere else numerals appear (unchanged; this is
+// one deliberately special-cased element, not a token change). (2) The glow
+// filter is now dark-mode only — light mode renders the crisp stroke with no
+// bloom, matching the reference's flat, shadow-only depth language; dark mode
+// keeps the full neon treatment from Sprint 14 unchanged.
 
 import { useId } from 'react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 import type { MacroTotals } from '@/lib/domain/items';
 import type { DayTargets } from '@/lib/domain/targets';
 
@@ -44,6 +55,7 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   const proteinPct = Math.max(0, Math.min(targets.protein > 0 ? consumed.protein / targets.protein : 0, 1));
   const remaining = Math.round(targets.kcal - consumed.kcal);
   const isOver = remaining < 0;
+  const isDark = T.mode === 'dark';
 
   return (
     <div className="relative flex items-center justify-center mx-auto" style={{ width: size, height: size }}>
@@ -72,20 +84,20 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
         <circle
           cx={size / 2} cy={size / 2} r={rOuter} stroke={T.macro.kcal} strokeWidth={strokeOuter} fill="none"
           strokeDasharray={circOuter} strokeDashoffset={circOuter * (1 - kcalPct)} strokeLinecap="round"
-          filter={`url(#${glowOuterId})`}
+          filter={isDark ? `url(#${glowOuterId})` : undefined}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
         />
         <circle cx={size / 2} cy={size / 2} r={rInner} stroke={T.t.border} strokeWidth={strokeInner} fill="none" />
         <circle
           cx={size / 2} cy={size / 2} r={rInner} stroke={T.macro.protein} strokeWidth={strokeInner} fill="none"
           strokeDasharray={circInner} strokeDashoffset={circInner * (1 - proteinPct)} strokeLinecap="round"
-          filter={`url(#${glowInnerId})`}
+          filter={isDark ? `url(#${glowInnerId})` : undefined}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-xs font-semibold" style={{ color: T.t.textDim, letterSpacing: '0.03em' }}>נצרכו היום</span>
-        <span className="text-5xl font-bold leading-none mt-1.5" style={{ fontFamily: FONT_MONO, color: T.t.textPrimary }}>{Math.round(consumed.kcal)}</span>
+        <span className="text-6xl font-black leading-none mt-1.5" style={{ fontFamily: FONT_DISPLAY, color: T.t.textPrimary, letterSpacing: '-0.02em' }}>{Math.round(consumed.kcal)}</span>
         <span className="text-xs mt-1" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>מתוך {targets.kcal} קל׳</span>
         <span
           className="text-xs font-bold px-3 py-1 rounded-full mt-2.5"

@@ -19,6 +19,9 @@
 // through here), so it gets the same treatment now: frosted background, heavy
 // blur/saturate, bright top highlight, layered shadow — matching GlassCard's
 // dark-mode branch exactly rather than inventing a second variant.
+//
+// Sprint 16: top corner radius bumped 24px -> 32px to match GlassCard's larger
+// radius bump — same "shapes felt dated" feedback, same fix.
 
 import { useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
@@ -68,9 +71,10 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
           <motion.div
             ref={panelRef}
             onClick={(e) => e.stopPropagation()}
-            className="w-full rounded-t-3xl flex flex-col"
+            className="w-full flex flex-col"
             style={{
               maxWidth: 640,
+              borderTopLeftRadius: 32, borderTopRightRadius: 32,
               height: panelHeight, maxHeight: panelHeight,
               background: T.mode === 'dark' ? 'rgba(255,255,255,0.035)' : T.t.modalBg,
               borderTop: `1px solid ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : T.t.border}`,

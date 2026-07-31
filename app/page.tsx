@@ -211,7 +211,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex p-1 rounded-xl gap-1" style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}` }}>
+            <div className="flex p-1 rounded-2xl gap-1" style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}` }}>
               <SegBtn active={dayMode === 'training'} onClick={() => setDayMode('training')}>אימון</SegBtn>
               <SegBtn active={dayMode === 'rest'} onClick={() => setDayMode('rest')}>מנוחה</SegBtn>
             </div>
@@ -228,7 +228,7 @@ export default function Home() {
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.06 }}
               transition={tapSpring}
-              className="flex items-center justify-center rounded-xl"
+              className="flex items-center justify-center rounded-2xl"
               style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
               aria-label="הגדרות"
             >
@@ -239,7 +239,7 @@ export default function Home() {
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.06 }}
               transition={tapSpring}
-              className="flex items-center justify-center rounded-xl"
+              className="flex items-center justify-center rounded-2xl"
               style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
               aria-label="מצב תצוגה"
             >
@@ -278,7 +278,7 @@ export default function Home() {
                   whileTap={{ scale: 0.97 }}
                   whileHover={{ scale: 1.02 }}
                   transition={tapSpring}
-                  className="flex flex-col items-start gap-2 p-4 rounded-2xl text-right"
+                  className="flex flex-col items-start gap-2 p-4 rounded-3xl text-right"
                   style={glassSurface(T)}
                 >
                   <UtensilsCrossed size={20} color={T.accent} />
@@ -290,7 +290,7 @@ export default function Home() {
                   whileTap={{ scale: 0.97 }}
                   whileHover={{ scale: 1.02 }}
                   transition={tapSpring}
-                  className="flex flex-col items-start gap-2 p-4 rounded-2xl text-right"
+                  className="flex flex-col items-start gap-2 p-4 rounded-3xl text-right"
                   style={glassSurface(T)}
                 >
                   <Layers3 size={20} color={T.accent} />
@@ -320,7 +320,7 @@ export default function Home() {
                   whileTap={{ scale: 0.98 }}
                   whileHover={{ scale: 1.01 }}
                   transition={tapSpring}
-                  className="flex items-center justify-between p-4 rounded-2xl text-right"
+                  className="flex items-center justify-between p-4 rounded-3xl text-right"
                   style={glassSurface(T)}
                 >
                   <div className="flex items-center gap-2">

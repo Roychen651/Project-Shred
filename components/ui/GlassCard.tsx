@@ -38,6 +38,11 @@
 // glassy) warm border, and genuine soft elevation from layered shadow — the
 // same "real depth via shadow, not haze" approach modern light-mode product
 // design (Linear's light theme, Stripe's docs) uses.
+//
+// Sprint 16 — corner radius bumped from 16px to 24px across the board. Per
+// direct feedback with visual references (health/wearable app UI), the
+// smaller radius was reading as one of the "dated" shape cues; a bigger,
+// chunkier radius is consistent with the reference's card language.
 import type { ReactNode, CSSProperties } from 'react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 
@@ -81,8 +86,9 @@ export function GlassCard({ children, className = '', style = {}, accent }: Glas
 
   return (
     <div
-      className={`relative rounded-2xl overflow-hidden transition-all duration-300 ${className}`}
+      className={`relative overflow-hidden transition-all duration-300 ${className}`}
       style={{
+        borderRadius: 24,
         background: glassBg,
         backdropFilter: isDark ? 'blur(40px) saturate(200%)' : 'none',
         WebkitBackdropFilter: isDark ? 'blur(40px) saturate(200%)' : 'none',
