@@ -44,6 +44,12 @@
 // smaller radius was reading as one of the "dated" shape cues; a bigger,
 // chunkier radius is consistent with the reference's card language.
 //
+// Sprint 20 — bumped again, 24px -> 32px ("squircle" territory, closer to
+// Apple HIG's continuous-corner cards). TiltCard's glare layer (Sprint 19)
+// reads its radius from this same value via its own `borderRadius` prop —
+// see the call sites — so this single change stays the source of truth
+// rather than needing to be updated in two places.
+//
 // Sprint 18 — the dark branch's white-frost tint (rgba(255,255,255,0.035))
 // is replaced with genuine dark smoked glass (rgba(10,10,10,0.6)) over the
 // new near-black page background — per explicit feedback that light-tinted
@@ -96,7 +102,7 @@ export function GlassCard({ children, className = '', style = {}, accent }: Glas
     <div
       className={`relative overflow-hidden transition-all duration-300 ${className}`}
       style={{
-        borderRadius: 24,
+        borderRadius: 32,
         background: glassBg,
         backdropFilter: isDark ? 'blur(40px) saturate(200%)' : 'none',
         WebkitBackdropFilter: isDark ? 'blur(40px) saturate(200%)' : 'none',

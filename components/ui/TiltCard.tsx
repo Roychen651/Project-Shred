@@ -45,11 +45,11 @@ export interface TiltCardProps {
   /** Must match the wrapped card's own border-radius — the glare overlay is a
    * sibling of `children`, not a descendant, so CSS `inherit` can't pick this
    * up from the card automatically. Every card in this app currently uses the
-   * same 24px radius (see GlassCard.tsx), hence the shared default. */
+   * same 32px radius (see GlassCard.tsx), hence the shared default. */
   borderRadius?: number;
 }
 
-export function TiltCard({ children, className = '', style = {}, maxTilt = 8, glare = true, borderRadius = 24 }: TiltCardProps) {
+export function TiltCard({ children, className = '', style = {}, maxTilt = 8, glare = true, borderRadius = 32 }: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const tiltEnabled = useSyncExternalStore(subscribeToHoverCapability, getHoverCapability, getServerHoverCapability);
 

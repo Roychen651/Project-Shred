@@ -190,9 +190,15 @@ export default function Home() {
           the "endless dark void with light leaks" look. Fixed (not absolute)
           so they read as page-level atmosphere rather than scrolling with
           content; pointer-events-none + negative z-index keep them fully
-          decorative and never in the way of a tap. */}
+          decorative and never in the way of a tap.
+          Sprint 20 — each blob now drifts slowly (position/scale/opacity via
+          the shred-mesh-blob-N keyframes in globals.css, offset durations so
+          they never move in sync) instead of sitting static, and a fourth
+          "midnight blue" blob (JEWEL.steel) joins accent/jade/plum for a
+          genuine multi-hue mesh instead of a three-color palette. */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
         <div
+          className="shred-mesh-blob-1"
           style={{
             position: 'absolute', top: '-16%', insetInlineEnd: '-18%', width: '60vw', height: '60vw', maxWidth: 620, maxHeight: 620,
             background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '85' : '1c'} 0%, transparent 68%)`,
@@ -200,6 +206,7 @@ export default function Home() {
           }}
         />
         <div
+          className="shred-mesh-blob-2"
           style={{
             position: 'absolute', bottom: '-12%', insetInlineStart: '-20%', width: '55vw', height: '55vw', maxWidth: 540, maxHeight: 540,
             background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '78' : '16'} 0%, transparent 68%)`,
@@ -208,10 +215,21 @@ export default function Home() {
         />
         {T.mode === 'dark' && (
           <div
+            className="shred-mesh-blob-3"
             style={{
-              position: 'absolute', top: '32%', left: '50%', transform: 'translateX(-50%)', width: '48vw', height: '48vw', maxWidth: 460, maxHeight: 460,
+              position: 'absolute', top: '32%', left: '50%', width: '48vw', height: '48vw', maxWidth: 460, maxHeight: 460,
               background: `radial-gradient(circle, ${JEWEL.dark.plum}55 0%, transparent 70%)`,
               filter: 'blur(80px)',
+            }}
+          />
+        )}
+        {T.mode === 'dark' && (
+          <div
+            className="shred-mesh-blob-2"
+            style={{
+              position: 'absolute', top: '55%', insetInlineEnd: '-10%', width: '42vw', height: '42vw', maxWidth: 400, maxHeight: 400,
+              background: `radial-gradient(circle, ${JEWEL.dark.steel}45 0%, transparent 70%)`,
+              filter: 'blur(75px)', animationDelay: '-18s',
             }}
           />
         )}
@@ -277,7 +295,13 @@ export default function Home() {
                 <motion.div variants={tabItemVariants}>
                   <HeroRingLegend />
                 </motion.div>
-                <motion.div variants={tabItemVariants} className="w-full">
+                {/* Sprint 20 — extra top clearance for SmartContextCard's
+                    floating badge (Sprint 19), which pokes -14px above the
+                    card. Audited: it measured a real 22px gap from the
+                    legend above, not an actual overlap, but that read as
+                    visually tight, so this pushes it to a more comfortable
+                    margin as a safety buffer rather than leaving it exact. */}
+                <motion.div variants={tabItemVariants} className="w-full mt-2">
                   <SmartContextCard
                     items={dayItems}
                     onQuickComplete={(slotId) => store.markSlotCompleted(store.selectedDateKey, slotId)}
@@ -296,7 +320,7 @@ export default function Home() {
                       whileTap={{ scale: 0.97 }}
                       whileHover={{ scale: 1.02 }}
                       transition={tapSpring}
-                      className="w-full flex flex-col items-start gap-3 p-4 rounded-3xl text-right"
+                      className="w-full flex flex-col items-start gap-3 p-4 rounded-[32px] text-right"
                       style={glassSurface(T)}
                     >
                       <UtensilsCrossed size={32} color={T.accent} strokeWidth={1.75} />
@@ -312,7 +336,7 @@ export default function Home() {
                       whileTap={{ scale: 0.97 }}
                       whileHover={{ scale: 1.02 }}
                       transition={tapSpring}
-                      className="w-full flex flex-col items-start gap-3 p-4 rounded-3xl text-right"
+                      className="w-full flex flex-col items-start gap-3 p-4 rounded-[32px] text-right"
                       style={glassSurface(T)}
                     >
                       <Layers3 size={32} color={T.accent} strokeWidth={1.75} />
@@ -344,7 +368,7 @@ export default function Home() {
                   whileTap={{ scale: 0.98 }}
                   whileHover={{ scale: 1.01 }}
                   transition={tapSpring}
-                  className="flex items-center justify-between p-4 rounded-3xl text-right"
+                  className="flex items-center justify-between p-4 rounded-[32px] text-right"
                   style={glassSurface(T)}
                 >
                   <div className="flex items-center gap-2">

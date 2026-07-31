@@ -27,6 +27,10 @@
 // smoked glass (rgba(10,10,10,0.6)) — mirrors the identical change in
 // GlassCard.tsx, same reasoning: light-tinted glass over the new near-black
 // page read gray, not obsidian.
+//
+// Sprint 20: top radius bumped once more, 32px -> 40px, matching GlassCard's
+// squircle bump (24 -> 32) — the sheet is the single largest rounded surface
+// in the app, so it reads the increase most.
 
 import { useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
@@ -79,7 +83,7 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
             className="w-full flex flex-col"
             style={{
               maxWidth: 640,
-              borderTopLeftRadius: 32, borderTopRightRadius: 32,
+              borderTopLeftRadius: 40, borderTopRightRadius: 40,
               height: panelHeight, maxHeight: panelHeight,
               background: T.mode === 'dark' ? 'rgba(10,10,10,0.6)' : T.t.modalBg,
               borderTop: `1px solid ${T.mode === 'dark' ? 'rgba(255,255,255,0.1)' : T.t.border}`,

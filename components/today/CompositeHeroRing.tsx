@@ -40,6 +40,17 @@
 // ends of the weight scale instead of both being mid-weight, which is what
 // actually reads as "designed contrast" rather than "two labels."
 //
+// Sprint 20: "Apple Fitness ring" pass — strokes thickened (16/10 -> 20/13,
+// closer to Activity Rings' actual stroke-to-diameter ratio) and each
+// gradient gained a real third stop (light tint -> base hue -> a hue
+// deepened toward black) instead of a two-stop light-to-base sweep. SVG has
+// no native conic-gradient, so a true Apple-style sweep isn't reachable
+// without rasterizing a mask — a 3-stop linear gradient across the arc's
+// bounding box is the honest approximation used here, matching what other
+// production fitness-ring implementations do for the same reason. Track
+// alpha nudged from 0.05 to 0.04 for a slightly deeper, more "recessed"
+// groove.
+//
 // Sprint 17: direct feedback that the ring/chip language reads as "generic
 // bootstrap" — flat single-hue strokes, a plain outline pill for the delta.
 // Three changes, none touching the ring's actual data logic: (1) both arcs
@@ -73,7 +84,7 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   // Sprint 19 — bumped 220 -> 248 to make room for the much larger center
   // numeral (text-7xl) requested; at the old size a 4-digit calorie count in
   // Rubik Black would have pressed right up against the inner stroke.
-  const size = 248, strokeOuter = 16, strokeInner = 10;
+  const size = 248, strokeOuter = 20, strokeInner = 13;
   const rOuter = (size - strokeOuter) / 2;
   const rInner = rOuter - strokeOuter / 2 - strokeInner / 2 - 6;
   const circOuter = 2 * Math.PI * rOuter;
@@ -87,7 +98,7 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   // general-purpose T.t.border token (now a slightly stronger 0.1 alpha,
   // right for card edges but too visible for a ring that should read as
   // "mostly invisible until it's lit up").
-  const trackColor = isDark ? 'rgba(255,255,255,0.05)' : T.t.border;
+  const trackColor = isDark ? 'rgba(255,255,255,0.04)' : T.t.border;
 
   return (
     <div className="relative flex items-center justify-center mx-auto" style={{ width: size, height: size }}>
@@ -106,11 +117,13 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
         <defs>
           <linearGradient id={gradOuterId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor={`color-mix(in srgb, ${T.macro.kcal}, white 35%)`} />
-            <stop offset="100%" stopColor={T.macro.kcal} />
+            <stop offset="55%" stopColor={T.macro.kcal} />
+            <stop offset="100%" stopColor={`color-mix(in srgb, ${T.macro.kcal}, black 20%)`} />
           </linearGradient>
           <linearGradient id={gradInnerId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor={`color-mix(in srgb, ${T.macro.protein}, white 35%)`} />
-            <stop offset="100%" stopColor={T.macro.protein} />
+            <stop offset="55%" stopColor={T.macro.protein} />
+            <stop offset="100%" stopColor={`color-mix(in srgb, ${T.macro.protein}, black 20%)`} />
           </linearGradient>
           <filter id={glowOuterId} x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="wideBloom" />

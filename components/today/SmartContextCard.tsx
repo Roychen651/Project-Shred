@@ -12,12 +12,22 @@
 // floating pill that overlaps the card's own top edge (negative offset,
 // absolutely positioned) — the literal "badge floats over the glass card"
 // example from the brief, not a decorative label sitting flat inside it.
+//
+// Sprint 20 — the icon slot now swaps in a small animated illustration
+// instead of always showing the static SLOT_ICONS glyph: a bouncing salad
+// for the genuinely-empty state (nothing logged for this slot yet — the
+// "empty state" the brief explicitly calls out) and a running figure once
+// everything in the slot is marked done (a small celebratory beat, not a
+// full-screen animation). Anything in between (items logged, not yet
+// completed) keeps the plain functional slot icon — that state isn't empty
+// or a celebration, so it doesn't need motion competing for attention.
 
 import { Check, Pencil } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO, FONT_DISPLAY, tactileGradient } from '@/lib/theme/tokens';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { TiltCard } from '@/components/ui/TiltCard';
+import { AnimatedSalad, AnimatedRunner } from '@/components/ui/AnimatedIllustrations';
 import { SLOT_DEFS, getCurrentSlotId, type SlotId } from '@/lib/domain/slots';
 import type { LoggedItem } from '@/lib/domain/items';
 import { SLOT_ICONS } from '@/components/nutrition/slotIcons';
@@ -52,7 +62,13 @@ export function SmartContextCard({ items, onQuickComplete, onEdit }: SmartContex
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center rounded-2xl" style={{ width: 46, height: 46, background: done ? `${T.macro.protein}18` : `${T.accent}14` }}>
-              <Icon size={20} color={done ? T.macro.protein : T.accent} />
+              {done ? (
+                <AnimatedRunner size={30} color={T.macro.protein} />
+              ) : slotItems.length === 0 ? (
+                <AnimatedSalad size={30} color={T.accent} />
+              ) : (
+                <Icon size={20} color={T.accent} />
+              )}
             </div>
             <div>
               <div className="text-base font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>{slot.emoji} {slot.label}</div>

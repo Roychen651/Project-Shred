@@ -25,6 +25,7 @@ import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 import { FieldInput } from '@/components/settings/FieldInput';
 import { Stepper } from '@/components/ui/Stepper';
+import { AnimatedDumbbell } from '@/components/ui/AnimatedIllustrations';
 import { ACTIVITY_LEVELS, GOALS, computeProfileTargets, type ActivityKey, type GoalKey } from '@/lib/domain/targets';
 import type { Profile } from '@/lib/store/shred-store';
 
@@ -131,6 +132,9 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
 
               {step === 2 && (
                 <div className="flex flex-col gap-4 py-2">
+                  <div className="flex justify-center">
+                    <AnimatedDumbbell size={56} color={T.accent} />
+                  </div>
                   <div>
                     <h3 className="text-base font-bold mb-2" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>רמת פעילות</h3>
                     <div className="grid grid-cols-1 gap-2">
