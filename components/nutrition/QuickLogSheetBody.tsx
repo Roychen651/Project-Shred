@@ -84,7 +84,7 @@ export function QuickLogSheetBody({ onConfirm, defaultSlotId }: QuickLogSheetBod
         rows={2}
         placeholder="במבה קטנה ומעדן GO..."
         className="w-full py-3 px-3.5 rounded-xl text-sm outline-none resize-none"
-        style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary }}
+        style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary }}
       />
       <div>
         <p className="text-xs font-semibold mb-1.5" style={{ color: T.t.textSecondary }}>שיבוץ לחלון זמן</p>

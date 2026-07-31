@@ -52,7 +52,7 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max = 999, 
       </label>
       <div
         className="flex items-center rounded-2xl overflow-hidden"
-        style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, boxShadow: T.t.shadowCard }}
+        style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, boxShadow: T.t.shadowCard }}
       >
         <motion.button
           type="button"

@@ -74,7 +74,7 @@ export function RestaurantMatrixSheetBody({ onConfirm, defaultSlotId }: Restaura
           onChange={(e) => setSearch(e.target.value)}
           placeholder="חפשו מנה..."
           className="w-full py-2.5 pr-9 pl-3 rounded-xl text-sm outline-none"
-          style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary }}
+          style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary }}
         />
       </div>
 

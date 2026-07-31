@@ -14,13 +14,17 @@
 import { useState, type FormEvent, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { LogIn, RotateCw } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { tactileGradient } from '@/lib/theme/tokens';
 import { createClient } from '@/lib/supabase/client';
 import { translateAuthError } from '@/lib/supabase/authErrors';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
 import { AuthError } from '@/components/auth/AuthError';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 function LoginForm() {
   const T = useTheme();
@@ -90,14 +94,16 @@ function LoginForm() {
           {resendState === 'sent' ? 'קישור חדש נשלח ✓' : resendState === 'sending' ? 'שולח…' : 'שליחת קישור אימות חדש'}
         </button>
       )}
-      <button
+      <motion.button
         type="submit"
         disabled={loading}
+        whileTap={{ scale: 0.95 }}
+        transition={tapSpring}
         className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
-        style={{ background: T.accent, color: '#07080B', opacity: loading ? 0.6 : 1 }}
+        style={{ ...tactileGradient(T.accent), color: '#07080B', opacity: loading ? 0.6 : 1 }}
       >
         <LogIn size={16} /> {loading ? 'מתחבר…' : 'התחברות'}
-      </button>
+      </motion.button>
       <div className="flex items-center justify-between text-xs" style={{ color: T.t.textDim }}>
         <Link href="/forgot-password" style={{ color: T.accent }}>שכחתי סיסמה</Link>
         <span>

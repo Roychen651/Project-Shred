@@ -121,13 +121,13 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredi
             onChange={(e) => setSearch(e.target.value)}
             placeholder="חפשו מרכיב..."
             className="w-full py-2.5 pr-9 pl-3 rounded-xl text-sm outline-none"
-            style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary }}
+            style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary }}
           />
         </div>
         <button
           onClick={() => setCustomModalOpen(true)}
           className="flex-shrink-0 flex items-center justify-center rounded-xl"
-          style={{ width: 42, background: T.t.inputBg, border: `1.5px solid ${T.t.border}` }}
+          style={{ width: 42, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
           aria-label="הוספת מרכיב אישי"
           title="לא מצאתם? הוסיפו מרכיב אישי מהתווית"
         >

@@ -22,6 +22,11 @@
 //
 // Sprint 16: top corner radius bumped 24px -> 32px to match GlassCard's larger
 // radius bump — same "shapes felt dated" feedback, same fix.
+//
+// Sprint 18: dark background flipped from a light frost tint to genuine dark
+// smoked glass (rgba(10,10,10,0.6)) — mirrors the identical change in
+// GlassCard.tsx, same reasoning: light-tinted glass over the new near-black
+// page read gray, not obsidian.
 
 import { useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
@@ -76,11 +81,11 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
               maxWidth: 640,
               borderTopLeftRadius: 32, borderTopRightRadius: 32,
               height: panelHeight, maxHeight: panelHeight,
-              background: T.mode === 'dark' ? 'rgba(255,255,255,0.035)' : T.t.modalBg,
-              borderTop: `1px solid ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : T.t.border}`,
-              borderInline: T.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : 'none',
+              background: T.mode === 'dark' ? 'rgba(10,10,10,0.6)' : T.t.modalBg,
+              borderTop: `1px solid ${T.mode === 'dark' ? 'rgba(255,255,255,0.1)' : T.t.border}`,
+              borderInline: T.mode === 'dark' ? '1px solid rgba(255,255,255,0.05)' : 'none',
               boxShadow: T.mode === 'dark'
-                ? '0 -20px 60px -10px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.15)'
+                ? '0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)'
                 : '0 -20px 50px -20px rgba(33,28,22,0.28)',
               backdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'none',
               WebkitBackdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'none',

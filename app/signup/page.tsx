@@ -2,14 +2,17 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { UserPlus, MailCheck } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
 import { createClient } from '@/lib/supabase/client';
 import { translateAuthError } from '@/lib/supabase/authErrors';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
 import { AuthError } from '@/components/auth/AuthError';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export default function SignupPage() {
   const T = useTheme();
@@ -81,14 +84,16 @@ export default function SignupPage() {
         <AuthField label="סיסמה" type="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="לפחות 8 תווים" />
         <AuthField label="אימות סיסמה" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
         <AuthError message={error} />
-        <button
+        <motion.button
           type="submit"
           disabled={loading}
+          whileTap={{ scale: 0.95 }}
+          transition={tapSpring}
           className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
-          style={{ background: T.accent, color: '#07080B', opacity: loading ? 0.6 : 1 }}
+          style={{ ...tactileGradient(T.accent), color: '#07080B', opacity: loading ? 0.6 : 1 }}
         >
           <UserPlus size={16} /> {loading ? 'נרשם…' : 'הרשמה'}
-        </button>
+        </motion.button>
         <p className="text-xs text-center" style={{ color: T.t.textDim }}>
           יש לכם כבר חשבון?{' '}
           <Link href="/login" style={{ color: T.accent, fontWeight: 700 }}>התחברות</Link>

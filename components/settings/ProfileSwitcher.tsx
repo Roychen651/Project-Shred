@@ -82,7 +82,7 @@ export function ProfileSwitcher({ profiles, activeId, setActiveId, addProfile, d
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="שם פרופיל חדש"
                 className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none"
-                style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary }}
+                style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary }}
               />
               <button
                 onClick={() => {

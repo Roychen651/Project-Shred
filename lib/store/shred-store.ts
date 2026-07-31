@@ -289,12 +289,13 @@ export function createShredStore(initial?: Partial<ShredState>) {
     customRestaurants: [],
     customHacks: [],
     metricEntries: [],
-    // Sprint 15 — Sprint 14's "permanent forced dark mode" was reverted: the
-    // person who requested it changed direction after seeing reference
-    // designs that were light-mode (warm neutrals, editorial typography).
-    // Light is the default again; the toggle (app/page.tsx) and hydration
-    // (below) both restore full user control over this.
-    mode: 'light',
+    // Sprint 18 — dark mode is forced again, reversing Sprint 15's reversal
+    // of Sprint 14's original lock. This is the second time this exact
+    // toggle has flipped in this project's history (see tokens.ts's Sprint
+    // 18 note and CLAUDE.md) — each time on a direct, explicit, differently-
+    // justified instruction from the same person. Noted plainly rather than
+    // silently overwritten so the flip-flop is traceable, not hidden.
+    mode: 'dark',
     accentKey: 'emerald',
     density: 'comfortable',
     feedback: true,
@@ -304,10 +305,9 @@ export function createShredStore(initial?: Partial<ShredState>) {
 
     setSelectedDateKey: (newDateKey) => set({ selectedDateKey: newDateKey }),
 
-    // Sprint 15 — `data.mode` round-trips normally again. Sprint 14 had this
-    // deliberately dropped to lock dark mode permanently; that direction was
-    // reverted (see the `mode: 'light'` note above), so a saved preference
-    // should apply on load like every other setting.
+    // Sprint 18 — `data.mode` is dropped again (mirrors Sprint 14): a server-
+    // saved 'light' from before this lock must not override the forced
+    // default on load, or a returning user could "leak" back into light mode.
     hydrateFromServer: (data) => set({
       itemsByDate: data.itemsByDate,
       dayMeta: data.dayMeta,
@@ -315,7 +315,6 @@ export function createShredStore(initial?: Partial<ShredState>) {
       metricEntries: data.metricEntries,
       ...(data.profiles ? { profiles: data.profiles } : {}),
       ...(data.activeProfileId ? { activeProfileId: data.activeProfileId } : {}),
-      ...(data.mode ? { mode: data.mode } : {}),
       ...(data.accentKey ? { accentKey: data.accentKey } : {}),
       ...(data.density ? { density: data.density } : {}),
       ...(data.feedback !== undefined ? { feedback: data.feedback } : {}),

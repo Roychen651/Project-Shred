@@ -8,7 +8,7 @@
 
 import { Check, Pencil } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO, FONT_DISPLAY } from '@/lib/theme/tokens';
+import { FONT_MONO, FONT_DISPLAY, tactileGradient } from '@/lib/theme/tokens';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { SLOT_DEFS, getCurrentSlotId, type SlotId } from '@/lib/domain/slots';
 import type { LoggedItem } from '@/lib/domain/items';
@@ -50,9 +50,8 @@ export function SmartContextCard({ items, onQuickComplete, onEdit }: SmartContex
           disabled={slotItems.length === 0}
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold"
           style={{
-            background: done ? `${T.macro.protein}18` : `linear-gradient(135deg, color-mix(in srgb, ${T.accent}, white 20%), ${T.accent})`,
+            ...(done ? { background: `${T.macro.protein}18` } : tactileGradient(T.accent)),
             color: done ? T.macro.protein : '#07080B',
-            boxShadow: done ? 'none' : `0 4px 14px -4px ${T.accent}70`,
             opacity: slotItems.length === 0 ? 0.5 : 1,
           }}
         >

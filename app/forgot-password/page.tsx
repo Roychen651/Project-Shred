@@ -2,14 +2,17 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { KeyRound, MailCheck } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
 import { createClient } from '@/lib/supabase/client';
 import { translateAuthError } from '@/lib/supabase/authErrors';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
 import { AuthError } from '@/components/auth/AuthError';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export default function ForgotPasswordPage() {
   const T = useTheme();
@@ -62,14 +65,16 @@ export default function ForgotPasswordPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <AuthField label="אימייל" type="email" value={email} onChange={setEmail} autoComplete="email" placeholder="you@example.com" />
         <AuthError message={error} />
-        <button
+        <motion.button
           type="submit"
           disabled={loading}
+          whileTap={{ scale: 0.95 }}
+          transition={tapSpring}
           className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
-          style={{ background: T.accent, color: '#07080B', opacity: loading ? 0.6 : 1 }}
+          style={{ ...tactileGradient(T.accent), color: '#07080B', opacity: loading ? 0.6 : 1 }}
         >
           <KeyRound size={16} /> {loading ? 'שולח…' : 'שליחת קישור איפוס'}
-        </button>
+        </motion.button>
         <p className="text-xs text-center" style={{ color: T.t.textDim }}>
           <Link href="/login" style={{ color: T.accent, fontWeight: 700 }}>חזרה להתחברות</Link>
         </p>

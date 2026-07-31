@@ -87,7 +87,7 @@ export function MetricTracker({ entries, onAddEntry }: MetricTrackerProps) {
           type="number"
           dir="ltr"
           className="flex-1 py-2.5 px-3.5 rounded-xl text-sm outline-none"
-          style={{ minWidth: 130, background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
+          style={{ minWidth: 130, background: T.t.inputBg, border: `1px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
         />
         <input
           value={waist}
@@ -96,7 +96,7 @@ export function MetricTracker({ entries, onAddEntry }: MetricTrackerProps) {
           type="number"
           dir="ltr"
           className="flex-1 py-2.5 px-3.5 rounded-xl text-sm outline-none"
-          style={{ minWidth: 130, background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
+          style={{ minWidth: 130, background: T.t.inputBg, border: `1px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
         />
         <button
           onClick={addEntry}

@@ -70,6 +70,11 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   const remaining = Math.round(targets.kcal - consumed.kcal);
   const isOver = remaining < 0;
   const isDark = T.mode === 'dark';
+  // Sprint 18 — the empty track is a hairline over near-black, not the
+  // general-purpose T.t.border token (now a slightly stronger 0.1 alpha,
+  // right for card edges but too visible for a ring that should read as
+  // "mostly invisible until it's lit up").
+  const trackColor = isDark ? 'rgba(255,255,255,0.05)' : T.t.border;
 
   return (
     <div className="relative flex items-center justify-center mx-auto" style={{ width: size, height: size }}>
@@ -113,14 +118,14 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
             </feMerge>
           </filter>
         </defs>
-        <circle cx={size / 2} cy={size / 2} r={rOuter} stroke={T.t.border} strokeWidth={strokeOuter} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={rOuter} stroke={trackColor} strokeWidth={strokeOuter} fill="none" />
         <circle
           cx={size / 2} cy={size / 2} r={rOuter} stroke={`url(#${gradOuterId})`} strokeWidth={strokeOuter} fill="none"
           strokeDasharray={circOuter} strokeDashoffset={circOuter * (1 - kcalPct)} strokeLinecap="round"
           filter={isDark ? `url(#${glowOuterId})` : undefined}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
         />
-        <circle cx={size / 2} cy={size / 2} r={rInner} stroke={T.t.border} strokeWidth={strokeInner} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={rInner} stroke={trackColor} strokeWidth={strokeInner} fill="none" />
         <circle
           cx={size / 2} cy={size / 2} r={rInner} stroke={`url(#${gradInnerId})`} strokeWidth={strokeInner} fill="none"
           strokeDasharray={circInner} strokeDashoffset={circInner * (1 - proteinPct)} strokeLinecap="round"

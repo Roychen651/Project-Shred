@@ -39,7 +39,11 @@ export interface BottomNavProps {
 export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   const T = useTheme();
   const isDark = T.mode === 'dark';
-  const pillBg = isDark ? `${T.t.modalBg}CC` : `${T.t.modalBg}F2`;
+  // Sprint 18 — matches GlassCard/SheetModal's dark smoked glass exactly
+  // (rgba(10,10,10,0.6), blur(40px) saturate(200%)) instead of the previous,
+  // lighter/less-blurred pill fill — the floating nav is glass chrome too,
+  // not a separate, weaker treatment.
+  const pillBg = isDark ? 'rgba(10,10,10,0.6)' : `${T.t.modalBg}F2`;
   return (
     <div
       className="fixed inset-x-0 z-30 flex justify-center pointer-events-none"
@@ -51,10 +55,14 @@ export function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
           maxWidth: 460,
           margin: '0 20px',
           background: pillBg,
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.09)' : T.t.border}`,
-          backdropFilter: 'blur(24px) saturate(160%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(160%)',
-          boxShadow: `0 20px 48px -12px rgba(0,0,0,${isDark ? 0.55 : 0.18}), 0 4px 16px -4px rgba(0,0,0,${isDark ? 0.4 : 0.1}), inset 0 1px 0 ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.8)'}`,
+          borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : T.t.border}`,
+          borderInline: isDark ? '1px solid rgba(255,255,255,0.05)' : `1px solid ${T.t.border}`,
+          borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : `1px solid ${T.t.border}`,
+          backdropFilter: isDark ? 'blur(40px) saturate(200%)' : 'blur(24px) saturate(160%)',
+          WebkitBackdropFilter: isDark ? 'blur(40px) saturate(200%)' : 'blur(24px) saturate(160%)',
+          boxShadow: isDark
+            ? '0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)'
+            : '0 20px 48px -12px rgba(0,0,0,0.18), 0 4px 16px -4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
         }}
       >
         {NAV_TABS.map((tab) => {

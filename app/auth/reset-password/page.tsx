@@ -8,13 +8,17 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { KeyRound } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { tactileGradient } from '@/lib/theme/tokens';
 import { createClient } from '@/lib/supabase/client';
 import { translateAuthError } from '@/lib/supabase/authErrors';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
 import { AuthError } from '@/components/auth/AuthError';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export default function ResetPasswordPage() {
   const T = useTheme();
@@ -64,14 +68,16 @@ export default function ResetPasswordPage() {
         <AuthField label="סיסמה חדשה" type="password" value={password} onChange={setPassword} autoComplete="new-password" placeholder="לפחות 8 תווים" />
         <AuthField label="אימות סיסמה" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" />
         <AuthError message={error} />
-        <button
+        <motion.button
           type="submit"
           disabled={loading}
+          whileTap={{ scale: 0.95 }}
+          transition={tapSpring}
           className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
-          style={{ background: T.accent, color: '#07080B', opacity: loading ? 0.6 : 1 }}
+          style={{ ...tactileGradient(T.accent), color: '#07080B', opacity: loading ? 0.6 : 1 }}
         >
           <KeyRound size={16} /> {loading ? 'מעדכן…' : 'עדכון סיסמה'}
-        </button>
+        </motion.button>
       </form>
     </AuthShell>
   );

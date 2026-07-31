@@ -43,6 +43,15 @@
 // direct feedback with visual references (health/wearable app UI), the
 // smaller radius was reading as one of the "dated" shape cues; a bigger,
 // chunkier radius is consistent with the reference's card language.
+//
+// Sprint 18 — the dark branch's white-frost tint (rgba(255,255,255,0.035))
+// is replaced with genuine dark smoked glass (rgba(10,10,10,0.6)) over the
+// new near-black page background — per explicit feedback that light-tinted
+// glass on black was reading grayish rather than "obsidian." The heavy blur/
+// saturate is unchanged; only the tint direction flipped. The inset-shadow
+// highlight/ring (this component's existing stand-in for a literal
+// border-top/border-left, since a single `border` shorthand can't carry two
+// different edge alphas) now uses the exact two alpha values requested.
 import type { ReactNode, CSSProperties } from 'react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 
@@ -58,21 +67,20 @@ export function GlassCard({ children, className = '', style = {}, accent }: Glas
   const a = accent || T.accent;
   const isDark = T.mode === 'dark';
 
-  // Dark: a light frost tint (not the card's own dark hex) — the actual
-  // "glass" look, where blurred/saturated content behind shows through a
-  // pane rather than just a more-transparent dark chip.
+  // Dark: genuine smoked glass — a dark, not light, translucent tint, so it
+  // reads as obsidian glass over the near-black page rather than a gray haze.
   // Light: crisp and nearly solid — depth comes from shadow, not haze.
-  const glassBg = isDark ? 'rgba(255,255,255,0.035)' : `${T.t.card}FA`;
-  const innerHighlight = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.9)';
+  const glassBg = isDark ? 'rgba(10,10,10,0.6)' : `${T.t.card}FA`;
+  const innerHighlight = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.9)';
   // Full-perimeter inset ring — the "1px light-reflection edge" — distinct
   // from the actual border below, which still carries accent color when set.
-  const innerRing = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.7)';
+  const innerRing = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)';
   const glassBorder = accent === null
-    ? (isDark ? 'rgba(255,255,255,0.15)' : T.t.border)
+    ? (isDark ? 'rgba(255,255,255,0.1)' : T.t.border)
     : `${a}55`;
 
-  const nearShadow = isDark ? '0 20px 40px -10px rgba(0,0,0,0.8)' : '0 3px 8px -4px rgba(33,28,22,0.08)';
-  const ambientShadow = isDark ? '0 40px 80px -28px rgba(0,0,0,0.7)' : '0 24px 48px -20px rgba(33,28,22,0.14)';
+  const nearShadow = isDark ? '0 10px 20px -6px rgba(0,0,0,0.6)' : '0 3px 8px -4px rgba(33,28,22,0.08)';
+  const ambientShadow = isDark ? '0 30px 60px -10px rgba(0,0,0,0.8)' : '0 24px 48px -20px rgba(33,28,22,0.14)';
   const accentShadow = accent === null ? null : `0 0 48px -8px ${a}${isDark ? '66' : '3d'}`;
 
   const boxShadow = [

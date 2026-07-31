@@ -15,9 +15,9 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
+import { UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY, JEWEL } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, JEWEL, tactileGradient } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
 import { useWireSync } from '@/lib/store/wireSync';
 import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/targets';
@@ -74,11 +74,11 @@ function glassSurface(T: ShredTheme) {
     };
   }
   return {
-    background: 'rgba(255,255,255,0.035)',
-    border: '1px solid rgba(255,255,255,0.15)',
+    background: 'rgba(10,10,10,0.6)',
+    border: '1px solid rgba(255,255,255,0.1)',
     backdropFilter: 'blur(40px) saturate(200%)',
     WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-    boxShadow: '0 20px 40px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.12)',
+    boxShadow: '0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)',
   };
 }
 
@@ -87,15 +87,11 @@ function SegBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   return (
     <motion.button
       onClick={onClick}
-      whileTap={{ scale: 0.94 }}
+      whileTap={{ scale: 0.95 }}
       whileHover={{ scale: 1.03 }}
       transition={tapSpring}
       className="px-3 py-1.5 rounded-lg text-xs font-bold"
-      style={{
-        background: active ? `linear-gradient(135deg, color-mix(in srgb, ${T.accent}, white 20%), ${T.accent})` : 'transparent',
-        color: active ? '#07080B' : T.t.textSecondary,
-        boxShadow: active ? `0 3px 10px -3px ${T.accent}80` : 'none',
-      }}
+      style={active ? { ...tactileGradient(T.accent), color: '#07080B' } : { background: 'transparent', color: T.t.textSecondary }}
     >
       {children}
     </motion.button>
@@ -237,17 +233,6 @@ export default function Home() {
               aria-label="הגדרות"
             >
               <Settings2 size={16} color={T.t.textSecondary} />
-            </motion.button>
-            <motion.button
-              onClick={() => T.setMode(T.mode === 'dark' ? 'light' : 'dark')}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.06 }}
-              transition={tapSpring}
-              className="flex items-center justify-center rounded-2xl"
-              style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
-              aria-label="מצב תצוגה"
-            >
-              {T.mode === 'dark' ? <MoonIcon size={16} color={T.t.textSecondary} /> : <SunIcon size={16} color={T.t.textSecondary} />}
             </motion.button>
           </div>
         </div>

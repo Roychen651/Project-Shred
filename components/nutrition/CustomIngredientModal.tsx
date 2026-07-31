@@ -128,7 +128,7 @@ function CustomIngredientModalInner({ onClose, onSave }: CustomIngredientModalIn
         tabIndex={tabIndex}
         placeholder="0"
         className="w-full py-2.5 px-3 rounded-xl text-sm outline-none text-center"
-        style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
+        style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
       />
     </div>
   );
@@ -192,7 +192,7 @@ function CustomIngredientModalInner({ onClose, onSave }: CustomIngredientModalIn
                       placeholder="חפשו מרכיב לשכפול... (למשל: יוגורט)"
                       autoFocus
                       className="w-full py-2.5 pr-8 pl-3 rounded-xl text-sm outline-none"
-                      style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary }}
+                      style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary }}
                     />
                   </div>
                   {duplicateMatches.length > 0 && (
@@ -229,7 +229,7 @@ function CustomIngredientModalInner({ onClose, onSave }: CustomIngredientModalIn
               placeholder="לדוגמה: יוגורט חלבון וניל"
               tabIndex={1}
               className="w-full py-3 px-3.5 rounded-xl text-sm outline-none"
-              style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary, textAlign: 'right' }}
+              style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, textAlign: 'right' }}
             />
           </div>
 

@@ -30,14 +30,14 @@ export function DayEditor({ cell, onSave, onClose }: { cell: HeatmapCell; onSave
           onChange={(e) => setKcal(e.target.value)}
           type="number" dir="ltr" placeholder="קלוריות"
           className="flex-1 py-2 px-3 rounded-lg text-sm outline-none"
-          style={{ minWidth: 110, background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO }}
+          style={{ minWidth: 110, background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO }}
         />
         <input
           value={protein}
           onChange={(e) => setProtein(e.target.value)}
           type="number" dir="ltr" placeholder="חלבון (גרם)"
           className="flex-1 py-2 px-3 rounded-lg text-sm outline-none"
-          style={{ minWidth: 110, background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO }}
+          style={{ minWidth: 110, background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO }}
         />
       </div>
       <label className="flex items-center gap-2 text-xs" style={{ color: T.t.textSecondary }}>

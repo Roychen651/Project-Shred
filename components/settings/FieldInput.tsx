@@ -36,7 +36,7 @@ export function FieldInput({ label, value, onChange, type = 'text', suffix }: Fi
           className="w-full py-3 rounded-xl text-sm outline-none"
           style={{
             background: T.t.inputBg,
-            border: `1.5px solid ${T.t.border}`,
+            border: `1px solid ${T.t.border}`,
             textAlign: isNum ? 'left' : 'right',
             color: T.t.textPrimary,
             fontFamily: isNum ? FONT_MONO : FONT_BODY,

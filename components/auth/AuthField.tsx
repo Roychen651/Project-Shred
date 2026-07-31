@@ -36,7 +36,7 @@ export function AuthField({ label, type, value, onChange, autoComplete, placehol
         className="w-full py-3 px-3.5 rounded-xl text-sm outline-none"
         style={{
           background: T.t.inputBg,
-          border: `1.5px solid ${T.t.border}`,
+          border: `1px solid ${T.t.border}`,
           textAlign: 'left',
           color: T.t.textPrimary,
           fontFamily: FONT_MONO,

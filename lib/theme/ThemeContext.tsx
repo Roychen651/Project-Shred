@@ -13,7 +13,7 @@
 // see or persist. Now the store is the only copy — this file is a thin
 // derived-values wrapper around it, so theme preferences round-trip through
 // hydrateFromServer/supabaseSync exactly like everything else in user_settings.
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { useShredStore } from '@/lib/store/shred-store';
 import {
   THEME_PRESETS, DENSITY_PRESETS,
@@ -55,15 +55,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setDensity = useShredStore((s) => s.setDensity);
   const setFeedback = useShredStore((s) => s.setFeedback);
 
+  const accent = getAccentHex(mode, accentKey);
+
+  // Sprint 18 — exposes the live accent as a CSS custom property so plain
+  // globals.css rules (the real :focus glow on every input, app-wide — see
+  // that file) can react to accent changes without needing useTheme() at the
+  // point of each rule. React inline styles can't target :focus/::placeholder
+  // at all, so this is the one place that bridge has to exist.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--accent-hex', accent);
+  }, [accent]);
+
   const value = useMemo<ShredTheme>(() => ({
     mode, accentKey, density, feedback,
-    accent: getAccentHex(mode, accentKey),
+    accent,
     t: THEME_PRESETS[mode],
     macro: getMacroColors(mode),
     spacing: DENSITY_PRESETS[density],
     glow,
     setMode, setAccentKey, setDensity, setFeedback,
-  }), [mode, accentKey, density, feedback, setMode, setAccentKey, setDensity, setFeedback]);
+  }), [mode, accentKey, density, feedback, accent, setMode, setAccentKey, setDensity, setFeedback]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

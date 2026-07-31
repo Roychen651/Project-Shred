@@ -43,6 +43,20 @@ export function glow(hex: string, size = 10, alpha = '38'): string {
   return `0 0 ${size}px ${hex}${alpha}`;
 }
 
+// Sprint 18 — the shared "tactile 3D button" treatment: a top-lit gradient
+// (light tint -> a darker shade of the same hue, not flat color-to-color)
+// plus a bright inner top border, the classic combination that makes a flat
+// button read as a pressable physical surface rather than a color swatch.
+// Centralized here rather than re-typed at every call site (login/signup/
+// forgot-password/reset-password's submit buttons all use this identically).
+export function tactileGradient(hex: string): { background: string; borderTop: string; boxShadow: string } {
+  return {
+    background: `linear-gradient(135deg, color-mix(in srgb, ${hex}, white 20%), color-mix(in srgb, ${hex}, black 15%))`,
+    borderTop: '1px solid rgba(255,255,255,0.3)',
+    boxShadow: `0 4px 14px -4px ${hex}70`,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Color — derived, desaturated jewel tones, deliberately NOT stock Tailwind
 // emerald/cyan/violet/amber (the literal generic-AI tell this app started with).
@@ -119,33 +133,39 @@ export interface ThemePreset {
   modalShadowExtra: string;
 }
 
-// Sprint 14 — dark mode is now permanent (see ThemeContext.tsx), so its base
-// went deeper toward genuine obsidian (#07070A, close to the requested
-// #050505 but not literal flat black — pure #000 reads as a rendering
-// error/unstyled void rather than a designed surface, the same reason the
-// original Design Quality Pass avoided pure black to begin with) rather than
-// the previous warm-charcoal compromise, which was tuned to also work as a
-// *light-mode-adjacent* dark theme. That constraint is gone.
+// Sprint 18 — "Doomsday" pass to a genuine Linear/Vercel-grade dark register,
+// per direct, explicit, technically-specified feedback (the earlier #07070A
+// warm-obsidian compromise was called out plainly as still reading muddy).
+// Base pushed the rest of the way to near-true black (#050505 — still just
+// short of literal #000 for the same reason as before: pure black reads as
+// an unstyled void, not a designed surface); surfaces are now flat near-black
+// (#0A0A0A/#0E0E0E) rather than the old plum-tinted charcoal; borders and
+// input fills move to translucent white (rgba(255,255,255,0.1) /
+// rgba(255,255,255,0.03)) instead of opaque hex, which is what actually
+// produces the "hairline edge over black glass" look this register is after;
+// text goes to genuinely near-white. Light mode is unreachable from the UI
+// again (toggle removed, see app/page.tsx and shred-store.ts) — kept in code
+// rather than deleted, same reasoning as the Sprint 14 note this replaces.
 export const THEME_PRESETS: Record<ThemeMode, ThemePreset> = {
   dark: {
-    bg: '#07070A',
-    bgGrad: 'radial-gradient(ellipse 140% 90% at 50% -15%, #15121C 0%, #07070A 55%)',
-    card: '#100E14',
-    cardSolid: '#100E14',
-    cardBorder: '#24202E',
-    elevated: '#191621',
-    border: '#24202E',
-    textPrimary: '#F5F3F8',
-    textSecondary: '#B0ABC0',
-    textDim: '#726C82',
-    inputBg: '#100E14',
-    chipBg: '#161320',
-    popover: '#161320',
-    modalBg: '#0F0D14',
-    overlayBg: 'rgba(4,3,8,0.82)',
-    shadowCard: '0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 30px -18px rgba(0,0,0,0.85)',
-    dropdownShadow: '0 20px 45px -16px rgba(0,0,0,0.8)',
-    modalShadowExtra: '0 30px 70px -24px rgba(0,0,0,0.9)',
+    bg: '#050505',
+    bgGrad: 'radial-gradient(ellipse 140% 90% at 50% -15%, #0D0D10 0%, #050505 55%)',
+    card: '#0A0A0A',
+    cardSolid: '#0A0A0A',
+    cardBorder: 'rgba(255,255,255,0.1)',
+    elevated: '#111111',
+    border: 'rgba(255,255,255,0.1)',
+    textPrimary: '#FFFFFF',
+    textSecondary: 'rgba(255,255,255,0.65)',
+    textDim: 'rgba(255,255,255,0.4)',
+    inputBg: 'rgba(255,255,255,0.03)',
+    chipBg: 'rgba(255,255,255,0.05)',
+    popover: '#0A0A0A',
+    modalBg: '#0A0A0A',
+    overlayBg: 'rgba(0,0,0,0.85)',
+    shadowCard: '0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 30px -18px rgba(0,0,0,0.9)',
+    dropdownShadow: '0 30px 60px -10px rgba(0,0,0,0.8)',
+    modalShadowExtra: '0 30px 60px -10px rgba(0,0,0,0.8)',
   },
   // Sprint 15 — light mode is the default again (Sprint 14's dark-mode lock
   // was reverted after direct feedback with reference designs: warm cream/

@@ -78,7 +78,7 @@ export function PortionInput({ unit, qty, onUnitChange, onQtyChange }: PortionIn
           min={0}
           onChange={(e) => onQtyChange(Math.max(0, Number(e.target.value) || 0))}
           className="text-sm font-bold text-center rounded-lg outline-none"
-          style={{ width: 64, padding: '8px 4px', background: T.t.chipBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO }}
+          style={{ width: 64, padding: '8px 4px', background: T.t.chipBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO }}
         />
         <span className="text-xs flex-shrink-0" style={{ color: T.t.textDim, minWidth: 78, fontFamily: FONT_MONO }}>
           {unitDef.shortLabel}{unit !== 'gram' && ` (${grams}ג)`}
