@@ -30,6 +30,16 @@
 // bloom, matching the reference's flat, shadow-only depth language; dark mode
 // keeps the full neon treatment from Sprint 14 unchanged.
 
+// Sprint 19: "extreme typography" pass — the center numeral jumped from
+// text-6xl to text-7xl (with the ring itself widened 220->248 to keep a
+// 4-digit calorie count from crowding the inner stroke), gained a top-to-
+// bottom white-to-dim gradient via bg-clip-text (a real linear-gradient
+// text fill, not a flat color), and tighter negative tracking. The "נצרכו
+// היום" micro-label above it went the opposite direction — font-light,
+// uppercase, 0.25em letter-spacing — so the two sit at deliberately opposite
+// ends of the weight scale instead of both being mid-weight, which is what
+// actually reads as "designed contrast" rather than "two labels."
+//
 // Sprint 17: direct feedback that the ring/chip language reads as "generic
 // bootstrap" — flat single-hue strokes, a plain outline pill for the delta.
 // Three changes, none touching the ring's actual data logic: (1) both arcs
@@ -60,7 +70,10 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   const glowInnerId = `hero-glow-inner-${uid}`;
   const gradOuterId = `hero-grad-outer-${uid}`;
   const gradInnerId = `hero-grad-inner-${uid}`;
-  const size = 220, strokeOuter = 16, strokeInner = 10;
+  // Sprint 19 — bumped 220 -> 248 to make room for the much larger center
+  // numeral (text-7xl) requested; at the old size a 4-digit calorie count in
+  // Rubik Black would have pressed right up against the inner stroke.
+  const size = 248, strokeOuter = 16, strokeInner = 10;
   const rOuter = (size - strokeOuter) / 2;
   const rInner = rOuter - strokeOuter / 2 - strokeInner / 2 - 6;
   const circOuter = 2 * Math.PI * rOuter;
@@ -134,8 +147,24 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xs font-semibold" style={{ color: T.t.textDim, letterSpacing: '0.03em' }}>נצרכו היום</span>
-        <span className="text-6xl font-black leading-none mt-1.5" style={{ fontFamily: FONT_DISPLAY, color: T.t.textPrimary, letterSpacing: '-0.02em' }}>{Math.round(consumed.kcal)}</span>
+        {/* Sprint 19 — extreme typographic contrast: an almost weightless,
+            widely-tracked uppercase micro-label set directly against a
+            massive, black-weight, gradient-filled numeral right below it. */}
+        <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.25em' }}>נצרכו היום</span>
+        <span
+          className="text-7xl font-black leading-none mt-2"
+          style={{
+            fontFamily: FONT_DISPLAY,
+            letterSpacing: '-0.04em',
+            backgroundImage: `linear-gradient(to bottom, ${T.t.textPrimary}, ${T.t.textDim})`,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          {Math.round(consumed.kcal)}
+        </span>
         <span className="text-xs mt-1" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>מתוך {targets.kcal} קל׳</span>
         <span
           className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full mt-2.5"

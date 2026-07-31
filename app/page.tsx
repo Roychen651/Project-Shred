@@ -44,6 +44,7 @@ import { PlateComposerSheetBody } from '@/components/nutrition/PlateComposerShee
 import { WorkoutPanel } from '@/components/workouts/WorkoutPanel';
 
 import { GlassCard } from '@/components/ui/GlassCard';
+import { TiltCard } from '@/components/ui/TiltCard';
 import { ProfileSwitcher } from '@/components/settings/ProfileSwitcher';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { CalorieMathSheetBody } from '@/components/insights/CalorieMathSheetBody';
@@ -59,6 +60,27 @@ type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
 type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | null;
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
+
+// Sprint 19 — a real staggered 3D entrance instead of the whole tab fading in
+// as one block. `tabContainerVariants` on the tab wrapper (below) declares
+// named 'hidden'/'visible' states so Framer Motion's variant propagation can
+// orchestrate `staggerChildren` across whichever direct motion.div children
+// opt in via `tabItemVariants` — plain fade-in children (that don't use
+// these variants) are unaffected and keep animating however they already do.
+// The `perspective` on the tab wrapper is required for `rotateX` on children
+// to actually read as 3D tilt rather than a flat vertical squash.
+const tabContainerVariants = {
+  // `opacity` here is a baseline fade for tab content that doesn't opt into
+  // per-child staggering (Workouts/Insights) — Today/Nutrition's direct
+  // children additionally declare tabItemVariants for the full staggered
+  // 3D entrance on top of this.
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.04 } },
+};
+const tabItemVariants = {
+  hidden: { opacity: 0, y: 40, rotateX: -12 },
+  visible: { opacity: 1, y: 0, rotateX: 0, transition: { type: 'spring' as const, stiffness: 260, damping: 26 } },
+};
 
 // Sprint 14 follow-up — these three tap-targets (Nutrition tab's two sheet-
 // openers, Insights' weekly-report button) are `motion.button`s, not `div`s,
@@ -237,55 +259,68 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ===== tabs, with a fluid cross-fade + slide between them ===== */}
+        {/* ===== tabs, with a staggered 3D entrance choreography ===== */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+            variants={tabContainerVariants}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0, y: -10, transition: { duration: 0.15 } }}
+            style={{ perspective: 1000 }}
           >
             {activeTab === 'today' && (
               <div className="flex flex-col items-center gap-3">
-                <CompositeHeroRing consumed={consumed} targets={targets} />
-                <HeroRingLegend />
-                <div className="w-full">
+                <motion.div variants={tabItemVariants}>
+                  <CompositeHeroRing consumed={consumed} targets={targets} />
+                </motion.div>
+                <motion.div variants={tabItemVariants}>
+                  <HeroRingLegend />
+                </motion.div>
+                <motion.div variants={tabItemVariants} className="w-full">
                   <SmartContextCard
                     items={dayItems}
                     onQuickComplete={(slotId) => store.markSlotCompleted(store.selectedDateKey, slotId)}
                     onEdit={(slotId) => { setActiveTab('nutrition'); setActiveSheet(slotId === 'lunch' ? 'restaurants' : 'plate'); }}
                   />
-                </div>
+                </motion.div>
               </div>
             )}
 
             {activeTab === 'nutrition' && (
               <div className="grid grid-cols-2 gap-3">
-                <motion.button
-                  onClick={() => setActiveSheet('restaurants')}
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02 }}
-                  transition={tapSpring}
-                  className="flex flex-col items-start gap-2 p-4 rounded-3xl text-right"
-                  style={glassSurface(T)}
-                >
-                  <UtensilsCrossed size={20} color={T.accent} />
-                  <span className="text-sm font-bold">מטריצת מסעדות</span>
-                  <span className="text-xs" style={{ color: T.t.textDim }}>מסעדות ואוכל בחוץ</span>
-                </motion.button>
-                <motion.button
-                  onClick={() => setActiveSheet('plate')}
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02 }}
-                  transition={tapSpring}
-                  className="flex flex-col items-start gap-2 p-4 rounded-3xl text-right"
-                  style={glassSurface(T)}
-                >
-                  <Layers3 size={20} color={T.accent} />
-                  <span className="text-sm font-bold">בנה צלחת אישית</span>
-                  <span className="text-xs" style={{ color: T.t.textDim }}>גולמי/מבושל · גרם מדויק</span>
-                </motion.button>
+                <motion.div variants={tabItemVariants}>
+                  <TiltCard>
+                    <motion.button
+                      onClick={() => setActiveSheet('restaurants')}
+                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }}
+                      transition={tapSpring}
+                      className="w-full flex flex-col items-start gap-3 p-4 rounded-3xl text-right"
+                      style={glassSurface(T)}
+                    >
+                      <UtensilsCrossed size={32} color={T.accent} strokeWidth={1.75} />
+                      <span className="text-lg font-black" style={{ letterSpacing: '-0.02em' }}>מטריצת מסעדות</span>
+                      <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>מסעדות ואוכל בחוץ</span>
+                    </motion.button>
+                  </TiltCard>
+                </motion.div>
+                <motion.div variants={tabItemVariants}>
+                  <TiltCard>
+                    <motion.button
+                      onClick={() => setActiveSheet('plate')}
+                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }}
+                      transition={tapSpring}
+                      className="w-full flex flex-col items-start gap-3 p-4 rounded-3xl text-right"
+                      style={glassSurface(T)}
+                    >
+                      <Layers3 size={32} color={T.accent} strokeWidth={1.75} />
+                      <span className="text-lg font-black" style={{ letterSpacing: '-0.02em' }}>בנה צלחת אישית</span>
+                      <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>גולמי/מבושל · גרם מדויק</span>
+                    </motion.button>
+                  </TiltCard>
+                </motion.div>
               </div>
             )}
 
