@@ -10,6 +10,15 @@
 // its handle/header to dismiss — a native-feeling gesture the artifact never had.
 // The drag is bound to the handle only (via useDragControls + dragListener=false)
 // rather than the whole panel, so it can never fight the body's own scroll.
+//
+// Sprint 14 follow-up: the "unchained dark mode" glass/glow pass (GlassCard.tsx,
+// SettingsModal/OnboardingWizard/CustomIngredientModal) never actually reached
+// this component — a real gap, confirmed from a live screenshot of the Plate
+// Composer sheet still showing the old flat T.t.modalBg fill. This is arguably
+// the highest-traffic surface in the whole app (every food-logging flow opens
+// through here), so it gets the same treatment now: frosted background, heavy
+// blur/saturate, bright top highlight, layered shadow — matching GlassCard's
+// dark-mode branch exactly rather than inventing a second variant.
 
 import { useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
@@ -63,8 +72,14 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
             style={{
               maxWidth: 640,
               height: panelHeight, maxHeight: panelHeight,
-              background: T.t.modalBg, borderTop: `1px solid ${T.t.border}`,
-              boxShadow: '0 -20px 50px -20px rgba(0,0,0,0.35)',
+              background: T.mode === 'dark' ? 'rgba(255,255,255,0.035)' : T.t.modalBg,
+              borderTop: `1px solid ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : T.t.border}`,
+              borderInline: T.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : 'none',
+              boxShadow: T.mode === 'dark'
+                ? '0 -20px 60px -10px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.15)'
+                : '0 -20px 50px -20px rgba(36,31,26,0.35)',
+              backdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'none',
+              WebkitBackdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'none',
               overflow: 'hidden',
               touchAction: 'none',
             }}
@@ -81,7 +96,7 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
           >
             <div
               className="flex-shrink-0 rounded-t-3xl"
-              style={{ background: T.t.modalBg, touchAction: 'none', cursor: 'grab' }}
+              style={{ background: 'transparent', touchAction: 'none', cursor: 'grab' }}
               onPointerDown={(e) => dragControls.start(e)}
             >
               <div className="flex justify-center pt-3 pb-1">

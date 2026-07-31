@@ -16,7 +16,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
-import { useTheme } from '@/lib/theme/ThemeContext';
+import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, JEWEL } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
 import { useWireSync } from '@/lib/store/wireSync';
@@ -59,6 +59,22 @@ type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
 type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | null;
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
+
+// Sprint 14 follow-up — these three tap-targets (Nutrition tab's two sheet-
+// openers, Insights' weekly-report button) are `motion.button`s, not `div`s,
+// so they can't wrap <GlassCard> directly; this mirrors GlassCard's dark-mode
+// branch exactly (same blur/frost/border/shadow values) rather than staying
+// on the old flat T.t.card fill a live screenshot showed was never updated.
+function glassSurface(T: ShredTheme) {
+  if (T.mode !== 'dark') return { background: T.t.card, border: `1.5px solid ${T.t.border}` };
+  return {
+    background: 'rgba(255,255,255,0.035)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    backdropFilter: 'blur(40px) saturate(200%)',
+    WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+    boxShadow: '0 20px 40px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.12)',
+  };
+}
 
 function SegBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   const T = useTheme();
@@ -246,7 +262,7 @@ export default function Home() {
                   whileHover={{ scale: 1.02 }}
                   transition={tapSpring}
                   className="flex flex-col items-start gap-2 p-4 rounded-2xl text-right"
-                  style={{ background: T.t.card, border: `1.5px solid ${T.t.border}` }}
+                  style={glassSurface(T)}
                 >
                   <UtensilsCrossed size={20} color={T.accent} />
                   <span className="text-sm font-bold">מטריצת מסעדות</span>
@@ -258,7 +274,7 @@ export default function Home() {
                   whileHover={{ scale: 1.02 }}
                   transition={tapSpring}
                   className="flex flex-col items-start gap-2 p-4 rounded-2xl text-right"
-                  style={{ background: T.t.card, border: `1.5px solid ${T.t.border}` }}
+                  style={glassSurface(T)}
                 >
                   <Layers3 size={20} color={T.accent} />
                   <span className="text-sm font-bold">בנה צלחת אישית</span>
@@ -288,7 +304,7 @@ export default function Home() {
                   whileHover={{ scale: 1.01 }}
                   transition={tapSpring}
                   className="flex items-center justify-between p-4 rounded-2xl text-right"
-                  style={{ background: T.t.card, border: `1.5px solid ${T.t.border}` }}
+                  style={glassSurface(T)}
                 >
                   <div className="flex items-center gap-2">
                     <ClipboardList size={20} color={T.accent} />
