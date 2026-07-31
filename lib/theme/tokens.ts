@@ -138,25 +138,35 @@ export const THEME_PRESETS: Record<ThemeMode, ThemePreset> = {
     dropdownShadow: '0 20px 45px -16px rgba(0,0,0,0.8)',
     modalShadowExtra: '0 30px 70px -24px rgba(0,0,0,0.9)',
   },
+  // Sprint 15 — light mode is the default again (Sprint 14's dark-mode lock
+  // was reverted after direct feedback with reference designs: warm cream/
+  // oat backgrounds, soft off-white cards, editorial typography, generous
+  // whitespace — "more professional and mature" than the neon-dark direction).
+  // Deepened from the previous alabaster (#FBF9F6/#FFFFFF) toward a genuine
+  // warm cream (#F7F1E7) with a barely-off-white card (#FFFEFB, not stark
+  // #FFFFFF) — pure white cards on a near-white page read as flat/generic;
+  // a whisper of warmth on both, still clearly distinct from each other,
+  // reads as considered instead of default. Shadow deepened slightly too —
+  // "mature" needs real, soft elevation, not a hairline.
   light: {
-    bg: '#FBF9F6',
-    bgGrad: 'radial-gradient(ellipse 130% 80% at 50% -10%, #FFFFFF 0%, #FBF9F6 55%)',
-    card: '#FFFFFF',
-    cardSolid: '#FFFFFF',
-    cardBorder: '#E9E2D8',
-    elevated: '#F6F1EA',
-    border: '#E9E2D8',
-    textPrimary: '#241F1A',
-    textSecondary: '#6B6154',
-    textDim: '#A69C8D',
-    inputBg: '#F6F1EA',
-    chipBg: '#F6F1EA',
-    popover: '#FFFFFF',
-    modalBg: '#FFFFFF',
-    overlayBg: 'rgba(36,31,26,0.52)',
-    shadowCard: '0 1px 2px rgba(36,31,26,0.04), 0 10px 28px -18px rgba(36,31,26,0.18)',
-    dropdownShadow: '0 20px 45px -16px rgba(36,31,26,0.18)',
-    modalShadowExtra: '0 30px 70px -24px rgba(36,31,26,0.22)',
+    bg: '#F7F1E7',
+    bgGrad: 'radial-gradient(ellipse 130% 80% at 50% -10%, #FFFDF9 0%, #F7F1E7 55%)',
+    card: '#FFFEFB',
+    cardSolid: '#FFFEFB',
+    cardBorder: '#E4DAC8',
+    elevated: '#F1E9D9',
+    border: '#E4DAC8',
+    textPrimary: '#211C16',
+    textSecondary: '#655A48',
+    textDim: '#9C8F76',
+    inputBg: '#F1E9D9',
+    chipBg: '#F1E9D9',
+    popover: '#FFFEFB',
+    modalBg: '#FFFEFB',
+    overlayBg: 'rgba(33,28,22,0.55)',
+    shadowCard: '0 2px 4px rgba(33,28,22,0.05), 0 16px 36px -20px rgba(33,28,22,0.24)',
+    dropdownShadow: '0 20px 45px -16px rgba(33,28,22,0.22)',
+    modalShadowExtra: '0 30px 70px -24px rgba(33,28,22,0.26)',
   },
 };
 

@@ -289,7 +289,12 @@ export function createShredStore(initial?: Partial<ShredState>) {
     customRestaurants: [],
     customHacks: [],
     metricEntries: [],
-    mode: 'dark',
+    // Sprint 15 — Sprint 14's "permanent forced dark mode" was reverted: the
+    // person who requested it changed direction after seeing reference
+    // designs that were light-mode (warm neutrals, editorial typography).
+    // Light is the default again; the toggle (app/page.tsx) and hydration
+    // (below) both restore full user control over this.
+    mode: 'light',
     accentKey: 'emerald',
     density: 'comfortable',
     feedback: true,
@@ -299,12 +304,10 @@ export function createShredStore(initial?: Partial<ShredState>) {
 
     setSelectedDateKey: (newDateKey) => set({ selectedDateKey: newDateKey }),
 
-    // Sprint 14 — `data.mode` is intentionally never applied here. Dark mode
-    // is now the permanent, forced aesthetic (see ThemeContext.tsx); a
-    // pre-Sprint-14 account with 'light' saved in user_settings must not be
-    // able to flip the app back via hydration once the UI toggle to do so no
-    // longer exists. accent_key/density/feedback still round-trip normally —
-    // this is a dark-mode lock, not a full settings freeze.
+    // Sprint 15 — `data.mode` round-trips normally again. Sprint 14 had this
+    // deliberately dropped to lock dark mode permanently; that direction was
+    // reverted (see the `mode: 'light'` note above), so a saved preference
+    // should apply on load like every other setting.
     hydrateFromServer: (data) => set({
       itemsByDate: data.itemsByDate,
       dayMeta: data.dayMeta,
@@ -312,6 +315,7 @@ export function createShredStore(initial?: Partial<ShredState>) {
       metricEntries: data.metricEntries,
       ...(data.profiles ? { profiles: data.profiles } : {}),
       ...(data.activeProfileId ? { activeProfileId: data.activeProfileId } : {}),
+      ...(data.mode ? { mode: data.mode } : {}),
       ...(data.accentKey ? { accentKey: data.accentKey } : {}),
       ...(data.density ? { density: data.density } : {}),
       ...(data.feedback !== undefined ? { feedback: data.feedback } : {}),

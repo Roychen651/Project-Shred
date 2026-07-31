@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, JEWEL } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
@@ -66,7 +66,13 @@ const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 // branch exactly (same blur/frost/border/shadow values) rather than staying
 // on the old flat T.t.card fill a live screenshot showed was never updated.
 function glassSurface(T: ShredTheme) {
-  if (T.mode !== 'dark') return { background: T.t.card, border: `1.5px solid ${T.t.border}` };
+  if (T.mode !== 'dark') {
+    return {
+      background: `${T.t.card}FA`,
+      border: `1.5px solid ${T.t.border}`,
+      boxShadow: '0 3px 8px -4px rgba(33,28,22,0.08), 0 24px 48px -20px rgba(33,28,22,0.14)',
+    };
+  }
   return {
     background: 'rgba(255,255,255,0.035)',
     border: '1px solid rgba(255,255,255,0.15)',
@@ -167,14 +173,14 @@ export default function Home() {
         <div
           style={{
             position: 'absolute', top: '-16%', insetInlineEnd: '-18%', width: '60vw', height: '60vw', maxWidth: 620, maxHeight: 620,
-            background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '85' : '36'} 0%, transparent 68%)`,
+            background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '85' : '1c'} 0%, transparent 68%)`,
             filter: 'blur(64px)',
           }}
         />
         <div
           style={{
             position: 'absolute', bottom: '-12%', insetInlineStart: '-20%', width: '55vw', height: '55vw', maxWidth: 540, maxHeight: 540,
-            background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '78' : '30'} 0%, transparent 68%)`,
+            background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '78' : '16'} 0%, transparent 68%)`,
             filter: 'blur(70px)',
           }}
         />
@@ -227,6 +233,17 @@ export default function Home() {
               aria-label="הגדרות"
             >
               <Settings2 size={16} color={T.t.textSecondary} />
+            </motion.button>
+            <motion.button
+              onClick={() => T.setMode(T.mode === 'dark' ? 'light' : 'dark')}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.06 }}
+              transition={tapSpring}
+              className="flex items-center justify-center rounded-xl"
+              style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+              aria-label="מצב תצוגה"
+            >
+              {T.mode === 'dark' ? <MoonIcon size={16} color={T.t.textSecondary} /> : <SunIcon size={16} color={T.t.textSecondary} />}
             </motion.button>
           </div>
         </div>

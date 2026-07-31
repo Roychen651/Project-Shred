@@ -77,7 +77,7 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
               borderInline: T.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : 'none',
               boxShadow: T.mode === 'dark'
                 ? '0 -20px 60px -10px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.15)'
-                : '0 -20px 50px -20px rgba(36,31,26,0.35)',
+                : '0 -20px 50px -20px rgba(33,28,22,0.28)',
               backdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'none',
               WebkitBackdropFilter: T.mode === 'dark' ? 'blur(40px) saturate(200%)' : 'none',
               overflow: 'hidden',
