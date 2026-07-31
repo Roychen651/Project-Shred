@@ -49,7 +49,12 @@ export function SmartContextCard({ items, onQuickComplete, onEdit }: SmartContex
           onClick={() => onQuickComplete(slot.id)}
           disabled={slotItems.length === 0}
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold"
-          style={{ background: done ? `${T.macro.protein}18` : T.accent, color: done ? T.macro.protein : '#07080B', opacity: slotItems.length === 0 ? 0.5 : 1 }}
+          style={{
+            background: done ? `${T.macro.protein}18` : `linear-gradient(135deg, color-mix(in srgb, ${T.accent}, white 20%), ${T.accent})`,
+            color: done ? T.macro.protein : '#07080B',
+            boxShadow: done ? 'none' : `0 4px 14px -4px ${T.accent}70`,
+            opacity: slotItems.length === 0 ? 0.5 : 1,
+          }}
         >
           <Check size={14} /> {done ? 'סומן כבוצע' : 'סמן הכל כבוצע'}
         </button>

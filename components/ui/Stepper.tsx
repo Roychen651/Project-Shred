@@ -8,6 +8,11 @@
 // arrows on every OTHER number input in the app, so this isn't the only fix
 // for the "1999 arrows" complaint — it's the upgraded control for the fields
 // that deserve the extra weight of a dedicated component.
+//
+// Sprint 17: bumped to the app's larger 24px card radius, added a real
+// shadow instead of a flat bordered box, and tinted press/hover states on
+// the +/- buttons — direct feedback called this exact "flat bordered number
+// frame" pattern out as one of the generic-looking elements.
 
 import { motion } from 'framer-motion';
 import { Minus, Plus } from 'lucide-react';
@@ -46,14 +51,14 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max = 999, 
         {label}
       </label>
       <div
-        className="flex items-center rounded-xl overflow-hidden"
-        style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}` }}
+        className="flex items-center rounded-2xl overflow-hidden"
+        style={{ background: T.t.inputBg, border: `1.5px solid ${T.t.border}`, boxShadow: T.t.shadowCard }}
       >
         <motion.button
           type="button"
           onClick={dec}
-          whileTap={{ scale: 0.86 }}
-          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.86, background: `${T.accent}22` }}
+          whileHover={{ scale: 1.08, background: `${T.accent}14` }}
           transition={tapSpring}
           className="flex items-center justify-center flex-shrink-0"
           style={{ width: 44, height: 50, color: T.t.textSecondary }}
@@ -84,8 +89,8 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max = 999, 
         <motion.button
           type="button"
           onClick={inc}
-          whileTap={{ scale: 0.86 }}
-          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.86, background: `${T.accent}22` }}
+          whileHover={{ scale: 1.08, background: `${T.accent}14` }}
           transition={tapSpring}
           className="flex items-center justify-center flex-shrink-0"
           style={{ width: 44, height: 50, color: T.t.textSecondary }}

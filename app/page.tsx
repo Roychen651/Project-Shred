@@ -91,7 +91,11 @@ function SegBtn({ active, onClick, children }: { active: boolean; onClick: () =>
       whileHover={{ scale: 1.03 }}
       transition={tapSpring}
       className="px-3 py-1.5 rounded-lg text-xs font-bold"
-      style={{ background: active ? T.accent : 'transparent', color: active ? '#07080B' : T.t.textSecondary }}
+      style={{
+        background: active ? `linear-gradient(135deg, color-mix(in srgb, ${T.accent}, white 20%), ${T.accent})` : 'transparent',
+        color: active ? '#07080B' : T.t.textSecondary,
+        boxShadow: active ? `0 3px 10px -3px ${T.accent}80` : 'none',
+      }}
     >
       {children}
     </motion.button>

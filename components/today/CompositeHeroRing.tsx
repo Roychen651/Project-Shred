@@ -30,7 +30,19 @@
 // bloom, matching the reference's flat, shadow-only depth language; dark mode
 // keeps the full neon treatment from Sprint 14 unchanged.
 
+// Sprint 17: direct feedback that the ring/chip language reads as "generic
+// bootstrap" — flat single-hue strokes, a plain outline pill for the delta.
+// Three changes, none touching the ring's actual data logic: (1) both arcs
+// now stroke from a `<linearGradient>` (light tint -> full hex) instead of a
+// flat color, the same technique that gives premium fitness-app rings visual
+// depth without adding a literal glow; (2) a soft radial color-wash sits
+// behind the ring in BOTH modes now (previously dark-mode-only via the page
+// background blobs) so the ring has real presence instead of floating on a
+// flat card; (3) the delta pill at the bottom gained an icon and a gradient
+// fill instead of a flat 20%-alpha wash, matching the "crafted chip, not a
+// default badge" direction.
 import { useId } from 'react';
+import { Flame, TrendingDown } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 import type { MacroTotals } from '@/lib/domain/items';
@@ -46,6 +58,8 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   const uid = useId().replace(/:/g, '');
   const glowOuterId = `hero-glow-outer-${uid}`;
   const glowInnerId = `hero-glow-inner-${uid}`;
+  const gradOuterId = `hero-grad-outer-${uid}`;
+  const gradInnerId = `hero-grad-inner-${uid}`;
   const size = 220, strokeOuter = 16, strokeInner = 10;
   const rOuter = (size - strokeOuter) / 2;
   const rInner = rOuter - strokeOuter / 2 - strokeInner / 2 - 6;
@@ -59,8 +73,27 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
 
   return (
     <div className="relative flex items-center justify-center mx-auto" style={{ width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+      {/* ambient color wash behind the ring — present in both modes now, not
+          just borrowed from the dark-mode page-level blobs */}
+      <div
+        aria-hidden
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: size * 1.55, height: size * 1.55,
+          background: `radial-gradient(circle, ${T.macro.kcal}${isDark ? '2e' : '20'} 0%, ${T.macro.protein}${isDark ? '20' : '14'} 45%, transparent 72%)`,
+          filter: 'blur(28px)',
+        }}
+      />
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', overflow: 'visible', position: 'relative' }}>
         <defs>
+          <linearGradient id={gradOuterId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={`color-mix(in srgb, ${T.macro.kcal}, white 35%)`} />
+            <stop offset="100%" stopColor={T.macro.kcal} />
+          </linearGradient>
+          <linearGradient id={gradInnerId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={`color-mix(in srgb, ${T.macro.protein}, white 35%)`} />
+            <stop offset="100%" stopColor={T.macro.protein} />
+          </linearGradient>
           <filter id={glowOuterId} x="-100%" y="-100%" width="300%" height="300%">
             <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="wideBloom" />
             <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="tightBloom" />
@@ -82,14 +115,14 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
         </defs>
         <circle cx={size / 2} cy={size / 2} r={rOuter} stroke={T.t.border} strokeWidth={strokeOuter} fill="none" />
         <circle
-          cx={size / 2} cy={size / 2} r={rOuter} stroke={T.macro.kcal} strokeWidth={strokeOuter} fill="none"
+          cx={size / 2} cy={size / 2} r={rOuter} stroke={`url(#${gradOuterId})`} strokeWidth={strokeOuter} fill="none"
           strokeDasharray={circOuter} strokeDashoffset={circOuter * (1 - kcalPct)} strokeLinecap="round"
           filter={isDark ? `url(#${glowOuterId})` : undefined}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
         />
         <circle cx={size / 2} cy={size / 2} r={rInner} stroke={T.t.border} strokeWidth={strokeInner} fill="none" />
         <circle
-          cx={size / 2} cy={size / 2} r={rInner} stroke={T.macro.protein} strokeWidth={strokeInner} fill="none"
+          cx={size / 2} cy={size / 2} r={rInner} stroke={`url(#${gradInnerId})`} strokeWidth={strokeInner} fill="none"
           strokeDasharray={circInner} strokeDashoffset={circInner * (1 - proteinPct)} strokeLinecap="round"
           filter={isDark ? `url(#${glowInnerId})` : undefined}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
@@ -100,12 +133,16 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
         <span className="text-6xl font-black leading-none mt-1.5" style={{ fontFamily: FONT_DISPLAY, color: T.t.textPrimary, letterSpacing: '-0.02em' }}>{Math.round(consumed.kcal)}</span>
         <span className="text-xs mt-1" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>מתוך {targets.kcal} קל׳</span>
         <span
-          className="text-xs font-bold px-3 py-1 rounded-full mt-2.5"
+          className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full mt-2.5"
           style={{
-            background: isOver ? `${T.macro.kcal}20` : `${T.macro.protein}20`,
-            color: isOver ? T.macro.kcal : T.macro.protein,
+            background: isOver
+              ? `linear-gradient(135deg, color-mix(in srgb, ${T.macro.kcal}, white 20%), ${T.macro.kcal})`
+              : `linear-gradient(135deg, color-mix(in srgb, ${T.macro.protein}, white 20%), ${T.macro.protein})`,
+            color: '#07080B',
+            boxShadow: `0 4px 14px -4px ${isOver ? T.macro.kcal : T.macro.protein}70`,
           }}
         >
+          {isOver ? <Flame size={12} /> : <TrendingDown size={12} />}
           {isOver ? `+${Math.abs(remaining)} מעל היעד` : `${remaining} נותרו`}
         </span>
       </div>
