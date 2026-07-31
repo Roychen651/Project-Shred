@@ -21,16 +21,24 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const supabase = createClient();
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
-    });
-    setLoading(false);
-    if (resetError) {
-      setError(resetError.message);
-      return;
+    // Same guard as login/signup — createClient() throws synchronously when
+    // the Supabase env vars aren't live, which would otherwise leave the
+    // button stuck on "שולח…" forever with no visible error.
+    try {
+      const supabase = createClient();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+      });
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+      setSentTo(email);
+    } catch {
+      setError('לא ניתן לשלוח כרגע — האפליקציה לא מחוברת לשרת. פנו למנהל המערכת.');
+    } finally {
+      setLoading(false);
     }
-    setSentTo(email);
   };
 
   if (sentTo) {

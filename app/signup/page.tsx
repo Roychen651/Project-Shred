@@ -33,18 +33,26 @@ export default function SignupPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    });
-    setLoading(false);
-    if (signUpError) {
-      setError(signUpError.message);
-      return;
+    // Same guard as login/page.tsx — createClient() throws synchronously
+    // when the Supabase env vars aren't live, which would otherwise leave
+    // the button stuck on "נרשם…" forever with no visible error.
+    try {
+      const supabase = createClient();
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+      setSentTo(email);
+    } catch {
+      setError('לא ניתן להירשם כרגע — האפליקציה לא מחוברת לשרת. פנו למנהל המערכת.');
+    } finally {
+      setLoading(false);
     }
-    setSentTo(email);
   };
 
   if (sentTo) {

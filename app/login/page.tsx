@@ -34,12 +34,22 @@ function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (signInError) {
-      setError(signInError.message === 'Invalid login credentials' ? 'אימייל או סיסמה שגויים.' : signInError.message);
+    // createClient() throws SYNCHRONOUSLY if the Supabase env vars aren't
+    // live — unguarded, that throw meant setLoading(false) never ran, so the
+    // button was stuck on "מתחבר…" forever with no visible error. Wrapped so
+    // a misconfigured/unreachable backend surfaces a real message instead.
+    try {
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        setError(signInError.message === 'Invalid login credentials' ? 'אימייל או סיסמה שגויים.' : signInError.message);
+        return;
+      }
+    } catch {
+      setError('לא ניתן להתחבר כרגע — האפליקציה לא מחוברת לשרת. פנו למנהל המערכת.');
       return;
+    } finally {
+      setLoading(false);
     }
     router.push(searchParams.get('next') || '/');
     router.refresh();

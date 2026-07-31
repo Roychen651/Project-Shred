@@ -39,9 +39,21 @@ export function SettingsModal({ open, onClose, profile, updateProfile, bmr, tdee
   const router = useRouter();
   if (!open) return null;
 
+  // createClient() throws SYNCHRONOUSLY if the Supabase env vars aren't live
+  // (createBrowserClient validates the URL immediately) — since this used to
+  // be an unguarded async function passed straight to onClick, that throw
+  // became a swallowed promise rejection: the click did nothing, no error,
+  // no feedback, exactly the "sign out doesn't work" symptom. Wrapped in
+  // try/catch now so a misconfigured backend can't silently eat the click;
+  // still navigates to /login either way, since that route itself never
+  // requires a live backend to render.
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Sign-out failed (Supabase likely not configured):', err);
+    }
     router.push('/login');
     router.refresh();
   };

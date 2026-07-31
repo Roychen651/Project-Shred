@@ -37,12 +37,21 @@ export default function ResetPasswordPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (updateError) {
-      setError(updateError.message);
+    // Same guard as the other auth pages — createClient() throws
+    // synchronously when the Supabase env vars aren't live, which would
+    // otherwise leave the button stuck on "מעדכן…" forever with no visible error.
+    try {
+      const supabase = createClient();
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+    } catch {
+      setError('לא ניתן לעדכן כרגע — האפליקציה לא מחוברת לשרת. פנו למנהל המערכת.');
       return;
+    } finally {
+      setLoading(false);
     }
     router.push('/');
     router.refresh();
