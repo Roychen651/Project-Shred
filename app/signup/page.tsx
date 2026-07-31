@@ -6,6 +6,7 @@ import { UserPlus, MailCheck } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO } from '@/lib/theme/tokens';
 import { createClient } from '@/lib/supabase/client';
+import { translateAuthError } from '@/lib/supabase/authErrors';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
 import { AuthError } from '@/components/auth/AuthError';
@@ -44,7 +45,7 @@ export default function SignupPage() {
         options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       if (signUpError) {
-        setError(signUpError.message);
+        setError(translateAuthError(signUpError.message));
         return;
       }
       setSentTo(email);

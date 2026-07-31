@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { KeyRound } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { createClient } from '@/lib/supabase/client';
+import { translateAuthError } from '@/lib/supabase/authErrors';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { AuthField } from '@/components/auth/AuthField';
 import { AuthError } from '@/components/auth/AuthError';
@@ -44,7 +45,7 @@ export default function ResetPasswordPage() {
       const supabase = createClient();
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setError(updateError.message);
+        setError(translateAuthError(updateError.message));
         return;
       }
     } catch {
