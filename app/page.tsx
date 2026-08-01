@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, Layers3, Sparkles, Settings2, ClipboardList, Beef, Wheat, Droplet } from 'lucide-react';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, JEWEL, tactileGradient } from '@/lib/theme/tokens';
@@ -37,8 +37,9 @@ import { SyncStatusIndicator } from '@/components/shell/SyncStatusIndicator';
 import { CompositeHeroRing } from '@/components/today/CompositeHeroRing';
 import { HeroRingLegend } from '@/components/today/HeroRingLegend';
 import { SmartContextCard } from '@/components/today/SmartContextCard';
-import { MacroStatTiles } from '@/components/today/MacroStatTiles';
+import { MacroStatTile } from '@/components/today/MacroStatTiles';
 import { DateNavigator } from '@/components/today/DateNavigator';
+import { GlowBorder } from '@/components/ui/GlowBorder';
 import { PremiumMotivator } from '@/components/ui/PremiumMotivator';
 
 import { QuickLogSheetBody } from '@/components/nutrition/QuickLogSheetBody';
@@ -202,6 +203,19 @@ export default function Home() {
           "midnight blue" blob (JEWEL.steel) joins accent/jade/plum for a
           genuine multi-hue mesh instead of a three-color palette. */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
+        {/* Sprint 27 — a subtle dot-grid texture, the same "technical
+            premium" register Linear/Vercel/Raycast use for a dashboard
+            surface instead of a flat color. Sits beneath the color blobs
+            (they still read as the dominant atmosphere) and at a low enough
+            dot alpha in light mode not to repeat the Sprint 15 "untreated
+            blotch" lesson — this is a texture, not another color layer. */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(${T.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(122,108,90,0.16)'} 1px, transparent 1px)`,
+            backgroundSize: '22px 22px',
+          }}
+        />
         <div
           className="shred-mesh-blob-1"
           style={{
@@ -269,7 +283,22 @@ export default function Home() {
               <Sparkles size={20} color="#07080B" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: FONT_DISPLAY }}>PROJECT SHRED</h1>
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: FONT_DISPLAY }}>PROJECT SHRED</h1>
+                {/* Sprint 27 — a small visible build marker, not a literal
+                    "cache buster" (a UI string can't affect Vercel/browser
+                    caching — that's a deployment-layer concern, already
+                    covered in Sprint 17/23's notes). What this actually
+                    helps with is the real, recurring pain: confirming at a
+                    glance whether the page in front of you is the build you
+                    think it is. */}
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: T.t.chipBg, color: T.t.textDim, fontFamily: FONT_MONO }}
+                >
+                  v4.0.0-Bento
+                </span>
+              </div>
               <p className="text-xs" style={{ color: T.t.textDim }}>{activeProfile.name} · {targets.label}</p>
             </div>
           </div>
@@ -322,7 +351,7 @@ export default function Home() {
             style={{ perspective: 1000 }}
           >
             {activeTab === 'today' && (
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col gap-3">
                 {/* Sprint 26 — the store/domain layer for date navigation
                     (setSelectedDateKey, shiftDateKey, formatHebrewDate) has
                     existed since the Zustand store was built, but no
@@ -331,43 +360,54 @@ export default function Home() {
                 <motion.div variants={tabItemVariants} className="w-full">
                   <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
                 </motion.div>
-                <motion.div variants={tabItemVariants}>
-                  <CompositeHeroRing consumed={consumed} targets={targets} />
+
+                {/* Sprint 27 — a real Bento grid (CSS grid with explicit
+                    col-spans), not a fabricated one: the ring is the hero
+                    cell (full width, the one card that gets the animated
+                    GlowBorder treatment — reserved for a single element per
+                    screen, not applied everywhere), the three macro tiles
+                    are two squares + one full-width bar for genuine
+                    asymmetry, and SmartContextCard closes the grid as
+                    another full-width cell since it carries the most text. */}
+                <motion.div variants={tabItemVariants} className="grid grid-cols-2 gap-3 w-full">
+                  <div className="col-span-2">
+                    <GlowBorder duration={8}>
+                      <div className="flex flex-col items-center py-7 px-4">
+                        <CompositeHeroRing consumed={consumed} targets={targets} />
+                        <div className="mt-1">
+                          <HeroRingLegend />
+                        </div>
+                      </div>
+                    </GlowBorder>
+                  </div>
+
+                  <MacroStatTile macroKey="protein" label="חלבון" icon={Beef} value={consumed.protein} target={targets.protein} />
+                  <MacroStatTile macroKey="carbs" label="פחמימה" icon={Wheat} value={consumed.carbs} target={targets.carbs} delay={0.05} />
+                  <MacroStatTile macroKey="fat" label="שומן" icon={Droplet} value={consumed.fat} target={targets.fat} className="col-span-2" delay={0.1} />
+
+                  {/* Sprint 20's floating-badge clearance note still applies
+                      here — the badge pokes -14px above SmartContextCard's
+                      own top edge, more than the grid's 12px gap alone would
+                      clear, so this cell gets a little extra top margin. */}
+                  <div className="col-span-2 mt-2">
+                    <SmartContextCard
+                      items={dayItems}
+                      onQuickComplete={(slotId) => store.markSlotCompleted(store.selectedDateKey, slotId)}
+                      onEdit={(slotId) => { setActiveTab('nutrition'); setActiveSheet(slotId === 'lunch' ? 'restaurants' : 'plate'); }}
+                    />
+                  </div>
+
+                  {/* Sprint 22 — a genuine whole-day empty state, distinct
+                      from SmartContextCard's own per-slot empty illustration
+                      above (that one says "this specific meal is unlogged";
+                      this one says "nothing at all yet today"), shown only
+                      when it's actually true. */}
+                  {dayItems.length === 0 && (
+                    <div className="col-span-2">
+                      <PremiumMotivator variant="nutrition-empty" />
+                    </div>
+                  )}
                 </motion.div>
-                <motion.div variants={tabItemVariants}>
-                  <HeroRingLegend />
-                </motion.div>
-                {/* Sprint 25 — carbs/fat had no surface anywhere on this tab
-                    (the ring only ever tracked kcal/protein); this closes
-                    that real gap with the floating-badge tile pattern from
-                    the new Dribbble references, with room above for the
-                    corner badges that poke past each tile's own edge. */}
-                <motion.div variants={tabItemVariants} className="w-full mt-3">
-                  <MacroStatTiles consumed={consumed} targets={targets} />
-                </motion.div>
-                {/* Sprint 20 — extra top clearance for SmartContextCard's
-                    floating badge (Sprint 19), which pokes -14px above the
-                    card. Audited: it measured a real 22px gap from the
-                    legend above, not an actual overlap, but that read as
-                    visually tight, so this pushes it to a more comfortable
-                    margin as a safety buffer rather than leaving it exact. */}
-                <motion.div variants={tabItemVariants} className="w-full mt-2">
-                  <SmartContextCard
-                    items={dayItems}
-                    onQuickComplete={(slotId) => store.markSlotCompleted(store.selectedDateKey, slotId)}
-                    onEdit={(slotId) => { setActiveTab('nutrition'); setActiveSheet(slotId === 'lunch' ? 'restaurants' : 'plate'); }}
-                  />
-                </motion.div>
-                {/* Sprint 22 — a genuine whole-day empty state, distinct from
-                    SmartContextCard's own per-slot empty illustration above
-                    (that one says "this specific meal is unlogged"; this one
-                    says "nothing at all yet today"), shown only when it's
-                    actually true. */}
-                {dayItems.length === 0 && (
-                  <motion.div variants={tabItemVariants} className="w-full">
-                    <PremiumMotivator variant="nutrition-empty" />
-                  </motion.div>
-                )}
               </div>
             )}
 
@@ -376,61 +416,64 @@ export default function Home() {
                 <motion.div variants={tabItemVariants}>
                   <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
                 </motion.div>
+                {/* Sprint 27 — Bento asymmetry here too: the restaurant
+                    matrix (the higher-frequency action — eating out/quick
+                    lunch beats composing a raw-ingredient plate on most
+                    days) gets the full-width hero cell, the plate composer
+                    and the day-log button pair up as two squares below it. */}
                 <motion.div variants={tabItemVariants} className="grid grid-cols-2 gap-3">
-                <motion.div variants={tabItemVariants}>
-                  <TiltCard>
-                    <motion.button
-                      onClick={() => setActiveSheet('restaurants')}
-                      whileTap={{ scale: 0.97 }}
-                      whileHover={{ scale: 1.02 }}
-                      transition={tapSpring}
-                      className="w-full flex flex-col items-start gap-3 p-4 rounded-[32px] text-right"
-                      style={glassSurface(T)}
-                    >
-                      {/* Sprint 22 — a genuinely animated, hand-drawn lettuce
-                          leaf instead of a static stock icon, on one of the
-                          most-tapped cards in the app. */}
-                      <AnimatedJumpingLettuce size={34} color={T.accent} />
-                      <span className="text-lg font-black" style={{ letterSpacing: '-0.02em' }}>מטריצת מסעדות</span>
-                      <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>מסעדות ואוכל בחוץ</span>
-                    </motion.button>
-                  </TiltCard>
-                </motion.div>
-                <motion.div variants={tabItemVariants}>
+                  <div className="col-span-2">
+                    <TiltCard>
+                      <motion.button
+                        onClick={() => setActiveSheet('restaurants')}
+                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }}
+                        transition={tapSpring}
+                        className="w-full flex items-center gap-4 p-5 rounded-[32px] text-right"
+                        style={glassSurface(T)}
+                      >
+                        {/* Sprint 22 — a genuinely animated, hand-drawn
+                            lettuce leaf instead of a static stock icon, on
+                            one of the most-tapped cards in the app. */}
+                        <AnimatedJumpingLettuce size={40} color={T.accent} />
+                        <div>
+                          <span className="text-lg font-black block" style={{ letterSpacing: '-0.02em' }}>מטריצת מסעדות</span>
+                          <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>מסעדות ואוכל בחוץ</span>
+                        </div>
+                      </motion.button>
+                    </TiltCard>
+                  </div>
+
                   <TiltCard>
                     <motion.button
                       onClick={() => setActiveSheet('plate')}
                       whileTap={{ scale: 0.97 }}
                       whileHover={{ scale: 1.02 }}
                       transition={tapSpring}
-                      className="w-full flex flex-col items-start gap-3 p-4 rounded-[32px] text-right"
+                      className="w-full h-full flex flex-col items-start gap-3 p-5 rounded-[32px] text-right"
                       style={glassSurface(T)}
                     >
                       <Layers3 size={32} color={T.accent} strokeWidth={1.75} />
-                      <span className="text-lg font-black" style={{ letterSpacing: '-0.02em' }}>בנה צלחת אישית</span>
+                      <span className="text-base font-black" style={{ letterSpacing: '-0.02em' }}>בנה צלחת אישית</span>
                       <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>גולמי/מבושל · גרם מדויק</span>
                     </motion.button>
                   </TiltCard>
-                </motion.div>
-                </motion.div>
-                {/* Sprint 26 — the other reported gap: once something was
-                    logged, there was no way to see the full list again, let
-                    alone fix a wrong tap. This is the one place that shows
-                    every item for the selected date with edit/delete. */}
-                <motion.div variants={tabItemVariants}>
+
+                  {/* Sprint 26 — the other reported gap: once something was
+                      logged, there was no way to see the full list again,
+                      let alone fix a wrong tap. This is the one place that
+                      shows every item for the selected date with edit/delete. */}
                   <motion.button
                     onClick={() => setActiveSheet('daylog')}
-                    whileTap={{ scale: 0.98 }}
-                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.02 }}
                     transition={tapSpring}
-                    className="w-full flex items-center justify-between p-4 rounded-[32px] text-right"
+                    className="w-full h-full flex flex-col items-start gap-3 p-5 rounded-[32px] text-right"
                     style={glassSurface(T)}
                   >
-                    <div className="flex items-center gap-2">
-                      <ClipboardList size={18} color={T.accent} />
-                      <span className="text-sm font-bold" style={{ color: T.t.textPrimary }}>היומן של היום</span>
-                    </div>
-                    <span className="text-xs" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>{dayItems.length} פריטים · צפו ועריכה</span>
+                    <ClipboardList size={30} color={T.accent} strokeWidth={1.75} />
+                    <span className="text-base font-black" style={{ letterSpacing: '-0.02em' }}>היומן של היום</span>
+                    <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>{dayItems.length} פריטים · צפו ועריכה</span>
                   </motion.button>
                 </motion.div>
               </div>
