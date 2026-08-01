@@ -13,9 +13,9 @@
 // with retroactive day editing, and a weekly WhatsApp-ready report — see
 // components/insights/ for the per-component porting notes.
 
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Wheat, Droplet, Flame } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Wheat, Droplet, Flame, Dumbbell } from 'lucide-react';
 import { ProteinCutIcon } from '@/components/ui/ProteinCutIcon';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { ShredLogo } from '@/components/ui/ShredLogo';
@@ -126,7 +126,18 @@ function glassSurface(T: ShredTheme) {
 // layoutId technique BottomNav's active-tab indicator and the raw/cooked
 // toggle (Sprint 33) already use, now applied here too so the three don't
 // visibly disagree on how a "selected state" is supposed to move.
-function SegBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+//
+// Sprint 44 — direct feedback, with a photo of an actual device: "it doesn't
+// mark which day we're on, training or rest." Color alone (the accent-tinted
+// capsule sliding under the active label) wasn't a strong enough signal on
+// that screen/lighting — every other place in this app that needs "which of
+// two things is selected" to be unmistakable (day/night toggle, raw/cooked)
+// already pairs color with an icon, and this was the one spot that didn't.
+// Icons here aren't decorative: a dumbbell vs. a moon reads as "training vs.
+// rest" even if the color difference doesn't register, and the inactive
+// side is now visibly dimmed (not just a different text color) so the two
+// states can't be mistaken for "both equally emphasized."
+function SegBtn({ active, onClick, icon: Icon, children }: { active: boolean; onClick: () => void; icon: ComponentType<{ size?: number; color?: string }>; children: React.ReactNode }) {
   const T = useTheme();
   return (
     <motion.button
@@ -134,17 +145,27 @@ function SegBtn({ active, onClick, children }: { active: boolean; onClick: () =>
       whileTap={{ scale: 0.95 }}
       whileHover={{ scale: 1.03 }}
       transition={tapSpring}
-      className="relative px-3.5 text-xs font-bold flex items-center justify-center"
-      style={{ height: CONTROL_HEIGHT - 8, borderRadius: CONTROL_RADIUS, color: active ? '#07080B' : T.t.textSecondary }}
+      className="relative px-3.5 text-xs font-bold flex items-center justify-center gap-1.5"
+      style={{
+        height: CONTROL_HEIGHT - 8,
+        borderRadius: CONTROL_RADIUS,
+        color: active ? '#07080B' : T.t.textDim,
+        opacity: active ? 1 : 0.7,
+      }}
     >
       {active && (
         <motion.div
           layoutId="dayModeIndicator"
           transition={tapSpring}
           className="absolute inset-0 -z-10"
-          style={{ ...tactileGradient(T.accent), borderRadius: CONTROL_RADIUS }}
+          style={{
+            ...tactileGradient(T.accent),
+            borderRadius: CONTROL_RADIUS,
+            boxShadow: `${T.glow(T.accent, 14, '38')}, inset 0 1px 0 rgba(255,255,255,0.35)`,
+          }}
         />
       )}
+      <Icon size={13} color={active ? '#07080B' : T.t.textDim} />
       {children}
     </motion.button>
   );
@@ -340,7 +361,7 @@ export default function Home() {
                   className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                   style={{ background: T.t.chipBg, color: T.t.textDim, fontFamily: FONT_MONO }}
                 >
-                  v4.5.0-Sprint43
+                  v4.6.0-Sprint44
                 </span>
               </div>
               <p className="text-xs" style={{ color: T.t.textDim }}>{activeProfile.name} · {targets.label}</p>
@@ -348,8 +369,8 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex p-1 gap-1" style={{ height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}>
-              <SegBtn active={dayMode === 'training'} onClick={() => setDayMode('training')}>אימון</SegBtn>
-              <SegBtn active={dayMode === 'rest'} onClick={() => setDayMode('rest')}>מנוחה</SegBtn>
+              <SegBtn active={dayMode === 'training'} onClick={() => setDayMode('training')} icon={Dumbbell}>אימון</SegBtn>
+              <SegBtn active={dayMode === 'rest'} onClick={() => setDayMode('rest')} icon={MoonIcon}>מנוחה</SegBtn>
             </div>
             <ProfileSwitcher
               profiles={store.profiles}

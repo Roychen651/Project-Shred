@@ -18,6 +18,7 @@ import type { ComponentType } from 'react';
 import { Flame, Wheat, Droplet } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO } from '@/lib/theme/tokens';
+import { roundNum } from '@/lib/domain/util';
 import { ProteinCutIcon } from './ProteinCutIcon';
 
 type IconComponent = ComponentType<{ size?: number; color?: string }>;
@@ -34,11 +35,21 @@ export interface MacroLineProps {
 
 export function MacroLine({ kcal, protein, carbs, fat, prefix, className }: MacroLineProps) {
   const T = useTheme();
+  // Sprint 44 — a real bug caught while building the quick-log quantity
+  // adjuster: multiplying an already-clean value by an arbitrary scale
+  // (e.g. 6.9 * 1.5) reliably reintroduces floating-point noise
+  // (10.350000000000001), and this component previously rendered whatever
+  // number it was given verbatim. Every OTHER macro display in the app
+  // rounds at its own boundary (MacroStrip since Sprint 31, makeLoggedItem's
+  // base* fields) — this was the one that didn't, because until a caller
+  // started doing live arithmetic on its inputs, its callers always already
+  // passed pre-rounded values. Rounding here too, once, means no future
+  // caller can reintroduce this by doing its own math inline.
   const stats: [IconComponent, number, string][] = [
-    [Flame, kcal, T.macro.kcal],
-    [ProteinCutIcon, protein, T.macro.protein],
-    [Wheat, carbs, T.macro.carbs],
-    [Droplet, fat, T.macro.fat],
+    [Flame, Math.round(kcal), T.macro.kcal],
+    [ProteinCutIcon, roundNum(protein), T.macro.protein],
+    [Wheat, roundNum(carbs), T.macro.carbs],
+    [Droplet, roundNum(fat), T.macro.fat],
   ];
   return (
     <div className={`flex items-center gap-2 flex-wrap ${className || ''}`} style={{ fontFamily: FONT_MONO }}>

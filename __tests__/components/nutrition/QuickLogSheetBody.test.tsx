@@ -70,4 +70,47 @@ describe('QuickLogSheetBody', () => {
     await user.click(screen.getByLabelText('שמור כמועדף'));
     expect(screen.queryByText('מועדף חדש')).not.toBeInTheDocument();
   });
+
+  // Sprint 44 — direct feedback: "need an option to adapt the weights/
+  // measurements of the products it identified." Every parsed row now
+  // carries an adjustable ×N multiplier, defaulting to exactly the
+  // recognized amount and scaling every downstream use (totals, confirm,
+  // save-as-favorite) — not just the row's own display.
+  it('defaults every parsed row to ×1 (exactly as recognized)', async () => {
+    const user = userEvent.setup();
+    render(<ThemeProvider><QuickLogSheetBody onConfirm={vi.fn()} /></ThemeProvider>);
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'אכלתי 200 גרם חזה עוף');
+    await user.click(screen.getByText('פענח'));
+    expect(screen.getByText('×1')).toBeInTheDocument();
+  });
+
+  it('increasing the quantity adjuster scales the confirmed spec and appends a ×N suffix to the name', async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    render(<ThemeProvider><QuickLogSheetBody onConfirm={onConfirm} /></ThemeProvider>);
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'אכלתי 200 גרם חזה עוף');
+    await user.click(screen.getByText('פענח'));
+    await user.click(screen.getByLabelText('שנה כמות'));
+    await user.click(screen.getByLabelText('הוסף כמות')); // ×1 -> ×1.25
+    await user.click(screen.getByLabelText('הוסף כמות')); // ×1.25 -> ×1.5
+    await user.click(screen.getByLabelText('סיום עריכת כמות'));
+    await user.click(screen.getByText('אשר והוסף ליומן'));
+    const [specs] = onConfirm.mock.calls[0];
+    expect(specs[0]).toMatchObject({ name: 'חזה עוף (×1.5)', calories: 320 * 1.5, protein: 60 * 1.5 });
+  });
+
+  it('decreasing the adjuster below ×1 and saving as a favorite captures the reduced quantity, not the full default', async () => {
+    const user = userEvent.setup();
+    const onSaveFavorite = vi.fn();
+    render(<ThemeProvider><QuickLogSheetBody onConfirm={vi.fn()} onSaveFavorite={onSaveFavorite} /></ThemeProvider>);
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'אכלתי 200 גרם חזה עוף');
+    await user.click(screen.getByText('פענח'));
+    await user.click(screen.getByLabelText('שנה כמות'));
+    await user.click(screen.getByLabelText('הפחת כמות')); // ×1 -> ×0.75
+    await user.click(screen.getByLabelText('הפחת כמות')); // ×0.75 -> ×0.5
+    await user.click(screen.getByLabelText('שמור כמועדף'));
+    expect(await screen.findByText('מועדף חדש')).toBeInTheDocument();
+    await user.click(screen.getByText('שמירת מועדף'));
+    expect(onSaveFavorite.mock.calls[0][0]).toMatchObject({ name: 'חזה עוף (×0.5)', kcal: 320 * 0.5, protein: 60 * 0.5 });
+  });
 });
