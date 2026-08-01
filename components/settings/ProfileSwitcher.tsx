@@ -8,8 +8,9 @@
 
 import { useState } from 'react';
 import { User, UserPlus, ChevronDown, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_MONO, CONTROL_HEIGHT, CONTROL_RADIUS } from '@/lib/theme/tokens';
 import type { Profile } from '@/lib/store/shred-store';
 
 export interface ProfileSwitcherProps {
@@ -20,6 +21,8 @@ export interface ProfileSwitcherProps {
   deleteProfile: (id: string) => void;
 }
 
+const tapSpring = { type: 'spring' as const, stiffness: 420, damping: 26 };
+
 export function ProfileSwitcher({ profiles, activeId, setActiveId, addProfile, deleteProfile }: ProfileSwitcherProps) {
   const T = useTheme();
   const [open, setOpen] = useState(false);
@@ -28,10 +31,13 @@ export function ProfileSwitcher({ profiles, activeId, setActiveId, addProfile, d
 
   return (
     <div className="relative">
-      <button
+      <motion.button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 px-3 py-2 rounded-xl"
-        style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+        whileTap={{ scale: 0.96 }}
+        whileHover={{ scale: 1.02 }}
+        transition={tapSpring}
+        className="flex items-center gap-2 px-3"
+        style={{ height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
       >
         <div className="flex items-center justify-center rounded-full" style={{ width: 24, height: 24, background: `${T.accent}22` }}>
           <User size={13} color={T.accent} />
@@ -40,23 +46,31 @@ export function ProfileSwitcher({ profiles, activeId, setActiveId, addProfile, d
           <div className="text-xs font-bold leading-tight" style={{ color: T.t.textPrimary }}>{active.name}</div>
           <div className="text-xs leading-tight" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>{active.weight}kg</div>
         </div>
-        <ChevronDown size={14} color={T.t.textDim} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
-      </button>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={tapSpring} className="flex items-center">
+          <ChevronDown size={14} color={T.t.textDim} />
+        </motion.span>
+      </motion.button>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
-          <div
-            className="absolute left-0 top-full mt-2 rounded-xl z-30 overflow-hidden"
-            style={{
-              width: 260,
-              background: T.mode === 'dark' ? `${T.t.popover}E6` : `${T.t.popover}F5`,
-              border: `1px solid ${T.t.border}`,
-              boxShadow: T.t.dropdownShadow,
-              backdropFilter: 'blur(18px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(18px) saturate(160%)',
-            }}
-          >
+      <AnimatePresence>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: -6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: -6 }}
+              transition={tapSpring}
+              className="absolute left-0 top-full mt-2 rounded-2xl z-30 overflow-hidden"
+              style={{
+                width: 260,
+                transformOrigin: 'top left',
+                background: T.mode === 'dark' ? `${T.t.popover}E6` : `${T.t.popover}F5`,
+                border: `1px solid ${T.t.border}`,
+                boxShadow: T.t.dropdownShadow,
+                backdropFilter: 'blur(18px) saturate(160%)',
+                WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+              }}
+            >
             <div className="p-2 flex flex-col gap-1 max-h-56 overflow-y-auto">
               {Object.values(profiles).map((p) => (
                 <div key={p.id} className="flex items-center gap-1">
@@ -96,9 +110,10 @@ export function ProfileSwitcher({ profiles, activeId, setActiveId, addProfile, d
                 <UserPlus size={15} />
               </button>
             </div>
-          </div>
+          </motion.div>
         </>
       )}
+      </AnimatePresence>
     </div>
   );
 }

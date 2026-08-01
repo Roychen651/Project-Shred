@@ -19,7 +19,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO, FONT_DISPLAY } from '@/lib/theme/tokens';
+import { FONT_MONO, FONT_DISPLAY, CONTROL_HEIGHT, CONTROL_RADIUS } from '@/lib/theme/tokens';
 import { dateKey, shiftDateKey, formatHebrewDate, formatShortDate } from '@/lib/domain/dates';
 
 export interface DateNavigatorProps {
@@ -42,9 +42,10 @@ export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps)
         <motion.button
           onClick={() => onChange(shiftDateKey(selectedDateKey, -1))}
           whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.06 }}
           transition={tapSpring}
-          className="flex items-center justify-center rounded-2xl flex-shrink-0"
-          style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+          className="flex items-center justify-center flex-shrink-0"
+          style={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
           aria-label="יום קודם"
         >
           <ChevronLeft size={16} color={T.t.textSecondary} />
@@ -53,9 +54,10 @@ export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps)
         <motion.button
           onClick={() => setPickerOpen((v) => !v)}
           whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.01 }}
           transition={tapSpring}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-2xl min-w-0"
-          style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+          className="flex-1 flex items-center justify-center gap-1.5 min-w-0"
+          style={{ height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
           aria-label="בחירת תאריך"
         >
           <CalendarIcon size={13} color={T.t.textDim} />
@@ -70,29 +72,38 @@ export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps)
         <motion.button
           onClick={() => onChange(shiftDateKey(selectedDateKey, 1))}
           whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.06 }}
           transition={tapSpring}
-          className="flex items-center justify-center rounded-2xl flex-shrink-0"
-          style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+          className="flex items-center justify-center flex-shrink-0"
+          style={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
           aria-label="יום הבא"
         >
           <ChevronRight size={16} color={T.t.textSecondary} />
         </motion.button>
       </div>
 
-      {!isToday && (
-        <motion.div className="flex justify-center">
-          <motion.button
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            onClick={() => onChange(today)}
-            whileTap={{ scale: 0.95 }}
-            className="mt-2 px-3 py-1 rounded-full text-xs font-bold"
-            style={{ background: `${T.accent}18`, color: T.accent }}
+      <AnimatePresence>
+        {!isToday && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -4, height: 0 }}
+            transition={tapSpring}
+            className="flex justify-center overflow-hidden"
           >
-            חזרה להיום
-          </motion.button>
-        </motion.div>
-      )}
+            <motion.button
+              onClick={() => onChange(today)}
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              transition={tapSpring}
+              className="mt-2 px-3 text-xs font-bold"
+              style={{ height: CONTROL_HEIGHT - 12, borderRadius: CONTROL_RADIUS, background: `${T.accent}18`, color: T.accent }}
+            >
+              חזרה להיום
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {pickerOpen && (

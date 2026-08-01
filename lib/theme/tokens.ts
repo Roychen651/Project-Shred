@@ -36,6 +36,23 @@ export const FONT_DISPLAY = "var(--font-display), 'Rubik', 'Heebo', sans-serif";
 export const FONT_BODY = "var(--font-body), 'Heebo', 'Segoe UI', sans-serif";
 export const FONT_MONO = "var(--font-mono), 'IBM Plex Sans Hebrew', 'Heebo', sans-serif";
 
+// Sprint 34 — a single shared shape system for the header/date-navigator
+// control row (theme toggle, settings, profile switcher, training/rest
+// segmented control, date-navigator arrows + label). Direct feedback: these
+// pills/circles had each accreted their own height and radius over separate
+// sprints (rounded-xl/rounded-2xl/rounded-lg all mixed together, 36-38-40px
+// heights depending on padding vs. a fixed size) and visibly didn't line up
+// on one baseline or share one "shape language." CONTROL_HEIGHT is the one
+// height every control in that row now uses (icon buttons are exactly
+// square at this size; pill controls use it as a fixed height so their
+// padding can vary without the row's baseline drifting), and CONTROL_RADIUS
+// is `rounded-full` everywhere — a true stadium/circle shape reads as more
+// deliberately "custom" than an arbitrary intermediate radius, and it's the
+// one radius value that looks identical on both a square icon button and a
+// wide pill.
+export const CONTROL_HEIGHT = 40;
+export const CONTROL_RADIUS = 9999;
+
 // Restrained elevation, not neon ambient glow: small radius blur, low opacity,
 // used sparingly (active/selected states, the tour spotlight) rather than on
 // every interactive element.

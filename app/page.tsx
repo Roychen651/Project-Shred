@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Moon as MoonIcon, Sun as SunIcon, Layers3, Sparkles, Settings2, ClipboardList, Beef, Wheat, Droplet } from 'lucide-react';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY, FONT_MONO, JEWEL, tactileGradient } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, FONT_MONO, JEWEL, tactileGradient, CONTROL_HEIGHT, CONTROL_RADIUS } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
 import { useWireSync } from '@/lib/store/wireSync';
 import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/targets';
@@ -115,6 +115,11 @@ function glassSurface(T: ShredTheme) {
   };
 }
 
+// Sprint 34 — a real sliding-indicator segmented control instead of each
+// button instantly swapping its own background: the same framer-motion
+// layoutId technique BottomNav's active-tab indicator and the raw/cooked
+// toggle (Sprint 33) already use, now applied here too so the three don't
+// visibly disagree on how a "selected state" is supposed to move.
 function SegBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   const T = useTheme();
   return (
@@ -123,9 +128,17 @@ function SegBtn({ active, onClick, children }: { active: boolean; onClick: () =>
       whileTap={{ scale: 0.95 }}
       whileHover={{ scale: 1.03 }}
       transition={tapSpring}
-      className="px-3 py-1.5 rounded-lg text-xs font-bold"
-      style={active ? { ...tactileGradient(T.accent), color: '#07080B' } : { background: 'transparent', color: T.t.textSecondary }}
+      className="relative px-3.5 text-xs font-bold flex items-center justify-center"
+      style={{ height: CONTROL_HEIGHT - 8, borderRadius: CONTROL_RADIUS, color: active ? '#07080B' : T.t.textSecondary }}
     >
+      {active && (
+        <motion.div
+          layoutId="dayModeIndicator"
+          transition={tapSpring}
+          className="absolute inset-0 -z-10"
+          style={{ ...tactileGradient(T.accent), borderRadius: CONTROL_RADIUS }}
+        />
+      )}
       {children}
     </motion.button>
   );
@@ -310,7 +323,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex p-1 rounded-2xl gap-1" style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}` }}>
+            <div className="flex p-1 gap-1" style={{ height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}>
               <SegBtn active={dayMode === 'training'} onClick={() => setDayMode('training')}>אימון</SegBtn>
               <SegBtn active={dayMode === 'rest'} onClick={() => setDayMode('rest')}>מנוחה</SegBtn>
             </div>
@@ -327,8 +340,8 @@ export default function Home() {
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.06 }}
               transition={tapSpring}
-              className="flex items-center justify-center rounded-2xl"
-              style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+              className="flex items-center justify-center flex-shrink-0"
+              style={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
               aria-label="הגדרות"
             >
               <Settings2 size={16} color={T.t.textSecondary} />
@@ -338,8 +351,8 @@ export default function Home() {
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.06 }}
               transition={tapSpring}
-              className="flex items-center justify-center rounded-2xl"
-              style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+              className="flex items-center justify-center flex-shrink-0"
+              style={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
               aria-label="מצב תצוגה"
             >
               {T.mode === 'dark' ? <MoonIcon size={16} color={T.t.textSecondary} /> : <SunIcon size={16} color={T.t.textSecondary} />}
