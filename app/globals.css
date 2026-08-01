@@ -114,22 +114,35 @@ button:active {
  * custom properties; animating position/scale/opacity on each blob instead
  * is the achievable, broadly-supported way to make a gradient field read as
  * "alive" rather than printed on — offset durations/delays per blob so they
- * drift independently instead of pulsing in lockstep. */
+ * drift independently instead of pulsing in lockstep.
+ *
+ * Sprint 37 — a direct "everything feels stuck, not smooth" report. These
+ * blobs sit permanently behind the scrollable page (position: fixed, large,
+ * `filter: blur(...)` applied inline in app/page.tsx) — every browser has to
+ * keep them composited while the page scrolls, and animating `opacity` on a
+ * heavily-blurred layer forces a live re-composite of that blur on every
+ * frame the opacity changes (blur itself isn't cheap to re-sample, and
+ * mobile Safari in particular struggles to treat "blurred + fading" as a
+ * pure GPU op the way a plain transform is). Opacity animation is dropped
+ * here — transform (translate/scale) is the only thing still animating,
+ * which compositors genuinely can promote to the GPU without repainting the
+ * blur underneath — and `will-change: transform` hints the browser to keep
+ * these on their own layer up front instead of promoting them mid-scroll. */
 @keyframes meshDrift1 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.85; }
-  50% { transform: translate(-4%, 4%) scale(1.12); opacity: 1; }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-4%, 4%) scale(1.12); }
 }
 @keyframes meshDrift2 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
-  50% { transform: translate(5%, -3%) scale(1.1); opacity: 1; }
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5%, -3%) scale(1.1); }
 }
 @keyframes meshDrift3 {
-  0%, 100% { transform: translate(-50%, 0) scale(1); opacity: 0.75; }
-  50% { transform: translate(-50%, -5%) scale(1.15); opacity: 1; }
+  0%, 100% { transform: translate(-50%, 0) scale(1); }
+  50% { transform: translate(-50%, -5%) scale(1.15); }
 }
-.shred-mesh-blob-1 { animation: meshDrift1 22s ease-in-out infinite; }
-.shred-mesh-blob-2 { animation: meshDrift2 26s ease-in-out infinite; animation-delay: -6s; }
-.shred-mesh-blob-3 { animation: meshDrift3 30s ease-in-out infinite; animation-delay: -12s; }
+.shred-mesh-blob-1 { animation: meshDrift1 22s ease-in-out infinite; will-change: transform; }
+.shred-mesh-blob-2 { animation: meshDrift2 26s ease-in-out infinite; animation-delay: -6s; will-change: transform; }
+.shred-mesh-blob-3 { animation: meshDrift3 30s ease-in-out infinite; animation-delay: -12s; will-change: transform; }
 @media (prefers-reduced-motion: reduce) {
   .shred-mesh-blob-1, .shred-mesh-blob-2, .shred-mesh-blob-3 { animation: none; }
 }

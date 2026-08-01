@@ -82,7 +82,17 @@ export function ProfileSwitcher({ profiles, activeId, setActiveId, addProfile, d
                     <span className="text-sm" style={{ color: T.t.textPrimary }}>{p.name}</span>
                     <span className="text-xs" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>{p.weight}kg</span>
                   </button>
-                  {!p.locked && (
+                  {/* Sprint 37 — direct request: "I don't need the guest/
+                      friend entry" + "make it possible to delete profiles
+                      too." Both built-in profiles used p.locked (both true)
+                      to hide the delete button — that protected the
+                      not-really-needed guest/friend seed profile the same
+                      way it protected the person's own real profile. Only
+                      the true "mine" profile (builtinKey identifies it
+                      regardless of its real uuid — see the store's Sprint 9
+                      note) still can't be deleted from here; the guest
+                      built-in and any custom profile now can. */}
+                  {p.builtinKey !== 'mine' && (
                     <button onClick={() => deleteProfile(p.id)} className="p-2 rounded-lg" style={{ color: T.t.textDim }}>
                       <Trash2 size={14} />
                     </button>

@@ -100,7 +100,7 @@ export function GlassCard({ children, className = '', style = {}, accent }: Glas
 
   return (
     <div
-      className={`relative overflow-hidden transition-all duration-300 ${className}`}
+      className={`relative overflow-hidden ${className}`}
       style={{
         borderRadius: 32,
         background: glassBg,
@@ -108,6 +108,12 @@ export function GlassCard({ children, className = '', style = {}, accent }: Glas
         WebkitBackdropFilter: isDark ? 'blur(40px) saturate(200%)' : 'none',
         border: `1px solid ${glassBorder}`,
         boxShadow,
+        // Sprint 37 — `transition-all` was firing (and repainting the full
+        // 6-layer boxShadow stack, which isn't a compositor-only property)
+        // on ANY style change to this element, not just the theme-toggle
+        // color swap it was meant for. Scoped to just what actually needs to
+        // animate smoothly; layout-affecting properties are untouched.
+        transition: 'background 250ms ease, border-color 250ms ease, box-shadow 250ms ease',
         ...style,
       }}
     >

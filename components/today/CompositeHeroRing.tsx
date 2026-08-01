@@ -62,6 +62,27 @@
 // flat card; (3) the delta pill at the bottom gained an icon and a gradient
 // fill instead of a flat 20%-alpha wash, matching the "crafted chip, not a
 // default badge" direction.
+//
+// Sprint 37: two real problems found in a direct screenshot, not just a
+// vague "make it nicer." (1) The "נצרכו היום" micro-label used to live
+// INSIDE the ring, vertically centered as part of the same stack as the
+// giant number — at some kcal/protein percentages the arc's own sweep (and
+// its leading-edge marker dot) passes directly through that label's screen
+// position and visually overlaps it, since the label and the arc share the
+// same coordinate space with no reserved clearance between them. It's moved
+// out entirely — this component no longer renders it; app/page.tsx now
+// gives the whole ring a proper card header (Eyebrow + title + icon,
+// matching every other card in the app) sitting fully above the ring, which
+// can never collide with an SVG stroke because it isn't drawn inside the
+// same box anymore. (2) The ring used to float directly on the card's flat
+// background with only a soft blurred wash behind it — reads as "shapes on
+// a page," not "an instrument." A dedicated recessed "gauge" panel (a
+// radial gradient darkening toward the center, with an inward-facing inset
+// shadow) now sits directly behind the strokes, the same visual grammar a
+// real analog/digital gauge cluster uses, which is also the register the
+// MetricTracker's new WeighInDial (Sprint 37) was built to match — so the
+// two "instrument-style" surfaces in the app now actually agree with each
+// other instead of one being a gauge and the other a rounded number.
 import { useId, useEffect } from 'react';
 import { TrendingDown } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
@@ -146,6 +167,22 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
           filter: 'blur(28px)',
         }}
       />
+      {/* Sprint 37 — a recessed "gauge" panel directly behind the strokes, so
+          the ring reads as an instrument display sitting IN the card rather
+          than shapes floating ON it. */}
+      <div
+        aria-hidden
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: size * 0.94, height: size * 0.94,
+          background: isDark
+            ? `radial-gradient(circle, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 70%, transparent 100%)`
+            : `radial-gradient(circle, rgba(33,28,22,0.05) 0%, rgba(33,28,22,0.015) 70%, transparent 100%)`,
+          boxShadow: isDark
+            ? 'inset 0 2px 10px rgba(0,0,0,0.6), inset 0 -1px 2px rgba(255,255,255,0.04)'
+            : 'inset 0 2px 8px rgba(33,28,22,0.10), inset 0 -1px 1px rgba(255,255,255,0.8)',
+        }}
+      />
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', overflow: 'visible', position: 'relative' }}>
         <defs>
           <linearGradient id={gradOuterId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -199,12 +236,13 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {/* Sprint 19 — extreme typographic contrast: an almost weightless,
-            widely-tracked uppercase micro-label set directly against a
-            massive, black-weight, gradient-filled numeral right below it. */}
-        <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.25em' }}>נצרכו היום</span>
+        {/* Sprint 37 — the "נצרכו היום" micro-label that used to live here
+            moved out to a proper card header above the whole ring (see
+            app/page.tsx) — see this file's Sprint 37 header note for why:
+            it could visually collide with the arc/marker at some fill
+            percentages when both shared this same centered box. */}
         <motion.span
-          className="text-7xl font-black leading-none mt-2"
+          className="text-7xl font-black leading-none"
           style={{
             fontFamily: FONT_DISPLAY,
             letterSpacing: '-0.04em',

@@ -15,10 +15,11 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Beef, Wheat, Droplet } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Beef, Wheat, Droplet, Flame } from 'lucide-react';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { ShredLogo } from '@/components/ui/ShredLogo';
 import { TabBeamTransition } from '@/components/shell/TabBeamTransition';
+import { FoodConfetti } from '@/components/ui/FoodConfetti';
 import { KitchenHacksSheetBody } from '@/components/nutrition/KitchenHacksSheetBody';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, JEWEL, tactileGradient, CONTROL_HEIGHT, CONTROL_RADIUS } from '@/lib/theme/tokens';
@@ -56,6 +57,7 @@ import { CustomWorkoutBuilder } from '@/components/workouts/CustomWorkoutBuilder
 import { CustomWorkoutRunnerSheetBody } from '@/components/workouts/CustomWorkoutRunnerSheetBody';
 
 import { GlassCard } from '@/components/ui/GlassCard';
+import { Eyebrow } from '@/components/ui/Eyebrow';
 import { TiltCard } from '@/components/ui/TiltCard';
 import { ProfileSwitcher } from '@/components/settings/ProfileSwitcher';
 import { SettingsModal } from '@/components/settings/SettingsModal';
@@ -161,6 +163,11 @@ export default function Home() {
     if (next !== activeTab) setBeamTab(next);
     setActiveTab(next);
   };
+  // Sprint 37 — a fresh id per trigger (not a boolean) so two logs fired in
+  // quick succession each get their own full burst via React re-keying,
+  // instead of the second trigger being a no-op because "active" was
+  // already true.
+  const [confettiId, setConfettiId] = useState<number | null>(null);
   const [dayMode, setDayMode] = useState<DayMode>('training');
   const [fabOpen, setFabOpen] = useState(false);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
@@ -216,6 +223,12 @@ export default function Home() {
   const handleLog = (specs: LogItemSpec[], slotId: SlotId) => {
     store.logItems(specs, slotId);
     setActiveSheet(null);
+    // Sprint 37 — a celebratory confetti burst on every deliberate,
+    // sheet-based log (restaurants/plate/hacks/quick-log). Deliberately NOT
+    // wired into FavoritesQuickBar's one-tap logging — see FoodConfetti's
+    // header note for why a repeated, low-friction action shouldn't also
+    // fire a full burst every time.
+    setConfettiId(Date.now());
   };
 
   return (
@@ -248,12 +261,20 @@ export default function Home() {
             backgroundSize: '22px 22px',
           }}
         />
+        {/* Sprint 37 — trimmed from up to 4 simultaneous blurred blobs (dark
+            mode) down to a max of 3, and blur radii pulled in (64-80px ->
+            48-60px): fewer, slightly-less-expensive blurred layers for the
+            compositor to keep alive behind a scrolling page, addressing a
+            direct "everything feels stuck, not smooth" report. Opacity is
+            now a static value (see globals.css's keyframe note) rather than
+            animated, tuned to roughly the old animation's midpoint so the
+            page doesn't suddenly read as more saturated than before. */}
         <div
           className="shred-mesh-blob-1"
           style={{
             position: 'absolute', top: '-16%', insetInlineEnd: '-18%', width: '60vw', height: '60vw', maxWidth: 620, maxHeight: 620,
             background: `radial-gradient(circle, ${T.accent}${T.mode === 'dark' ? '85' : '1c'} 0%, transparent 68%)`,
-            filter: 'blur(64px)',
+            filter: 'blur(52px)', opacity: 0.92,
           }}
         />
         <div
@@ -261,7 +282,7 @@ export default function Home() {
           style={{
             position: 'absolute', bottom: '-12%', insetInlineStart: '-20%', width: '55vw', height: '55vw', maxWidth: 540, maxHeight: 540,
             background: `radial-gradient(circle, ${T.macro.protein}${T.mode === 'dark' ? '78' : '16'} 0%, transparent 68%)`,
-            filter: 'blur(70px)',
+            filter: 'blur(56px)', opacity: 0.88,
           }}
         />
         {T.mode === 'dark' && (
@@ -270,17 +291,7 @@ export default function Home() {
             style={{
               position: 'absolute', top: '32%', left: '50%', width: '48vw', height: '48vw', maxWidth: 460, maxHeight: 460,
               background: `radial-gradient(circle, ${JEWEL.dark.plum}55 0%, transparent 70%)`,
-              filter: 'blur(80px)',
-            }}
-          />
-        )}
-        {T.mode === 'dark' && (
-          <div
-            className="shred-mesh-blob-2"
-            style={{
-              position: 'absolute', top: '55%', insetInlineEnd: '-10%', width: '42vw', height: '42vw', maxWidth: 400, maxHeight: 400,
-              background: `radial-gradient(circle, ${JEWEL.dark.steel}45 0%, transparent 70%)`,
-              filter: 'blur(75px)', animationDelay: '-18s',
+              filter: 'blur(60px)', opacity: 0.85,
             }}
           />
         )}
@@ -298,7 +309,7 @@ export default function Home() {
             style={{
               position: 'absolute', top: '38%', left: '8%', width: '50vw', height: '50vw', maxWidth: 480, maxHeight: 480,
               background: `radial-gradient(circle, ${JEWEL.light.bronze}16 0%, transparent 70%)`,
-              filter: 'blur(80px)',
+              filter: 'blur(60px)', opacity: 0.85,
             }}
           />
         )}
@@ -416,7 +427,22 @@ export default function Home() {
                 <motion.div variants={tabItemVariants} className="grid grid-cols-2 gap-3 w-full">
                   <div className="col-span-2">
                     <GlowBorder duration={8}>
-                      <div className="flex flex-col items-center py-7 px-4">
+                      <div className="flex flex-col items-center pt-5 pb-7 px-4">
+                        {/* Sprint 37 — a proper card header (Eyebrow + title
+                            + icon), the one pattern every other card in the
+                            app already uses (AiCoachWidget, MetricTracker,
+                            ComplianceHeatmap) that the hero ring alone never
+                            had. This is also where "נצרכו היום" now lives —
+                            moved out of CompositeHeroRing itself so it can
+                            never collide with the ring's own stroke/marker
+                            again (see that component's Sprint 37 note). */}
+                        <div className="flex items-center justify-between w-full mb-5">
+                          <div>
+                            <Eyebrow>ARENA 01 · TODAY&apos;S ENERGY</Eyebrow>
+                            <h3 className="text-base font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>נצרכו היום</h3>
+                          </div>
+                          <Flame size={20} color={T.macro.kcal} />
+                        </div>
                         <CompositeHeroRing consumed={consumed} targets={targets} />
                         <div className="mt-1">
                           <HeroRingLegend />
@@ -655,6 +681,10 @@ export default function Home() {
 
       <AnimatePresence>
         {beamTab && <TabBeamTransition key={beamTab} tab={beamTab} onDone={() => setBeamTab(null)} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {confettiId !== null && <FoodConfetti key={confettiId} onDone={() => setConfettiId(null)} />}
       </AnimatePresence>
 
       <SheetModal open={activeSheet === 'quicklog'} onClose={() => setActiveSheet(null)} title="רישום חופשי מהיר">
