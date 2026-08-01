@@ -567,7 +567,7 @@ export default function Home() {
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <SheetModal open={activeSheet === 'quicklog'} onClose={() => setActiveSheet(null)} title="רישום חופשי מהיר">
-        <QuickLogSheetBody onConfirm={handleLog} />
+        <QuickLogSheetBody onConfirm={handleLog} customIngredients={store.customIngredients} customHacks={store.customHacks} />
       </SheetModal>
 
       <SheetModal open={activeSheet === 'restaurants'} onClose={() => setActiveSheet(null)} title="מטריצת מסעדות">

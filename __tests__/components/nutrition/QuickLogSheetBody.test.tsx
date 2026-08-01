@@ -8,7 +8,7 @@ describe('QuickLogSheetBody', () => {
   it('parses free text and shows a preview with computed macros', async () => {
     const user = userEvent.setup();
     render(<ThemeProvider><QuickLogSheetBody onConfirm={vi.fn()} /></ThemeProvider>);
-    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן GO...'), 'בננה');
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'בננה');
     await user.click(screen.getByText('פענח'));
     // 'selector' scopes past the textarea, which also contains the typed text 'בננה'.
     expect(screen.getByText('בננה', { selector: 'div' })).toBeInTheDocument();
@@ -18,7 +18,7 @@ describe('QuickLogSheetBody', () => {
   it('shows a "no match" message for unrecognized text', async () => {
     const user = userEvent.setup();
     render(<ThemeProvider><QuickLogSheetBody onConfirm={vi.fn()} /></ThemeProvider>);
-    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן GO...'), 'משהו לא מוכר לגמרי');
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'משהו לא מוכר לגמרי');
     await user.click(screen.getByText('פענח'));
     expect(screen.getByText('לא זוהו מאכלים ידועים — נסו שם מאכל ברור יותר.')).toBeInTheDocument();
   });
@@ -27,7 +27,7 @@ describe('QuickLogSheetBody', () => {
     const user = userEvent.setup();
     const onConfirm = vi.fn();
     render(<ThemeProvider><QuickLogSheetBody onConfirm={onConfirm} defaultSlotId="breakfast" /></ThemeProvider>);
-    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן GO...'), 'בננה');
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'בננה');
     await user.click(screen.getByText('פענח'));
     await user.click(screen.getByText('אשר והוסף ליומן'));
     expect(onConfirm).toHaveBeenCalledTimes(1);
@@ -40,7 +40,7 @@ describe('QuickLogSheetBody', () => {
   it('clears the text and preview after confirming', async () => {
     const user = userEvent.setup();
     render(<ThemeProvider><QuickLogSheetBody onConfirm={vi.fn()} /></ThemeProvider>);
-    const textarea = screen.getByPlaceholderText('במבה קטנה ומעדן GO...');
+    const textarea = screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...');
     await user.type(textarea, 'בננה');
     await user.click(screen.getByText('פענח'));
     await user.click(screen.getByText('אשר והוסף ליומן'));

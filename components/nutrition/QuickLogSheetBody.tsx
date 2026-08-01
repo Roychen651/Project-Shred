@@ -10,14 +10,30 @@
 // has to call store.logItems(specs, slotId) directly. No store import here:
 // this stays a pure, testable presentation component.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO } from '@/lib/theme/tokens';
 import { MacroStrip } from '@/components/ui/MacroStrip';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
-import { parseFoodText, type ParsedFoodItem } from '@/lib/domain/foodParser';
-import type { LogItemSpec } from '@/lib/store/shred-store';
+import { parseFoodText, buildParserCorpus, type ParsedFoodItem, type ParserDishLike } from '@/lib/domain/foodParser';
+import { customIngredientToIngredient, type Ingredient } from '@/lib/domain/ingredients';
+import { INGREDIENT_DB } from '@/lib/data/ingredients';
+import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
+import { BEVERAGES } from '@/lib/data/beverages';
+import { HACKS } from '@/lib/data/hacks';
+import { EATING_OUT_MENU } from '@/lib/data/eatingOut';
+import type { LogItemSpec, CustomIngredient, CustomHack } from '@/lib/store/shred-store';
+
+// Sprint 30 — the recognition corpus is now the app's real, full food surface
+// (every raw ingredient + beverage + home recipe + eating-out dish, plus the
+// signed-in person's own custom ingredients/hacks) instead of a bespoke
+// 19-entry list, closing a direct report that common words ("קפה", "חלב")
+// came back as "not recognized." Computed once at module scope for the
+// static part (mirrors PlateComposerSheetBody's STATIC_INGREDIENTS) —
+// custom items are merged in via useMemo since they change per person.
+const STATIC_INGREDIENTS: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS, ...BEVERAGES];
+const STATIC_DISHES: ParserDishLike[] = [...HACKS, ...EATING_OUT_MENU];
 
 function ParsedItemRow({ item, onRemove }: { item: ParsedFoodItem; onRemove: () => void }) {
   const T = useTheme();
@@ -43,20 +59,30 @@ function ParsedItemRow({ item, onRemove }: { item: ParsedFoodItem; onRemove: () 
 export interface QuickLogSheetBodyProps {
   onConfirm: (specs: LogItemSpec[], slotId: SlotId) => void;
   defaultSlotId?: SlotId;
+  customIngredients?: CustomIngredient[];
+  customHacks?: CustomHack[];
 }
 
-export function QuickLogSheetBody({ onConfirm, defaultSlotId }: QuickLogSheetBodyProps) {
+export function QuickLogSheetBody({ onConfirm, defaultSlotId, customIngredients = [], customHacks = [] }: QuickLogSheetBodyProps) {
   const T = useTheme();
   const [logText, setLogText] = useState('');
   const [preview, setPreview] = useState<ParsedFoodItem[]>([]);
   const [noMatch, setNoMatch] = useState(false);
   const [slotId, setSlotId] = useState<SlotId>(defaultSlotId || 'lunch');
 
+  const corpus = useMemo(() => {
+    const ingredients = customIngredients.length
+      ? [...STATIC_INGREDIENTS, ...customIngredients.map(customIngredientToIngredient)]
+      : STATIC_INGREDIENTS;
+    const dishes = customHacks.length ? [...STATIC_DISHES, ...customHacks] : STATIC_DISHES;
+    return buildParserCorpus(ingredients, dishes);
+  }, [customIngredients, customHacks]);
+
   const runParse = () => {
     // The artifact's T.playFeedback() (haptic + Tone.js blip) isn't wired up
     // yet — ThemeContext only carries the `feedback` setting so far, not the
     // player itself. Deferred to whichever sprint ports Sprint 7's sound engine.
-    const results = parseFoodText(logText);
+    const results = parseFoodText(logText, corpus);
     setPreview(results);
     setNoMatch(results.length === 0);
   };
@@ -82,7 +108,7 @@ export function QuickLogSheetBody({ onConfirm, defaultSlotId }: QuickLogSheetBod
         value={logText}
         onChange={(e) => setLogText(e.target.value)}
         rows={2}
-        placeholder="במבה קטנה ומעדן GO..."
+        placeholder="במבה קטנה ומעדן גמדים..."
         className="w-full py-3 px-3.5 rounded-xl text-sm outline-none resize-none"
         style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary }}
       />
