@@ -16,6 +16,7 @@ import { X, Save } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 import { genUuid } from '@/lib/domain/util';
+import { Stepper } from '@/components/ui/Stepper';
 import type { Favorite } from '@/lib/store/shred-store';
 
 const EMOJI_CHOICES = ['🍗', '🥚', '🍚', '🍞', '🥛', '🧀', '🍌', '🍎', '🥑', '🥤', '☕', '🍫', '🥜', '🍕', '🥗', '🍲'];
@@ -30,6 +31,7 @@ export interface FavoriteDraftSeed {
   protein?: number;
   carbs?: number;
   fat?: number;
+  unitCount?: number;
 }
 
 export interface FavoriteBuilderModalProps {
@@ -53,6 +55,7 @@ function emptyDraft(seed?: FavoriteDraftSeed) {
     protein: seed?.protein != null ? String(seed.protein) : '',
     carbs: seed?.carbs != null ? String(seed.carbs) : '',
     fat: seed?.fat != null ? String(seed.fat) : '',
+    unitCount: seed?.unitCount ?? 1,
   };
 }
 
@@ -78,6 +81,7 @@ function FavoriteBuilderModalInner({ onClose, onSave, seed }: Omit<FavoriteBuild
       protein: Number(draft.protein) || 0,
       carbs: Number(draft.carbs) || 0,
       fat: Number(draft.fat) || 0,
+      unitCount: draft.unitCount,
     });
     onClose();
   };
@@ -182,13 +186,27 @@ function FavoriteBuilderModalInner({ onClose, onSave, seed }: Omit<FavoriteBuild
           </div>
 
           <div>
-            <p className="text-xs font-semibold mb-2" style={{ color: T.t.textSecondary }}>ערכים תזונתיים (למנה שלמה, כפי שתירשם בכל הקשה)</p>
+            <p className="text-xs font-semibold mb-2" style={{ color: T.t.textSecondary }}>ערכים תזונתיים (לכמות המלאה שמוגדרת למטה)</p>
             <div className="grid grid-cols-4 gap-2">
               {macroField('קל׳', 'kcal', 2)}
               {macroField('חלבון', 'protein', 3)}
               {macroField('פחמימה', 'carbs', 4)}
               {macroField('שומן', 'fat', 5)}
             </div>
+          </div>
+
+          <div>
+            <Stepper
+              label="כמות ברירת מחדל (יחידות)"
+              value={draft.unitCount}
+              onChange={(v) => setDraft((d) => ({ ...d, unitCount: v }))}
+              step={0.5}
+              min={0.5}
+              max={20}
+            />
+            <p className="text-[11px] mt-1.5" style={{ color: T.t.textDim }}>
+              למשל 3 אם זה &quot;3 ביצים&quot; — ככה אפשר לרשום כמות אחרת (כמו 2) ישירות מהצ&apos;יפ, בלי לחשב אחוזים בעצמכם.
+            </p>
           </div>
 
           <motion.button

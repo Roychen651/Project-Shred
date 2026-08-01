@@ -58,6 +58,14 @@ export interface Favorite {
   protein: number;
   carbs: number;
   fat: number;
+  // Sprint 42 — how many discrete units the stored macros above represent
+  // (e.g. 3 for "3 eggs"). Purely the *starting point* for the quantity
+  // adjuster in FavoritesQuickBar; logging a different count scales the
+  // stored macros by count/unitCount. Optional and defaults to 1 so every
+  // favorite saved before this field existed (including ones already
+  // persisted for real accounts) keeps behaving exactly as it did — "1 of
+  // 1" is just "the whole thing," the same as before.
+  unitCount?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,7 +227,10 @@ export interface ShredState {
    * behavior are load-bearing — see the file header. Logs to `selectedDateKey`,
    * exactly like the artifact's closure-captured `logItems`. */
   logItems: (specs: LogItemSpec[], slotId: SlotId) => void;
-  logFavorite: (fav: Favorite) => void;
+  /** Sprint 42 — `qty` (in the favorite's own units) defaults to its stored
+   * `unitCount`, i.e. logging "the whole thing" exactly as before; passing a
+   * different qty scales every macro by qty/unitCount. */
+  logFavorite: (fav: Favorite, qty?: number) => void;
   toggleItemCompleted: (dateKey: string, itemId: string) => void;
   deleteItem: (dateKey: string, itemId: string) => void;
   updateItem: (dateKey: string, itemId: string, patch: Partial<LoggedItem>) => void;
@@ -283,9 +294,9 @@ const DEFAULT_PROFILES: Record<string, Profile> = {
 };
 
 const DEFAULT_FAVORITES: Favorite[] = [
-  { id: 'fav-protein-pudding', name: 'מעדן חלבון', icon: '🥤', kcal: 140, protein: 15, carbs: 13, fat: 3 },
-  { id: 'fav-protein-shake', name: 'שייק אבקה + מים', icon: '🥤', kcal: 120, protein: 25, carbs: 3, fat: 1.5 },
-  { id: 'fav-eggs', name: '3 ביצים', icon: '🥚', kcal: 233, protein: 19, carbs: 1.6, fat: 16.5 },
+  { id: 'fav-protein-pudding', name: 'מעדן חלבון', icon: '🥤', kcal: 140, protein: 15, carbs: 13, fat: 3, unitCount: 1 },
+  { id: 'fav-protein-shake', name: 'שייק אבקה + מים', icon: '🥤', kcal: 120, protein: 25, carbs: 3, fat: 1.5, unitCount: 1 },
+  { id: 'fav-eggs', name: '3 ביצים', icon: '🥚', kcal: 233, protein: 19, carbs: 1.6, fat: 16.5, unitCount: 3 },
 ];
 
 export function createShredStore(initial?: Partial<ShredState>) {
@@ -342,11 +353,23 @@ export function createShredStore(initial?: Partial<ShredState>) {
       return { itemsByDate: { ...state.itemsByDate, [dk]: [...(state.itemsByDate[dk] || []), ...newOnes] } };
     }),
 
-    logFavorite: (fav) => {
+    logFavorite: (fav, qty) => {
       const state = get();
       const items = state.itemsByDate[state.selectedDateKey] || [];
       const slotId = getCurrentSlotId(items);
-      get().logItems([{ name: fav.name, calories: fav.kcal, protein: fav.protein, carbs: fav.carbs, fats: fav.fat, source: 'favorite' }], slotId);
+      const unitCount = fav.unitCount ?? 1;
+      const loggedQty = qty ?? unitCount;
+      const scale = loggedQty / unitCount;
+      // Sprint 42 — a scaled log stays honest about what was actually eaten:
+      // the item's name gets a "(X מתוך Y)" suffix whenever it's not the
+      // favorite's full default, since the name itself (e.g. "3 ביצים")
+      // often already bakes the default count into free text and would
+      // otherwise silently overstate a smaller logged quantity.
+      const name = scale === 1 ? fav.name : `${fav.name} (${loggedQty} מתוך ${unitCount})`;
+      get().logItems(
+        [{ name, calories: fav.kcal * scale, protein: fav.protein * scale, carbs: fav.carbs * scale, fats: fav.fat * scale, source: 'favorite' }],
+        slotId
+      );
     },
 
     toggleItemCompleted: (dk, itemId) => set((state) => ({

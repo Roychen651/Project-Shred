@@ -40,4 +40,26 @@ describe('FavoriteBuilderModal', () => {
     await user.click(screen.getByText('שמירת מועדף'));
     expect(onSave.mock.calls[0][0]).toMatchObject({ id: 'fav-1', name: 'מעדן חלבון', kcal: 140 });
   });
+
+  // Sprint 42 — the "how many units does this favorite represent" field
+  // that backs FavoritesQuickBar's quantity adjuster.
+  it('defaults unitCount to 1 for a brand-new favorite, and saves it', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    render(<ThemeProvider><FavoriteBuilderModal open onClose={vi.fn()} onSave={onSave} /></ThemeProvider>);
+    expect(screen.getByText('כמות ברירת מחדל (יחידות)')).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText('לדוגמה: שייק חלבון בוקר'), 'חטיף');
+    await user.click(screen.getByText('שמירת מועדף'));
+    expect(onSave.mock.calls[0][0]).toMatchObject({ unitCount: 1 });
+  });
+
+  it('pre-fills unitCount from a seed (e.g. "3 eggs") and lets it be adjusted with the stepper', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    const seed = { id: 'fav-eggs', name: '3 ביצים', icon: '🥚', kcal: 233, protein: 19, carbs: 1.6, fat: 16.5, unitCount: 3 };
+    render(<ThemeProvider><FavoriteBuilderModal open onClose={vi.fn()} onSave={onSave} seed={seed} /></ThemeProvider>);
+    await user.click(screen.getByLabelText('הוסף כמות ברירת מחדל (יחידות)'));
+    await user.click(screen.getByText('שמירת מועדף'));
+    expect(onSave.mock.calls[0][0]).toMatchObject({ unitCount: 3.5 });
+  });
 });

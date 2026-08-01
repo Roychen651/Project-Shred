@@ -335,7 +335,7 @@ export default function Home() {
                   className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                   style={{ background: T.t.chipBg, color: T.t.textDim, fontFamily: FONT_MONO }}
                 >
-                  v4.3.0-Sprint41
+                  v4.4.0-Sprint42
                 </span>
               </div>
               <p className="text-xs" style={{ color: T.t.textDim }}>{activeProfile.name} · {targets.label}</p>

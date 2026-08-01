@@ -79,6 +79,39 @@ describe('logFavorite — one tap, zero decisions', () => {
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({ name: 'Protein Pudding', source: 'favorite', baseCalories: 140 });
   });
+
+  // Sprint 42 — "logged 3 eggs by default, wanted 2, it was rigid." A
+  // favorite's unitCount is the baseline its stored macros represent;
+  // logging a different qty scales every macro by qty/unitCount.
+  it('with no unitCount and no qty argument, logs the stored macros unscaled (backward compatible)', () => {
+    store.getState().logFavorite({ id: 'fav-1', name: 'Shake', icon: '🥤', kcal: 120, protein: 25, carbs: 3, fat: 1.5 });
+    const [item] = store.getState().dayItems('2026-07-20');
+    expect(item).toMatchObject({ name: 'Shake', baseCalories: 120, baseProtein: 25 });
+  });
+
+  it('logging fewer units than the default (3 eggs -> 2) scales every macro down proportionally', () => {
+    store.getState().logFavorite({ id: 'fav-eggs', name: '3 ביצים', icon: '🥚', kcal: 233, protein: 19, carbs: 1.6, fat: 16.5, unitCount: 3 }, 2);
+    const [item] = store.getState().dayItems('2026-07-20');
+    // makeLoggedItem rounds calories to a whole number and other macros to
+    // one decimal (roundNum) — match that same rounding, not the raw division.
+    expect(item.baseCalories).toBe(Math.round((233 * 2) / 3));
+    expect(item.baseProtein).toBeCloseTo((19 * 2) / 3, 1);
+    expect(item.name).toBe('3 ביצים (2 מתוך 3)');
+  });
+
+  it('logging exactly the default unitCount does not append a quantity suffix to the name', () => {
+    store.getState().logFavorite({ id: 'fav-eggs', name: '3 ביצים', icon: '🥚', kcal: 233, protein: 19, carbs: 1.6, fat: 16.5, unitCount: 3 }, 3);
+    const [item] = store.getState().dayItems('2026-07-20');
+    expect(item.name).toBe('3 ביצים');
+    expect(item.baseCalories).toBeCloseTo(233, 5);
+  });
+
+  it('logging MORE than the default (e.g. a double portion) scales up the same way', () => {
+    store.getState().logFavorite({ id: 'fav-eggs', name: '3 ביצים', icon: '🥚', kcal: 233, protein: 19, carbs: 1.6, fat: 16.5, unitCount: 3 }, 6);
+    const [item] = store.getState().dayItems('2026-07-20');
+    expect(item.baseCalories).toBeCloseTo(233 * 2, 5);
+    expect(item.name).toBe('3 ביצים (6 מתוך 3)');
+  });
 });
 
 describe('markSlotCompleted', () => {
