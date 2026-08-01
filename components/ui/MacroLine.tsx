@@ -14,9 +14,13 @@
 // is the inline, single-line variant meant to sit under a row's title,
 // where several rows stack per screen and boxed tiles would be far too tall.
 
-import { Flame, Beef, Wheat, Droplet } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { Flame, Wheat, Droplet } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO } from '@/lib/theme/tokens';
+import { ProteinCutIcon } from './ProteinCutIcon';
+
+type IconComponent = ComponentType<{ size?: number; color?: string }>;
 
 export interface MacroLineProps {
   kcal: number;
@@ -30,9 +34,9 @@ export interface MacroLineProps {
 
 export function MacroLine({ kcal, protein, carbs, fat, prefix, className }: MacroLineProps) {
   const T = useTheme();
-  const stats: [typeof Flame, number, string][] = [
+  const stats: [IconComponent, number, string][] = [
     [Flame, kcal, T.macro.kcal],
-    [Beef, protein, T.macro.protein],
+    [ProteinCutIcon, protein, T.macro.protein],
     [Wheat, carbs, T.macro.carbs],
     [Droplet, fat, T.macro.fat],
   ];

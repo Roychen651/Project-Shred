@@ -14,7 +14,13 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-const FOOD_EMOJI = ['🥕', '🥦', '🍅', '🥑', '🌽', '🫑', '🍗', '🥩', '🧀', '🍞', '🍓', '🥚', '🍋', '🫐', '🥬', '🍆'];
+// Sprint 39 — the emoji set was cross-checked against a reference sheet of
+// vegetable/produce illustrations supplied as design material (tomato,
+// mushroom, onion, chili, pineapple, olive, broccoli) — added the items
+// that reference specifically called out and this list was missing
+// (mushroom, onion, chili, pineapple, olive), on top of what was already
+// here.
+const FOOD_EMOJI = ['🥕', '🥦', '🍅', '🥑', '🌽', '🫑', '🍗', '🥩', '🧀', '🍞', '🍓', '🥚', '🍋', '🍄', '🧅', '🌶️', '🍍', '🫒', '🥬', '🍆'];
 const PARTICLE_COUNT = 16;
 const DURATION_MS = 1000;
 

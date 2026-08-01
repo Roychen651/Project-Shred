@@ -7,8 +7,9 @@
 // icon), matching the crafted-chip language applied to the ring's own delta
 // pill in the same pass — a plain dot read as one of the "generic" elements.
 
-import { Flame, Beef } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { ProteinCutIcon } from '@/components/ui/ProteinCutIcon';
 
 export function HeroRingLegend() {
   const T = useTheme();
@@ -28,7 +29,7 @@ export function HeroRingLegend() {
           className="flex items-center justify-center rounded-full"
           style={{ width: 20, height: 20, background: `linear-gradient(135deg, color-mix(in srgb, ${T.macro.protein}, white 25%), ${T.macro.protein})` }}
         >
-          <Beef size={11} color="#07080B" />
+          <ProteinCutIcon size={11} color="#07080B" />
         </span>
         טבעת פנימית · חלבון
       </span>

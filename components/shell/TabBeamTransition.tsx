@@ -3,21 +3,27 @@
 // Sprint 36 — "a few seconds of beaming themed to the destination on every
 // tab switch" (the literal ask: a lettuce leaf for one, burger layers
 // assembling vertically for another, a spinning dumbbell for another).
-// Built exactly as asked, with one deliberate calibration: the requested
-// duration was 3 seconds per switch. This overlay runs ~1.1s instead —
-// still a real, noticeable, per-destination "beam" moment (a diagonal light
-// sweep + a themed hero shape scaling/animating in), not a token flicker —
-// but a literal 3-second forced overlay on *every single* tab tap, several
-// times per session, is exactly the kind of animation-over-usability
-// tradeoff this app's own motion discipline warns against (see the
-// "elaborate page transitions slow down perceived performance more than
-// they add polish" note this codebase's own transitions already follow —
-// Sprint 19's staggered entrance is ~500ms total for the same reason). The
-// overlay is also `pointer-events-none` and the destination tab's real
-// content mounts underneath it immediately (see app/page.tsx's existing
-// AnimatePresence for tab content) — so even during the beam, nothing is
-// actually blocked; it's a pure visual flourish layered on top, not a
-// loading gate.
+// Sprint 38 tried softening a diagonal light-sweep line that was drawing
+// itself across real, legible content ("the diagonal stripe on the face").
+// That still wasn't enough — Sprint 39, same complaint again, with a fuller
+// picture from more screenshots: the *actual* root cause was never really
+// the line's hardness, it was TIMING. app/page.tsx's tab content uses
+// `AnimatePresence mode="wait"` with its own staggered 3D entrance
+// (tabContainerVariants/tabItemVariants) — the destination tab's cards
+// don't reach full opacity instantly, they ramp in over several hundred ms,
+// child by child. This overlay used to run ~1.1s independently of that, so
+// for a real chunk of its lifetime the beam was playing brightly *on top
+// of* content that was itself still semi-transparent mid-entrance — which
+// reads as "the whole page looks washed out and broken, with a stripe on
+// it," exactly what the screenshots showed, not a hardness/blur problem.
+// Fixed at the root this time: the diagonal sweep is gone entirely (a
+// travelling line can never fully avoid this class of "crossing over
+// something else's unfinished animation" problem) in favor of a single,
+// brief, centered radiant flash — no travel, nothing that can visually
+// collide with content elsewhere on screen — and the whole overlay is
+// shortened to ~650ms, comfortably inside the tab content's own entrance
+// window, so by the time the flash fades the destination cards are already
+// legible underneath it rather than half-rendered.
 
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -29,7 +35,7 @@ export interface TabBeamTransitionProps {
   onDone: () => void;
 }
 
-const BEAM_MS = 1100;
+const BEAM_MS = 650;
 
 export function TabBeamTransition({ tab, onDone }: TabBeamTransitionProps) {
   useEffect(() => {
@@ -50,46 +56,23 @@ export function TabBeamTransition({ tab, onDone }: TabBeamTransitionProps) {
       style={{ pointerEvents: 'none' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.25 } }}
+      exit={{ opacity: 0, transition: { duration: 0.15 } }}
     >
-      {/* Soft themed color wash, in from center, out before the icon settles. */}
+      {/* A single centered radiant flash — the "beam," contained to one
+          spot instead of travelling across the screen, so it can never
+          cross over content elsewhere the way a sweeping line did. */}
       <motion.div
-        className="absolute inset-0"
-        style={{ background: `radial-gradient(circle at 50% 50%, ${wash}22 0%, transparent 62%)` }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 1, 0] }}
-        transition={{ duration: 0.8, times: [0, 0.35, 1] }}
-      />
-
-      {/* The literal "beam" — a diagonal light sweep travelling across the
-          screen, timed so it crosses center right as the themed shape
-          appears. Sprint 38 — a direct complaint, with a screenshot: at the
-          original 3px/full-opacity/long-hold settings this read as a hard,
-          glitchy scratch drawn straight across real, legible card content
-          ("the diagonal stripe on the face [of the UI]") rather than an
-          atmospheric light effect. Now a wide, heavily-blurred soft band
-          (was a crisp 3px line) capped at 55% peak opacity (was 100%) with a
-          quick in/out instead of a long plateau (was visibly held near-full
-          opacity for ~60% of the sweep) — it still crosses the screen
-          diagonally and still "beams," it just no longer looks like a UI
-          rendering artifact while it does. */}
-      <motion.div
-        className="absolute"
-        style={{
-          width: '160%', height: 70,
-          background: `linear-gradient(90deg, transparent, ${wash}, ${T.accent}, transparent)`,
-          filter: 'blur(22px)',
-          rotate: '-28deg',
-        }}
-        initial={{ x: '-75vw', y: '-42vh', opacity: 0 }}
-        animate={{ x: ['-75vw', '75vw'], y: ['-42vh', '42vh'], opacity: [0, 0.55, 0] }}
-        transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1], times: [0, 0.5, 1] }}
+        className="absolute rounded-full"
+        style={{ width: 220, height: 220, background: `radial-gradient(circle, ${wash}33 0%, transparent 70%)`, filter: 'blur(18px)' }}
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: [0, 1, 0], scale: [0.6, 1.15, 1.3] }}
+        transition={{ duration: 0.55, times: [0, 0.4, 1], ease: 'easeOut' }}
       />
 
       <motion.div
-        initial={{ scale: 0.4, opacity: 0 }}
-        animate={{ scale: [0.4, 1.08, 1], opacity: [0, 1, 1, 0] }}
-        transition={{ duration: 1, times: [0, 0.35, 0.75, 1], ease: 'easeOut' }}
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: [0.5, 1.05, 1], opacity: [0, 1, 0] }}
+        transition={{ duration: 0.6, times: [0, 0.45, 1], ease: 'easeOut' }}
       >
         <BeamHero tab={tab} color={wash} accent={T.accent} />
       </motion.div>
@@ -188,7 +171,7 @@ function BurgerAssemble({ color, accent }: { color: string; accent: string }) {
             key={i}
             initial={{ y: startY, opacity: 0 }}
             animate={{ y: [startY, settleY, settleY - 2, settleY], opacity: [0, 1, 1, 1] }}
-            transition={{ duration: 0.85, delay: 0.1 + i * 0.05, times: [0, 0.7, 0.85, 1], ease: 'easeOut' }}
+            transition={{ duration: 0.4, delay: 0.02 + i * 0.025, times: [0, 0.7, 0.85, 1], ease: 'easeOut' }}
             style={{ filter: `drop-shadow(0 0 6px ${color}88)` }}
           >
             <BurgerLayerShape index={i} cx={cx} w={widths[i]} y={0} accent={accent} />
@@ -205,7 +188,7 @@ function SpinningDumbbell({ color }: { color: string }) {
     <motion.svg
       width="88" height="88" viewBox="0 0 64 64" fill="none"
       animate={{ rotate: [0, 360] }}
-      transition={{ duration: 0.9, ease: 'easeInOut' }}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
       style={{ filter: `drop-shadow(0 0 10px ${color}aa)` }}
     >
       <rect x="26" y="28" width="12" height="8" rx="2" fill={color} />
@@ -232,7 +215,7 @@ function BarsAssemble({ color, accent }: { color: string; accent: string }) {
           fill={i % 2 === 0 ? accent : color}
           initial={{ y: 66, height: 0, opacity: 0 }}
           animate={{ y: 66 - h, height: h, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.15 + i * 0.07, ease: [0.34, 1.56, 0.64, 1] }}
+          transition={{ duration: 0.35, delay: 0.05 + i * 0.035, ease: [0.34, 1.56, 0.64, 1] }}
           style={{ filter: `drop-shadow(0 0 5px ${color}88)` }}
         />
       ))}
@@ -257,7 +240,7 @@ function SparkBurst({ color, accent }: { color: string; accent: string }) {
           fill={i % 2 === 0 ? accent : color}
           initial={{ scaleY: 0, opacity: 0 }}
           animate={{ scaleY: [0, 1, 0.7], opacity: [0, 1, 0] }}
-          transition={{ duration: 0.75, delay: 0.05 * i, ease: 'easeOut' }}
+          transition={{ duration: 0.4, delay: 0.02 * i, ease: 'easeOut' }}
           style={{ transformOrigin: '44px 44px', rotate: `${deg}deg` }}
         />
       ))}
@@ -266,7 +249,7 @@ function SparkBurst({ color, accent }: { color: string; accent: string }) {
         fill={accent}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: [0, 1.3, 1], opacity: [0, 1, 1] }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
         style={{ filter: `drop-shadow(0 0 10px ${accent}aa)` }}
       />
     </svg>

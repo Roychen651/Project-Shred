@@ -14,7 +14,7 @@
 // The page-level grid now places each tile directly, passing whatever
 // className (col-span-1 / col-span-2) fits that tile's role in the layout.
 
-import type { LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
@@ -22,7 +22,7 @@ import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 export interface MacroStatTileProps {
   macroKey: 'protein' | 'carbs' | 'fat';
   label: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ size?: number; color?: string }>;
   value: number;
   target: number;
   className?: string;

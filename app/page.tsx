@@ -15,7 +15,8 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Beef, Wheat, Droplet, Flame } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Wheat, Droplet, Flame } from 'lucide-react';
+import { ProteinCutIcon } from '@/components/ui/ProteinCutIcon';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { ShredLogo } from '@/components/ui/ShredLogo';
 import { TabBeamTransition } from '@/components/shell/TabBeamTransition';
@@ -451,7 +452,7 @@ export default function Home() {
                     </GlowBorder>
                   </div>
 
-                  <MacroStatTile macroKey="protein" label="חלבון" icon={Beef} value={consumed.protein} target={targets.protein} />
+                  <MacroStatTile macroKey="protein" label="חלבון" icon={ProteinCutIcon} value={consumed.protein} target={targets.protein} />
                   <MacroStatTile macroKey="carbs" label="פחמימה" icon={Wheat} value={consumed.carbs} target={targets.carbs} delay={0.05} />
                   <MacroStatTile macroKey="fat" label="שומן" icon={Droplet} value={consumed.fat} target={targets.fat} className="col-span-2" delay={0.1} />
 

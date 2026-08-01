@@ -30,10 +30,14 @@
 // useMemo dependency.
 
 import { useMemo, useState } from 'react';
+import type { ComponentType } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Trash2, UserPlus, Check, Flame, Beef, Wheat, Droplet } from 'lucide-react';
+import { Search, Plus, Trash2, UserPlus, Check, Flame, Wheat, Droplet } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, tactileGradient } from '@/lib/theme/tokens';
+import { ProteinCutIcon } from '@/components/ui/ProteinCutIcon';
+
+type IconComponent = ComponentType<{ size?: number; color?: string }>;
 import { INGREDIENT_DB, INGREDIENT_CATEGORIES } from '@/lib/data/ingredients';
 import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
 import { BEVERAGES } from '@/lib/data/beverages';
@@ -55,9 +59,9 @@ const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 // centerpiece of the panel a direct "boring/not alive" complaint was about.
 function MacroReadout({ kcal, protein, carbs, fat }: { kcal: number; protein: number; carbs: number; fat: number }) {
   const T = useTheme();
-  const stats: [typeof Flame, string, number, string][] = [
+  const stats: [IconComponent, string, number, string][] = [
     [Flame, T.macro.kcal, kcal, 'קל׳'],
-    [Beef, T.macro.protein, protein, 'ג\' חלבון'],
+    [ProteinCutIcon, T.macro.protein, protein, 'ג\' חלבון'],
     [Wheat, T.macro.carbs, carbs, 'ג\' פחמימה'],
     [Droplet, T.macro.fat, fat, 'ג\' שומן'],
   ];
