@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Moon as MoonIcon, Sun as SunIcon, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY, JEWEL, tactileGradient } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, FONT_MONO, JEWEL, tactileGradient } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
 import { useWireSync } from '@/lib/store/wireSync';
 import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/targets';
@@ -38,6 +38,7 @@ import { CompositeHeroRing } from '@/components/today/CompositeHeroRing';
 import { HeroRingLegend } from '@/components/today/HeroRingLegend';
 import { SmartContextCard } from '@/components/today/SmartContextCard';
 import { MacroStatTiles } from '@/components/today/MacroStatTiles';
+import { DateNavigator } from '@/components/today/DateNavigator';
 import { PremiumMotivator } from '@/components/ui/PremiumMotivator';
 
 import { QuickLogSheetBody } from '@/components/nutrition/QuickLogSheetBody';
@@ -51,6 +52,7 @@ import { TiltCard } from '@/components/ui/TiltCard';
 import { ProfileSwitcher } from '@/components/settings/ProfileSwitcher';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { CalorieMathSheetBody } from '@/components/insights/CalorieMathSheetBody';
+import { DayLogSheetBody } from '@/components/nutrition/DayLogSheetBody';
 import { MetricTracker } from '@/components/insights/MetricTracker';
 import { DualTrendChart } from '@/components/insights/DualTrendChart';
 import { ComplianceHeatmap } from '@/components/insights/ComplianceHeatmap';
@@ -60,7 +62,7 @@ import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { useSyncStatusStore } from '@/lib/store/sync-status';
 
 type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
-type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | null;
+type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | 'daylog' | null;
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
@@ -321,6 +323,14 @@ export default function Home() {
           >
             {activeTab === 'today' && (
               <div className="flex flex-col items-center gap-3">
+                {/* Sprint 26 — the store/domain layer for date navigation
+                    (setSelectedDateKey, shiftDateKey, formatHebrewDate) has
+                    existed since the Zustand store was built, but no
+                    component ever surfaced it — there was no way to look at
+                    or fix a past day at all. */}
+                <motion.div variants={tabItemVariants} className="w-full">
+                  <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
+                </motion.div>
                 <motion.div variants={tabItemVariants}>
                   <CompositeHeroRing consumed={consumed} targets={targets} />
                 </motion.div>
@@ -362,7 +372,11 @@ export default function Home() {
             )}
 
             {activeTab === 'nutrition' && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-3">
+                <motion.div variants={tabItemVariants}>
+                  <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
+                </motion.div>
+                <motion.div variants={tabItemVariants} className="grid grid-cols-2 gap-3">
                 <motion.div variants={tabItemVariants}>
                   <TiltCard>
                     <motion.button
@@ -397,6 +411,27 @@ export default function Home() {
                       <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>גולמי/מבושל · גרם מדויק</span>
                     </motion.button>
                   </TiltCard>
+                </motion.div>
+                </motion.div>
+                {/* Sprint 26 — the other reported gap: once something was
+                    logged, there was no way to see the full list again, let
+                    alone fix a wrong tap. This is the one place that shows
+                    every item for the selected date with edit/delete. */}
+                <motion.div variants={tabItemVariants}>
+                  <motion.button
+                    onClick={() => setActiveSheet('daylog')}
+                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.01 }}
+                    transition={tapSpring}
+                    className="w-full flex items-center justify-between p-4 rounded-[32px] text-right"
+                    style={glassSurface(T)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <ClipboardList size={18} color={T.accent} />
+                      <span className="text-sm font-bold" style={{ color: T.t.textPrimary }}>היומן של היום</span>
+                    </div>
+                    <span className="text-xs" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>{dayItems.length} פריטים · צפו ועריכה</span>
+                  </motion.button>
                 </motion.div>
               </div>
             )}
@@ -474,6 +509,15 @@ export default function Home() {
 
       <SheetModal open={activeSheet === 'caloriemath'} onClose={() => setActiveSheet(null)} title="מאיפה היעד הקלורי הזה?">
         <CalorieMathSheetBody profile={activeProfile} computed={computed} dayMode={dayMode} />
+      </SheetModal>
+
+      <SheetModal open={activeSheet === 'daylog'} onClose={() => setActiveSheet(null)} title="היומן של היום">
+        <DayLogSheetBody
+          items={dayItems}
+          onToggle={(id) => store.toggleItemCompleted(store.selectedDateKey, id)}
+          onDelete={(id) => store.deleteItem(store.selectedDateKey, id)}
+          onUpdate={(id, patch) => store.updateItem(store.selectedDateKey, id, patch)}
+        />
       </SheetModal>
 
       <SettingsModal

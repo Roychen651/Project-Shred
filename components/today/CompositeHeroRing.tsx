@@ -96,11 +96,29 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   const remaining = Math.round(targets.kcal - consumed.kcal);
   const isOver = remaining < 0;
   const isDark = T.mode === 'dark';
-  // Sprint 18 — the empty track is a hairline over near-black, not the
-  // general-purpose T.t.border token (now a slightly stronger 0.1 alpha,
-  // right for card edges but too visible for a ring that should read as
-  // "mostly invisible until it's lit up").
-  const trackColor = isDark ? 'rgba(255,255,255,0.04)' : T.t.border;
+  // Sprint 26 — direct "this graph looks bad" feedback, checked for a real
+  // rendering bug first (there wasn't one: strokeDashoffset math was
+  // re-verified against the DOM and matches the percentages exactly). The
+  // actual problem was contrast: T.t.border in light mode (#E4DAC8, a warm
+  // tan tuned for card edges) sits close in hue AND lightness to the
+  // lightened start of the kcal gradient (a whitened bronze), so the
+  // fill-vs-track boundary was genuinely hard to read at a glance — a
+  // legitimate "muddy" complaint, not a matter of taste. A dedicated,
+  // neutral warm-gray track (not color-matched to any macro hue) restores
+  // real contrast without touching the fill gradients themselves.
+  const trackColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(122,108,90,0.16)';
+  // A crisp leading-edge marker (the same "value dot" wearable-app rings use)
+  // so progress reads unambiguously even before comparing hues/lengths.
+  // Computed in the SVG's own pre-rotation coordinate space (the <svg> itself
+  // carries `rotate(-90deg)`), so the marker rotates correctly for free —
+  // circle stroke-dasharray/offset always starts at angle 0 (3 o'clock) and
+  // advances clockwise, which is exactly what this mirrors.
+  const markerPoint = (r: number, pct: number) => {
+    const theta = pct * Math.PI * 2;
+    return { x: size / 2 + r * Math.cos(theta), y: size / 2 + r * Math.sin(theta) };
+  };
+  const kcalMarker = markerPoint(rOuter, kcalPct);
+  const proteinMarker = markerPoint(rInner, proteinPct);
 
   // Sprint 22 — the center number used to snap instantly on every item
   // toggle/edit. A spring-driven count-up (the standard framer-motion
@@ -173,6 +191,12 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
           filter={isDark ? `url(#${glowInnerId})` : undefined}
           style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)' }}
         />
+        {kcalPct > 0.02 && (
+          <circle cx={kcalMarker.x} cy={kcalMarker.y} r={strokeOuter / 2 + 2.5} fill={T.macro.kcal} stroke={T.t.bg} strokeWidth={3} />
+        )}
+        {proteinPct > 0.02 && (
+          <circle cx={proteinMarker.x} cy={proteinMarker.y} r={strokeInner / 2 + 2} fill={T.macro.protein} stroke={T.t.bg} strokeWidth={2.5} />
+        )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         {/* Sprint 19 — extreme typographic contrast: an almost weightless,
