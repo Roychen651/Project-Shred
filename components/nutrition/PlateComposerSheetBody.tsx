@@ -30,8 +30,10 @@
 // useMemo dependency.
 
 import { useMemo, useState } from 'react';
-import { Search, Plus, Trash2, UserPlus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Plus, Trash2, UserPlus, Check, Flame, Beef, Wheat, Droplet } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
+import { FONT_DISPLAY, tactileGradient } from '@/lib/theme/tokens';
 import { INGREDIENT_DB, INGREDIENT_CATEGORIES } from '@/lib/data/ingredients';
 import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
 import { BEVERAGES } from '@/lib/data/beverages';
@@ -41,6 +43,36 @@ import { MacroStrip } from '@/components/ui/MacroStrip';
 import { PortionInput, gramsForPortion, formatPortionLabel } from './PortionInput';
 import { CustomIngredientModal } from './CustomIngredientModal';
 import type { LogItemSpec, CustomIngredient } from '@/lib/store/shred-store';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
+
+// Sprint 33 — a small icon-driven macro readout for the selected-ingredient
+// panel, replacing the flat colored-text run MacroStrip was doing there.
+// MacroStrip itself is unchanged and still used below for the composed
+// plate's running totals (a different, already-working, already-tested
+// surface) — this is specifically for the "one ingredient right now" hero
+// spot, where four bare numbers in a row read as a data table, not as the
+// centerpiece of the panel a direct "boring/not alive" complaint was about.
+function MacroReadout({ kcal, protein, carbs, fat }: { kcal: number; protein: number; carbs: number; fat: number }) {
+  const T = useTheme();
+  const stats: [typeof Flame, string, number, string][] = [
+    [Flame, T.macro.kcal, kcal, 'קל׳'],
+    [Beef, T.macro.protein, protein, 'ג\' חלבון'],
+    [Wheat, T.macro.carbs, carbs, 'ג\' פחמימה'],
+    [Droplet, T.macro.fat, fat, 'ג\' שומן'],
+  ];
+  return (
+    <div className="grid grid-cols-4 gap-1.5">
+      {stats.map(([Icon, color, value, label], i) => (
+        <div key={i} className="flex flex-col items-center gap-0.5 py-2 rounded-lg" style={{ background: `${color}12` }}>
+          <Icon size={14} color={color} />
+          <span className="text-sm font-black" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>{value}</span>
+          <span className="text-[9px] font-semibold" style={{ color: T.t.textDim }}>{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // Sprint 29 — BEVERAGES (coffee/tea/soft drinks/juices/alcohol etc., see that
 // file's header) merged in the same way ISRAELI_INGREDIENTS was in Sprint 12:
@@ -73,6 +105,7 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredi
   const [qty, setQty] = useState(100);
   const [plate, setPlate] = useState<PlateLine[]>([]);
   const [slotId, setSlotId] = useState<SlotId>(defaultSlotId || 'lunch');
+  const [justAdded, setJustAdded] = useState(false);
   const [customModalOpen, setCustomModalOpen] = useState(false);
 
   const allIngredients = useMemo(
@@ -91,6 +124,8 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredi
 
   const addToPlate = () => {
     setPlate((p) => [...p, { id: `${selected.id}-${Date.now()}`, ingredient: selected, state, unit, qty, grams }]);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 900);
   };
 
   const removeLine = (id: string) => setPlate((p) => p.filter((l) => l.id !== id));
@@ -172,18 +207,29 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredi
         {filtered.length === 0 && <p className="text-sm text-center py-4" style={{ color: T.t.textDim }}>לא נמצאו מרכיבים.</p>}
       </div>
 
-      <div className="rounded-xl p-3 flex flex-col gap-2" style={{ background: T.t.chipBg }}>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold" style={{ color: T.t.textPrimary }}>{selected.name}</span>
+      <div
+        className="rounded-2xl p-4 flex flex-col gap-3"
+        style={{ background: `linear-gradient(160deg, ${T.accent}10, ${T.t.chipBg})`, border: `1px solid ${T.t.border}` }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-lg font-black truncate" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY, letterSpacing: '-0.01em' }}>{selected.name}</span>
           {selected.hasCookedVariant && (
-            <div className="flex rounded-lg overflow-hidden" style={{ border: `1px solid ${T.t.border}` }}>
+            <div className="relative flex flex-shrink-0 rounded-lg overflow-hidden p-0.5" style={{ background: T.t.inputBg, border: `1px solid ${T.t.border}` }}>
               {(['raw', 'cooked'] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setState(s)}
-                  className="px-2.5 py-1 text-xs font-semibold"
-                  style={{ background: state === s ? T.accent : 'transparent', color: state === s ? '#07080B' : T.t.textSecondary }}
+                  className="relative z-10 px-2.5 py-1 text-xs font-semibold rounded-md"
+                  style={{ color: state === s ? '#07080B' : T.t.textSecondary }}
                 >
+                  {state === s && (
+                    <motion.div
+                      layoutId="rawCookedIndicator"
+                      transition={tapSpring}
+                      className="absolute inset-0 rounded-md -z-10"
+                      style={{ background: T.accent }}
+                    />
+                  )}
                   {s === 'raw' ? 'גולמי' : 'מבושל'}
                 </button>
               ))}
@@ -196,10 +242,27 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredi
           onUnitChange={(u, defaultQty) => { setUnit(u); setQty(defaultQty); }}
           onQtyChange={setQty}
         />
-        <MacroStrip totals={selectedMacros} />
-        <button onClick={addToPlate} className="py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-1.5" style={{ background: T.accent, color: '#07080B' }}>
-          <Plus size={14} /> הוסף לצלחת
-        </button>
+        <MacroReadout kcal={selectedMacros.kcal} protein={selectedMacros.protein} carbs={selectedMacros.carbs} fat={selectedMacros.fat} />
+        <motion.button
+          onClick={addToPlate}
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.01 }}
+          transition={tapSpring}
+          className="py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 overflow-hidden"
+          style={justAdded ? { background: T.macro.protein, color: '#07080B' } : { ...tactileGradient(T.accent), color: '#07080B' }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {justAdded ? (
+              <motion.span key="added" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-1.5">
+                <Check size={14} /> נוסף לצלחת!
+              </motion.span>
+            ) : (
+              <motion.span key="add" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-1.5">
+                <Plus size={14} /> הוסף לצלחת
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
       </div>
 
       {plate.length > 0 && (

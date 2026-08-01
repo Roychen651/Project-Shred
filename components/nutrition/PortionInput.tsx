@@ -11,9 +11,12 @@
 // Sprint 8 but nothing in the Next port actually rendered it; the Plate
 // Composer only ever had a grams-only slider. This closes that gap.
 
+import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
 import { PORTION_UNITS } from '@/lib/data/portionUnits';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export interface PortionInputProps {
   unit: string;
@@ -36,20 +39,21 @@ export function PortionInput({ unit, qty, onUnitChange, onQtyChange }: PortionIn
         {PORTION_UNITS.map((u) => {
           const active = unit === u.id;
           return (
-            <button
+            <motion.button
               key={u.id}
               onClick={() => onUnitChange(u.id, u.defaultQty)}
+              whileTap={{ scale: 0.92 }}
+              whileHover={{ scale: 1.04 }}
+              transition={tapSpring}
               className="flex-shrink-0 py-2 px-3 rounded-full text-xs font-bold whitespace-nowrap"
-              style={{
-                background: active ? T.accent : T.t.inputBg,
-                color: active ? '#07080B' : T.t.textSecondary,
-                border: `1.5px solid ${active ? T.accent : T.t.border}`,
-                boxShadow: active ? T.glow(T.accent, 10, '35') : 'none',
-                transition: 'all 0.22s cubic-bezier(.34,1.56,.64,1)',
-              }}
+              style={
+                active
+                  ? { ...tactileGradient(T.accent), color: '#07080B' }
+                  : { background: T.t.inputBg, color: T.t.textSecondary, border: `1.5px solid ${T.t.border}` }
+              }
             >
               {u.label}
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -68,7 +72,10 @@ export function PortionInput({ unit, qty, onUnitChange, onQtyChange }: PortionIn
             background: `linear-gradient(to left, ${T.accent} ${pct}%, ${T.t.border} ${pct}%)`,
           }}
         />
-        {/* Free-text entry — type an exact quantity instead of dragging */}
+        {/* Free-text entry — type an exact quantity instead of dragging.
+            Bumped from a small FONT_MONO tag to a real FONT_DISPLAY "hero"
+            number — this is the single value the whole panel exists to let
+            someone set, so it should read like one, not like a caption. */}
         <input
           type="number"
           dir="ltr"
@@ -77,10 +84,10 @@ export function PortionInput({ unit, qty, onUnitChange, onQtyChange }: PortionIn
           step={unitDef.step}
           min={0}
           onChange={(e) => onQtyChange(Math.max(0, Number(e.target.value) || 0))}
-          className="text-sm font-bold text-center rounded-lg outline-none"
-          style={{ width: 64, padding: '8px 4px', background: T.t.chipBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO }}
+          className="text-xl font-black text-center rounded-xl outline-none"
+          style={{ width: 72, padding: '8px 4px', background: T.t.chipBg, border: `1.5px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_DISPLAY, letterSpacing: '-0.02em' }}
         />
-        <span className="text-xs flex-shrink-0" style={{ color: T.t.textDim, minWidth: 78, fontFamily: FONT_MONO }}>
+        <span className="text-xs flex-shrink-0 font-semibold" style={{ color: T.t.textDim, minWidth: 78, fontFamily: FONT_MONO }}>
           {unitDef.shortLabel}{unit !== 'gram' && ` (${grams}ג)`}
         </span>
       </div>
