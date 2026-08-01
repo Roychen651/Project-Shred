@@ -11,11 +11,11 @@
 // lift" is; this mirrors the original design, not a corner cut in the port.
 
 import { useEffect, useState } from 'react';
-import { Dumbbell } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, JEWEL } from '@/lib/theme/tokens';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Eyebrow } from '@/components/ui/Eyebrow';
+import { AnimatedPulsingDumbbell } from '@/components/ui/AnimatedIllustrations';
 import { WORKOUTS, type WorkoutDayKey } from '@/lib/data/workouts';
 import { getLastLoggedSet, type ExerciseLogsByDate, type ExerciseSet } from '@/lib/domain/workouts';
 import { ExerciseRow } from './ExerciseRow';
@@ -90,7 +90,10 @@ export function WorkoutPanel({ exerciseLogs, selectedDateKey, onWorkoutActivity,
           <Eyebrow color={color}>ARENA 04 · TRAINING</Eyebrow>
           <h3 className="text-lg font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>מעקב אימוני A/B עליון-תחתון</h3>
         </div>
-        <Dumbbell size={22} color={color} />
+        {/* Sprint 22 — a continuously-alive header icon instead of a static
+            glyph: a real heartbeat-style pulse, the literal "still training"
+            cue for a screen whose whole purpose is tracking exertion. */}
+        <AnimatedPulsingDumbbell size={30} color={color} />
       </div>
 
       <div className="grid grid-cols-4 gap-2 mb-5">

@@ -15,7 +15,8 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
+import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, JEWEL, tactileGradient } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
@@ -334,7 +335,10 @@ export default function Home() {
                       className="w-full flex flex-col items-start gap-3 p-4 rounded-[32px] text-right"
                       style={glassSurface(T)}
                     >
-                      <UtensilsCrossed size={32} color={T.accent} strokeWidth={1.75} />
+                      {/* Sprint 22 — a genuinely animated, hand-drawn lettuce
+                          leaf instead of a static stock icon, on one of the
+                          most-tapped cards in the app. */}
+                      <AnimatedJumpingLettuce size={34} color={T.accent} />
                       <span className="text-lg font-black" style={{ letterSpacing: '-0.02em' }}>מטריצת מסעדות</span>
                       <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>מסעדות ואוכל בחוץ</span>
                     </motion.button>

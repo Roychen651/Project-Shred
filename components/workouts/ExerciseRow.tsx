@@ -26,6 +26,7 @@ import { roundNum } from '@/lib/domain/util';
 import type { ExerciseSet, LastLoggedSet } from '@/lib/domain/workouts';
 import type { Exercise } from '@/lib/data/workouts';
 import { RestTimer, type ActiveTimer } from './RestTimer';
+import { AnimatedTrophy } from '@/components/ui/AnimatedIllustrations';
 
 export interface ExerciseRowProps {
   ex: Exercise;
@@ -139,7 +140,10 @@ export function ExerciseRow({ ex, isLast, done, toggleSet, activeTimer, setActiv
               className="text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
               style={{ background: isPR ? `${T.macro.protein}20` : `${T.macro.fat}20`, color: isPR ? T.macro.protein : T.macro.fat }}
             >
-              {isPR ? `+${delta}ק״ג PR 🏆` : `${delta}ק״ג`}
+              {/* Sprint 22 — a real pop-in trophy instead of a static emoji,
+                  so hitting a new PR actually announces itself. */}
+              {isPR && <AnimatedTrophy size={13} color={T.macro.protein} />}
+              {isPR ? `+${delta}ק״ג PR` : `${delta}ק״ג`}
             </motion.span>
           )}
         </AnimatePresence>

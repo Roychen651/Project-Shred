@@ -53,7 +53,7 @@ describe('ExerciseRow', () => {
     renderRow({ lastSet: { date: '2026-07-15', weight: 100, reps: 5 } });
     const weightInput = screen.getByPlaceholderText('ק״ג');
     await user.type(weightInput, '102.5');
-    expect(screen.getByText('+2.5ק״ג PR 🏆')).toBeInTheDocument();
+    expect(screen.getByText('+2.5ק״ג PR')).toBeInTheDocument();
   });
 
   it('shows a plain (non-PR) delta badge when the typed weight is lower than last time', async () => {

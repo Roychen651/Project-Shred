@@ -62,10 +62,12 @@
 // flat card; (3) the delta pill at the bottom gained an icon and a gradient
 // fill instead of a flat 20%-alpha wash, matching the "crafted chip, not a
 // default badge" direction.
-import { useId } from 'react';
-import { Flame, TrendingDown } from 'lucide-react';
+import { useId, useEffect } from 'react';
+import { TrendingDown } from 'lucide-react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
+import { AnimatedFlame } from '@/components/ui/AnimatedIllustrations';
 import type { MacroTotals } from '@/lib/domain/items';
 import type { DayTargets } from '@/lib/domain/targets';
 
@@ -99,6 +101,19 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
   // right for card edges but too visible for a ring that should read as
   // "mostly invisible until it's lit up").
   const trackColor = isDark ? 'rgba(255,255,255,0.04)' : T.t.border;
+
+  // Sprint 22 — the center number used to snap instantly on every item
+  // toggle/edit. A spring-driven count-up (the standard framer-motion
+  // "animated counter" pattern: an external MotionValue kept in sync via
+  // effect, fed through a spring, then rendered as a MotionValue child —
+  // framer-motion subscribes to it directly, no per-frame setState) reads as
+  // a genuinely premium touch on the single most-looked-at figure in the app.
+  const kcalTarget = useMotionValue(consumed.kcal);
+  const kcalSpring = useSpring(kcalTarget, { stiffness: 90, damping: 20, mass: 0.5 });
+  const kcalDisplay = useTransform(kcalSpring, (v) => Math.round(v).toString());
+  useEffect(() => {
+    kcalTarget.set(consumed.kcal);
+  }, [consumed.kcal, kcalTarget]);
 
   return (
     <div className="relative flex items-center justify-center mx-auto" style={{ width: size, height: size }}>
@@ -164,7 +179,7 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
             widely-tracked uppercase micro-label set directly against a
             massive, black-weight, gradient-filled numeral right below it. */}
         <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.25em' }}>נצרכו היום</span>
-        <span
+        <motion.span
           className="text-7xl font-black leading-none mt-2"
           style={{
             fontFamily: FONT_DISPLAY,
@@ -176,8 +191,8 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
             WebkitTextFillColor: 'transparent',
           }}
         >
-          {Math.round(consumed.kcal)}
-        </span>
+          {kcalDisplay}
+        </motion.span>
         <span className="text-xs mt-1" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>מתוך {targets.kcal} קל׳</span>
         <span
           className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full mt-2.5"
@@ -189,7 +204,7 @@ export function CompositeHeroRing({ consumed, targets }: CompositeHeroRingProps)
             boxShadow: `0 4px 14px -4px ${isOver ? T.macro.kcal : T.macro.protein}70`,
           }}
         >
-          {isOver ? <Flame size={12} /> : <TrendingDown size={12} />}
+          {isOver ? <AnimatedFlame size={16} color="#07080B" /> : <TrendingDown size={12} />}
           {isOver ? `+${Math.abs(remaining)} מעל היעד` : `${remaining} נותרו`}
         </span>
       </div>
