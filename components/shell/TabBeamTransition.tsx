@@ -63,18 +63,27 @@ export function TabBeamTransition({ tab, onDone }: TabBeamTransitionProps) {
 
       {/* The literal "beam" — a diagonal light sweep travelling across the
           screen, timed so it crosses center right as the themed shape
-          appears (the shape is lit "by" the beam passing through it). */}
+          appears. Sprint 38 — a direct complaint, with a screenshot: at the
+          original 3px/full-opacity/long-hold settings this read as a hard,
+          glitchy scratch drawn straight across real, legible card content
+          ("the diagonal stripe on the face [of the UI]") rather than an
+          atmospheric light effect. Now a wide, heavily-blurred soft band
+          (was a crisp 3px line) capped at 55% peak opacity (was 100%) with a
+          quick in/out instead of a long plateau (was visibly held near-full
+          opacity for ~60% of the sweep) — it still crosses the screen
+          diagonally and still "beams," it just no longer looks like a UI
+          rendering artifact while it does. */}
       <motion.div
         className="absolute"
         style={{
-          width: '140%', height: 3,
+          width: '160%', height: 70,
           background: `linear-gradient(90deg, transparent, ${wash}, ${T.accent}, transparent)`,
-          filter: `drop-shadow(0 0 8px ${wash})`,
+          filter: 'blur(22px)',
           rotate: '-28deg',
         }}
-        initial={{ x: '-70vw', y: '-40vh', opacity: 0 }}
-        animate={{ x: ['-70vw', '70vw'], y: ['-40vh', '40vh'], opacity: [0, 1, 1, 0] }}
-        transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1], times: [0, 0.15, 0.75, 1] }}
+        initial={{ x: '-75vw', y: '-42vh', opacity: 0 }}
+        animate={{ x: ['-75vw', '75vw'], y: ['-42vh', '42vh'], opacity: [0, 0.55, 0] }}
+        transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1], times: [0, 0.5, 1] }}
       />
 
       <motion.div
@@ -99,30 +108,93 @@ function BeamHero({ tab, color, accent }: { tab: NavTabId; color: string; accent
 // vertically and slam together into a stacked burger, with a small bounce
 // on landing. The literal example given: "burger components move apart and
 // together vertically — the buns, the patty, the cheese, the lettuce."
+// Sprint 38 — reshaped from plain rounded rects into actual ingredient
+// silhouettes (a domed, seeded bun; a ruffled lettuce edge; a drooping
+// cheese slice; a textured patty with grill marks), using a reference set
+// of burger/vegetable/meat illustrations the person supplied specifically
+// for this transition as design material. The shapes are hand-authored SVG
+// paths, not the reference images themselves (this app has never embedded
+// stock art — every illustration in components/ui/AnimatedIllustrations.tsx
+// is drawn the same way) — the reference informed proportion and silhouette
+// (a rounded dome for the bun, a wavy ribbon for lettuce, drooping corners
+// for melted cheese, short dark strokes for grill marks on the patty), not
+// a literal trace.
+function BurgerLayerShape({ index, cx, w, y, accent }: { index: number; cx: number; w: number; y: number; accent: string }) {
+  if (index === 0) {
+    // top bun — domed cap with three seed dots
+    return (
+      <>
+        <path
+          d={`M ${cx - w / 2} ${y + 11} Q ${cx - w / 2} ${y - 3} ${cx} ${y - 4} Q ${cx + w / 2} ${y - 3} ${cx + w / 2} ${y + 11} Z`}
+          fill={accent} stroke="rgba(0,0,0,0.14)" strokeWidth={1}
+        />
+        {[-14, -1, 12].map((dx, i) => (
+          <circle key={i} cx={cx + dx} cy={y + 3} r={1.3} fill="rgba(255,255,255,0.75)" />
+        ))}
+      </>
+    );
+  }
+  if (index === 1) {
+    // lettuce — a ruffled, wavy-edged ribbon
+    const half = w / 2;
+    return (
+      <path
+        d={`M ${cx - half} ${y + 7} Q ${cx - half + 8} ${y - 3} ${cx - half + 16} ${y + 7} Q ${cx - half + 24} ${y - 3} ${cx - half + 32} ${y + 7} Q ${cx - half + 40} ${y - 3} ${cx - half + 48} ${y + 7} Q ${cx - half + 56} ${y - 3} ${cx + half} ${y + 7} L ${cx + half} ${y + 11} L ${cx - half} ${y + 11} Z`}
+        fill="#5B9A4A" stroke="rgba(0,0,0,0.14)" strokeWidth={1}
+      />
+    );
+  }
+  if (index === 2) {
+    // cheese — a diamond slice drooping at the corners, like melted cheese
+    const half = w / 2;
+    return (
+      <path
+        d={`M ${cx - half} ${y} L ${cx + half} ${y} L ${cx + half - 3} ${y + 13} L ${cx + half - 15} ${y + 6} L ${cx} ${y + 13} L ${cx - half + 15} ${y + 5} L ${cx - half + 3} ${y + 13} Z`}
+        fill="#E8B93A" stroke="rgba(0,0,0,0.14)" strokeWidth={1}
+      />
+    );
+  }
+  if (index === 3) {
+    // patty — textured rounded slab with grill-mark strokes
+    return (
+      <>
+        <rect x={cx - w / 2} y={y} width={w} height={12} rx={4} fill="#8B4A2B" stroke="rgba(0,0,0,0.18)" strokeWidth={1} />
+        {[-w / 2 + 8, -3, w / 2 - 16].map((dx, i) => (
+          <rect key={i} x={cx + dx} y={y + 4} width={9} height={2} rx={1} fill="rgba(0,0,0,0.3)" />
+        ))}
+      </>
+    );
+  }
+  // bottom bun — flatter dome, no seeds
+  return (
+    <path
+      d={`M ${cx - w / 2} ${y} Q ${cx - w / 2} ${y + 9} ${cx} ${y + 10} Q ${cx + w / 2} ${y + 9} ${cx + w / 2} ${y} Z`}
+      fill={accent} stroke="rgba(0,0,0,0.14)" strokeWidth={1}
+    />
+  );
+}
+
 function BurgerAssemble({ color, accent }: { color: string; accent: string }) {
-  const layers: { fill: string; w: number; startY: number }[] = [
-    { fill: accent, w: 56, startY: -70 },       // top bun
-    { fill: '#5B9A4A', w: 60, startY: -50 },    // lettuce
-    { fill: '#E8B93A', w: 58, startY: 60 },     // cheese
-    { fill: '#8B4A2B', w: 60, startY: 80 },     // patty
-    { fill: accent, w: 56, startY: 100 },       // bottom bun
-  ];
+  const cx = 44;
+  const widths = [58, 62, 58, 60, 56];
+  const startYs = [-70, -50, 60, 80, 100];
+
   return (
     <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
-      {layers.map((l, i) => (
-        <motion.rect
-          key={i}
-          x={44 - l.w / 2}
-          width={l.w}
-          height={10}
-          rx={5}
-          fill={l.fill}
-          initial={{ y: l.startY, opacity: 0 }}
-          animate={{ y: [l.startY, 8 + i * 12, 8 + i * 12 - 2, 8 + i * 12], opacity: [0, 1, 1, 1] }}
-          transition={{ duration: 0.85, delay: 0.1 + i * 0.05, times: [0, 0.7, 0.85, 1], ease: 'easeOut' }}
-          style={{ filter: `drop-shadow(0 0 6px ${color}88)` }}
-        />
-      ))}
+      {startYs.map((startY, i) => {
+        const settleY = 6 + i * 13;
+        return (
+          <motion.g
+            key={i}
+            initial={{ y: startY, opacity: 0 }}
+            animate={{ y: [startY, settleY, settleY - 2, settleY], opacity: [0, 1, 1, 1] }}
+            transition={{ duration: 0.85, delay: 0.1 + i * 0.05, times: [0, 0.7, 0.85, 1], ease: 'easeOut' }}
+            style={{ filter: `drop-shadow(0 0 6px ${color}88)` }}
+          >
+            <BurgerLayerShape index={i} cx={cx} w={widths[i]} y={0} accent={accent} />
+          </motion.g>
+        );
+      })}
     </svg>
   );
 }
