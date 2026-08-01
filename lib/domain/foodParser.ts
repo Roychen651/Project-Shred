@@ -86,6 +86,23 @@ const ALIASES: { keyword: string; targetId: string }[] = [
   { keyword: 'שניצל', targetId: 'schnitzel' },
   { keyword: 'פיצה', targetId: 'pizza-slice' },
   { keyword: 'שווארמה', targetId: 'shawarma-laffa' },
+  // Meat-type shawarma phrases must be listed before the bare "שווארמה"
+  // alias above is even relevant — they're longer keywords so the
+  // longest-match-first sort already tries them first, but they still need
+  // to exist as aliases at all, since "שווארמה הודו" alone (no "בלאפה
+  // מלאה") isn't a substring of the full dish name it should resolve to.
+  { keyword: 'שווארמה הודו', targetId: 'shawarma-turkey-laffa' },
+  { keyword: 'שווארמה עגל', targetId: 'shawarma-veal-laffa' },
+  { keyword: 'שווארמה כבש', targetId: 'shawarma-lamb-laffa' },
+  { keyword: 'עגל', targetId: 'il-ground-veal' },
+  { keyword: 'כבש', targetId: 'ground-lamb' },
+  // The generic-vs-full-name gap (Sprint 30's core finding) applies to any
+  // newly added multi-word product name too, not just the original 19 —
+  // "קורנפלקס מיני" is what a person actually types, not the full "...
+  // (חטיף)" corpus label.
+  { keyword: 'קורנפלקס מיני', targetId: 'il-cornflakes-mini' },
+  { keyword: 'קורנפלקס דבש', targetId: 'il-cornflakes-honey' },
+  { keyword: 'קורנפלקס שוקולד', targetId: 'il-cornflakes-chocolate' },
   { keyword: 'פלאפל', targetId: 'falafel-pita' },
   { keyword: 'חומוס', targetId: 'il-hummus-plain' },
   // plural forms

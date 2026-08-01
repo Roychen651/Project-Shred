@@ -10,8 +10,8 @@ describe('buildFoodLibrary — wired to the real reference data', () => {
   it('enumerates a non-trivial library with no custom restaurants/hacks', () => {
     const lib = buildFoodLibrary([], [], STATIC_FOOD_DATA);
     // Shumshum: 2 veg x 2 protein x 2 carb = 8. Chicken Station: 3 protein x 2 carb = 6.
-    // Goomba: 2. Kansai: 2 protein = 2. Hacks: 64. Eating out: 73.
-    expect(lib.length).toBe(8 + 6 + 2 + 2 + 64 + 73);
+    // Goomba: 2. Kansai: 2 protein = 2. Hacks: 64. Eating out: 79 (Sprint 32).
+    expect(lib.length).toBe(8 + 6 + 2 + 2 + 64 + 79);
   });
 
   it('every library entry has finite, non-negative macros', () => {

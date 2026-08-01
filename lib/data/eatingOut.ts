@@ -55,6 +55,16 @@ export const EATING_OUT_MENU: EatingOutItem[] = [
   { id: 'shawarma-laffa', name: 'שווארמה בלאפה מלאה', category: 'shawarma_falafel', kcal: 650, protein: 32, fat: 30, carbs: 58 },
   { id: 'shawarma-pita-half', name: 'שווארמה בחצי פיתה', category: 'shawarma_falafel', kcal: 480, protein: 24, fat: 22, carbs: 42 },
   { id: 'shawarma-plate', name: 'מנת שווארמה על צלחת (ללא לחם)', category: 'shawarma_falafel', kcal: 420, protein: 38, fat: 26, carbs: 6 },
+  // Meat-type variants — a direct gap report: the built-in shawarma entries
+  // above are all an implicit "default" (chicken) with no way to say the
+  // stand serves turkey, veal, or lamb instead, which are all common
+  // choices at a real Israeli shawarma stand.
+  { id: 'shawarma-turkey-laffa', name: 'שווארמה הודו בלאפה מלאה', category: 'shawarma_falafel', kcal: 600, protein: 34, fat: 24, carbs: 58 },
+  { id: 'shawarma-turkey-plate', name: 'מנת שווארמה הודו על צלחת (ללא לחם)', category: 'shawarma_falafel', kcal: 380, protein: 40, fat: 20, carbs: 6 },
+  { id: 'shawarma-veal-laffa', name: 'שווארמה עגל בלאפה מלאה', category: 'shawarma_falafel', kcal: 720, protein: 34, fat: 38, carbs: 58 },
+  { id: 'shawarma-veal-plate', name: 'מנת שווארמה עגל על צלחת (ללא לחם)', category: 'shawarma_falafel', kcal: 480, protein: 40, fat: 32, carbs: 6 },
+  { id: 'shawarma-lamb-laffa', name: 'שווארמה כבש בלאפה מלאה', category: 'shawarma_falafel', kcal: 760, protein: 30, fat: 44, carbs: 58 },
+  { id: 'shawarma-lamb-plate', name: 'מנת שווארמה כבש על צלחת (ללא לחם)', category: 'shawarma_falafel', kcal: 520, protein: 36, fat: 38, carbs: 6 },
   { id: 'falafel-pita', name: 'פלאפל בפיתה (5 כדורים)', category: 'shawarma_falafel', kcal: 500, protein: 16, fat: 22, carbs: 58 },
   { id: 'falafel-plate', name: 'מנת פלאפל על צלחת (10 כדורים + חומוס)', category: 'shawarma_falafel', kcal: 620, protein: 20, fat: 30, carbs: 65 },
   { id: 'sabich', name: 'סביח מלא', category: 'shawarma_falafel', kcal: 550, protein: 14, fat: 26, carbs: 62 },

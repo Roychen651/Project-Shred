@@ -214,4 +214,28 @@ export const ISRAELI_INGREDIENTS: Ingredient[] = [
   { id: 'il-nutritional-yeast', name: 'שמרי תזונה', category: 'condiments', hasCookedVariant: false, raw: { kcal: 325, protein: 45, carbs: 36, fat: 6 } },
   { id: 'il-cornstarch', name: 'קורנפלור', category: 'condiments', hasCookedVariant: false, raw: { kcal: 381, protein: 0.3, carbs: 91, fat: 0.1 } },
   { id: 'il-turmeric', name: 'כורכום', category: 'condiments', hasCookedVariant: false, raw: { kcal: 312, protein: 9.7, carbs: 67, fat: 3.3 } },
+
+  // ---- Round 3 — breakfast cereal variety (~8) ----
+  // Direct response to a report that only plain cornflakes existed — the
+  // generic variety of a cereal aisle (honey, chocolate, mini/bite-size,
+  // bran, puffed rice, muesli, chocolate-ball, instant flavored oatmeal),
+  // still hand-authored generic estimates, not any specific real box.
+  { id: 'il-cornflakes-honey', name: 'קורנפלקס בטעם דבש', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 385, protein: 6, carbs: 84, fat: 1.5 } },
+  { id: 'il-cornflakes-chocolate', name: 'קורנפלקס מצופה שוקולד', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 400, protein: 5, carbs: 82, fat: 4 } },
+  { id: 'il-cornflakes-mini', name: 'קורנפלקס מיני (חטיף)', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 390, protein: 6, carbs: 83, fat: 2 } },
+  { id: 'il-bran-flakes', name: 'פתיתי סובין', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 330, protein: 10, carbs: 68, fat: 2.5 } },
+  { id: 'il-puffed-rice-cereal', name: 'אורז נפוח (דגני בוקר)', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 385, protein: 6, carbs: 87, fat: 0.5 } },
+  { id: 'il-muesli-fruit', name: 'מוזלי פירות', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 375, protein: 9, carbs: 66, fat: 7 } },
+  { id: 'il-chocolate-ball-cereal', name: 'כדורי שוקולד (דגני בוקר)', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 440, protein: 6, carbs: 76, fat: 12 } },
+  { id: 'il-instant-oatmeal-flavored', name: 'דייסת שיבולת שועל מוכנה בטעם', category: 'dairy_snacks', hasCookedVariant: false, raw: { kcal: 370, protein: 10, carbs: 65, fat: 6 } },
+
+  // ---- Round 3 — veal & liver (~5) ----
+  // A direct gap report: no veal (עגל) existed at all as a raw ingredient,
+  // only lamb/beef/chicken/turkey — despite veal being a common Israeli
+  // shawarma/schnitzel meat choice.
+  { id: 'il-ground-veal', name: 'עגל טחון', category: 'protein', hasCookedVariant: true, cookedFactor: 0.75, raw: { kcal: 172, protein: 20, carbs: 0, fat: 10 } },
+  { id: 'il-veal-cutlet', name: 'נתח עגל', category: 'protein', hasCookedVariant: true, cookedFactor: 0.75, raw: { kcal: 172, protein: 24, carbs: 0, fat: 8 } },
+  { id: 'il-veal-schnitzel', name: 'שניצל עגל', category: 'protein', hasCookedVariant: false, raw: { kcal: 240, protein: 20, carbs: 12, fat: 13 } },
+  { id: 'il-chicken-liver', name: 'כבד עוף', category: 'protein', hasCookedVariant: true, cookedFactor: 0.7, raw: { kcal: 119, protein: 17, carbs: 0.9, fat: 4.8 } },
+  { id: 'il-beef-liver', name: 'כבד בקר', category: 'protein', hasCookedVariant: true, cookedFactor: 0.7, raw: { kcal: 135, protein: 20, carbs: 3.9, fat: 3.6 } },
 ];

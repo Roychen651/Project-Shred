@@ -116,6 +116,18 @@ describe('parseFoodText — against the real production corpus', () => {
     expect(byName['שווארמה בלאפה מלאה']).toMatchObject({ amount: '1 מנה', kcal: 650 });
     expect(byName['חומוס טחינה מוכן']).toMatchObject({ amount: '120 גרם (משוער)' });
   });
+
+  it('resolves shawarma meat-type variants (Sprint 32 — a direct gap report: only a default/chicken shawarma existed)', () => {
+    expect(parseFoodText('שווארמה הודו', REAL_CORPUS)[0]).toMatchObject({ name: 'שווארמה הודו בלאפה מלאה', kcal: 600 });
+    expect(parseFoodText('שווארמה עגל', REAL_CORPUS)[0]).toMatchObject({ name: 'שווארמה עגל בלאפה מלאה', kcal: 720 });
+    expect(parseFoodText('שווארמה כבש', REAL_CORPUS)[0]).toMatchObject({ name: 'שווארמה כבש בלאפה מלאה', kcal: 760 });
+  });
+
+  it('resolves the new cereal-variety generic aliases to their own specific entry, not the plain "קורנפלקס"', () => {
+    const result = parseFoodText('קורנפלקס מיני', REAL_CORPUS);
+    expect(result[0].name).toBe('קורנפלקס מיני (חטיף)');
+    expect(result[0].name).not.toBe('קורנפלקס');
+  });
 });
 
 describe('buildParserCorpus', () => {

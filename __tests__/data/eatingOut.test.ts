@@ -4,8 +4,8 @@ import { EATING_OUT_MENU, EATING_OUT_CATEGORIES } from '@/lib/data/eatingOut';
 const VALID = new Set(EATING_OUT_CATEGORIES.map((c) => c.id));
 
 describe('EATING_OUT_MENU — structural integrity', () => {
-  it('has exactly 73 entries, matching CLAUDE.md\'s Sprint 15.5 count', () => {
-    expect(EATING_OUT_MENU).toHaveLength(73);
+  it('has exactly 79 entries (Sprint 15.5\'s 73 + Sprint 32\'s 6 shawarma meat-type variants)', () => {
+    expect(EATING_OUT_MENU).toHaveLength(79);
   });
 
   it('has no duplicate ids', () => {
