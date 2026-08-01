@@ -39,6 +39,7 @@ import { HeroRingLegend } from '@/components/today/HeroRingLegend';
 import { SmartContextCard } from '@/components/today/SmartContextCard';
 import { MacroStatTile } from '@/components/today/MacroStatTiles';
 import { DateNavigator } from '@/components/today/DateNavigator';
+import { FavoritesQuickBar } from '@/components/today/FavoritesQuickBar';
 import { GlowBorder } from '@/components/ui/GlowBorder';
 import { PremiumMotivator } from '@/components/ui/PremiumMotivator';
 
@@ -363,6 +364,23 @@ export default function Home() {
                     existed since the Zustand store was built, but no
                     component ever surfaced it — there was no way to look at
                     or fix a past day at all. */}
+                {/* Sprint 31 — favorites: the store side (favorites,
+                    logFavorite, saveFavorite, deleteFavorite) has existed
+                    since the milestone-2 domain extraction with zero UI
+                    ever calling it. Placed above even the date navigator —
+                    the artifact's own note calls this "the most-seen,
+                    fastest-reachable spot in the app," and one-tap logging
+                    only earns that description if it's the very first thing
+                    on screen. */}
+                <motion.div variants={tabItemVariants} className="w-full">
+                  <FavoritesQuickBar
+                    favorites={store.favorites}
+                    onLog={store.logFavorite}
+                    onSave={store.saveFavorite}
+                    onDelete={store.deleteFavorite}
+                  />
+                </motion.div>
+
                 <motion.div variants={tabItemVariants} className="w-full">
                   <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
                 </motion.div>
@@ -567,7 +585,7 @@ export default function Home() {
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <SheetModal open={activeSheet === 'quicklog'} onClose={() => setActiveSheet(null)} title="רישום חופשי מהיר">
-        <QuickLogSheetBody onConfirm={handleLog} customIngredients={store.customIngredients} customHacks={store.customHacks} />
+        <QuickLogSheetBody onConfirm={handleLog} customIngredients={store.customIngredients} customHacks={store.customHacks} onSaveFavorite={store.saveFavorite} />
       </SheetModal>
 
       <SheetModal open={activeSheet === 'restaurants'} onClose={() => setActiveSheet(null)} title="מטריצת מסעדות">

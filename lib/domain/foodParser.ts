@@ -213,6 +213,12 @@ const UNIT_SYNONYMS: UnitSynonym[] = [
   { text: 'גר׳', gramsPerUnit: 1 },
   { text: 'מ״ל', gramsPerUnit: 1 },
   { text: 'מ"ל', gramsPerUnit: 1 },
+  // Plain Hebrew letters with no punctuation ("150 מל חלב") — extremely
+  // common casually, since most people don't bother typing the gershayim
+  // mark on a phone keyboard. WORD_START still requires a real boundary
+  // right before it, so this can't false-match the end of an unrelated word
+  // like "קרמל" (caramel).
+  { text: 'מל', gramsPerUnit: 1 },
   { text: 'כפיות', gramsPerUnit: 5 },
   { text: 'כפית', gramsPerUnit: 5 },
   { text: 'כפות', gramsPerUnit: 15 },

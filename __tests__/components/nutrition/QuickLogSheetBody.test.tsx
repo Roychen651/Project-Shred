@@ -47,4 +47,27 @@ describe('QuickLogSheetBody', () => {
     expect(textarea).toHaveValue('');
     expect(screen.queryByText('אשר והוסף ליומן')).not.toBeInTheDocument();
   });
+
+  it('saves a parsed item as a favorite, quantity baked in, when onSaveFavorite is wired', async () => {
+    const user = userEvent.setup();
+    const onSaveFavorite = vi.fn();
+    render(<ThemeProvider><QuickLogSheetBody onConfirm={vi.fn()} onSaveFavorite={onSaveFavorite} /></ThemeProvider>);
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'אכלתי 200 גרם חזה עוף');
+    await user.click(screen.getByText('פענח'));
+    await user.click(screen.getByLabelText('שמור כמועדף'));
+    // The builder modal opens pre-filled from the parsed item's exact macros.
+    expect(await screen.findByText('מועדף חדש')).toBeInTheDocument();
+    await user.click(screen.getByText('שמירת מועדף'));
+    expect(onSaveFavorite).toHaveBeenCalledTimes(1);
+    expect(onSaveFavorite.mock.calls[0][0]).toMatchObject({ name: 'חזה עוף', kcal: 320, protein: 60 });
+  });
+
+  it('does not render a save-favorite affordance when onSaveFavorite is not wired', async () => {
+    const user = userEvent.setup();
+    render(<ThemeProvider><QuickLogSheetBody onConfirm={vi.fn()} /></ThemeProvider>);
+    await user.type(screen.getByPlaceholderText('במבה קטנה ומעדן גמדים...'), 'בננה');
+    await user.click(screen.getByText('פענח'));
+    await user.click(screen.getByLabelText('שמור כמועדף'));
+    expect(screen.queryByText('מועדף חדש')).not.toBeInTheDocument();
+  });
 });

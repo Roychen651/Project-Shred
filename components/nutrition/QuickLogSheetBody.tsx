@@ -11,10 +11,12 @@
 // this stays a pure, testable presentation component.
 
 import { useMemo, useState } from 'react';
-import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Star } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO } from '@/lib/theme/tokens';
 import { MacroStrip } from '@/components/ui/MacroStrip';
+import { FavoriteBuilderModal, type FavoriteDraftSeed } from '@/components/today/FavoriteBuilderModal';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
 import { parseFoodText, buildParserCorpus, type ParsedFoodItem, type ParserDishLike } from '@/lib/domain/foodParser';
 import { customIngredientToIngredient, type Ingredient } from '@/lib/domain/ingredients';
@@ -23,7 +25,7 @@ import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
 import { BEVERAGES } from '@/lib/data/beverages';
 import { HACKS } from '@/lib/data/hacks';
 import { EATING_OUT_MENU } from '@/lib/data/eatingOut';
-import type { LogItemSpec, CustomIngredient, CustomHack } from '@/lib/store/shred-store';
+import type { LogItemSpec, CustomIngredient, CustomHack, Favorite } from '@/lib/store/shred-store';
 
 // Sprint 30 — the recognition corpus is now the app's real, full food surface
 // (every raw ingredient + beverage + home recipe + eating-out dish, plus the
@@ -35,24 +37,55 @@ import type { LogItemSpec, CustomIngredient, CustomHack } from '@/lib/store/shre
 const STATIC_INGREDIENTS: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS, ...BEVERAGES];
 const STATIC_DISHES: ParserDishLike[] = [...HACKS, ...EATING_OUT_MENU];
 
-function ParsedItemRow({ item, onRemove }: { item: ParsedFoodItem; onRemove: () => void }) {
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
+
+// Sprint 31 — visual pass: this row predates the app's later typographic
+// conventions (ItemLogRow's font-bold name + one condensed FONT_MONO macro
+// line, clean icon-buttons) and had drifted noticeably behind them — a
+// direct, specific complaint ("design that isn't finished/mature"), not a
+// vague one. Also drops the old scattered kcal/ח/פ/ש badge run — same
+// numbers, one line, matching how every other logged-item list in the app
+// (the day log, the composed plate) already presents macros.
+function ParsedItemRow({ item, onRemove, onSaveFavorite }: { item: ParsedFoodItem; onRemove: () => void; onSaveFavorite: () => void }) {
   const T = useTheme();
   return (
-    <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg" style={{ background: T.t.chipBg }}>
-      <div>
-        <div className="text-sm font-semibold" style={{ color: T.t.textPrimary }}>{item.name}</div>
-        <div className="text-xs" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>{item.amount}</div>
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: 12 }}
+      transition={tapSpring}
+      className="flex items-center gap-2.5 p-3 rounded-xl"
+      style={{ background: T.t.chipBg, border: `1px solid ${T.t.border}` }}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-bold truncate" style={{ color: T.t.textPrimary }}>{item.name}</div>
+        <div className="text-[11px]" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>
+          {item.amount} · {item.kcal} קל׳ · {item.protein}ח {item.carbs}פ {item.fat}ש
+        </div>
       </div>
-      <div className="flex items-center gap-3 text-xs" style={{ fontFamily: FONT_MONO }}>
-        <span style={{ color: T.macro.kcal }}>{item.kcal} קל׳</span>
-        <span style={{ color: T.macro.protein }}>{item.protein}ח</span>
-        <span style={{ color: T.macro.carbs }}>{item.carbs}פ</span>
-        <span style={{ color: T.macro.fat }}>{item.fat}ש</span>
-        <button onClick={onRemove} style={{ color: T.t.textDim }}>
-          <X size={14} />
-        </button>
-      </div>
-    </div>
+      <motion.button
+        onClick={onSaveFavorite}
+        whileTap={{ scale: 0.88 }}
+        transition={tapSpring}
+        className="p-1.5 rounded-lg flex-shrink-0"
+        style={{ background: T.t.border }}
+        aria-label="שמור כמועדף"
+        title="שמור כמועדף (כולל הכמות הזו)"
+      >
+        <Star size={13} color={T.accent} />
+      </motion.button>
+      <motion.button
+        onClick={onRemove}
+        whileTap={{ scale: 0.88 }}
+        transition={tapSpring}
+        className="p-1.5 rounded-lg flex-shrink-0"
+        style={{ background: `${T.macro.fat}18` }}
+        aria-label="הסר פריט"
+      >
+        <X size={13} color={T.macro.fat} />
+      </motion.button>
+    </motion.div>
   );
 }
 
@@ -61,14 +94,17 @@ export interface QuickLogSheetBodyProps {
   defaultSlotId?: SlotId;
   customIngredients?: CustomIngredient[];
   customHacks?: CustomHack[];
+  /** Sprint 31 — lets any parsed item be saved as a one-tap Favorite for next time, quantity baked in. Omitted entirely if the caller doesn't wire favorites. */
+  onSaveFavorite?: (fav: Favorite) => void;
 }
 
-export function QuickLogSheetBody({ onConfirm, defaultSlotId, customIngredients = [], customHacks = [] }: QuickLogSheetBodyProps) {
+export function QuickLogSheetBody({ onConfirm, defaultSlotId, customIngredients = [], customHacks = [], onSaveFavorite }: QuickLogSheetBodyProps) {
   const T = useTheme();
   const [logText, setLogText] = useState('');
   const [preview, setPreview] = useState<ParsedFoodItem[]>([]);
   const [noMatch, setNoMatch] = useState(false);
   const [slotId, setSlotId] = useState<SlotId>(defaultSlotId || 'lunch');
+  const [favoriteSeed, setFavoriteSeed] = useState<FavoriteDraftSeed | null>(null);
 
   const corpus = useMemo(() => {
     const ingredients = customIngredients.length
@@ -137,10 +173,28 @@ export function QuickLogSheetBody({ onConfirm, defaultSlotId, customIngredients 
       {noMatch && preview.length === 0 && <p className="text-xs" style={{ color: T.macro.kcal }}>לא זוהו מאכלים ידועים — נסו שם מאכל ברור יותר.</p>}
       {preview.length > 0 && (
         <>
-          {preview.map((item) => <ParsedItemRow key={item.id} item={item} onRemove={() => setPreview((p) => p.filter((x) => x.id !== item.id))} />)}
+          <AnimatePresence initial={false}>
+            {preview.map((item) => (
+              <ParsedItemRow
+                key={item.id}
+                item={item}
+                onRemove={() => setPreview((p) => p.filter((x) => x.id !== item.id))}
+                onSaveFavorite={() => setFavoriteSeed({ name: item.name, kcal: item.kcal, protein: item.protein, carbs: item.carbs, fat: item.fat })}
+              />
+            ))}
+          </AnimatePresence>
           <MacroStrip totals={totals} />
           <button onClick={confirm} className="py-3 rounded-xl text-sm font-bold" style={{ background: T.macro.protein, color: '#07080B' }}>אשר והוסף ליומן</button>
         </>
+      )}
+
+      {onSaveFavorite && (
+        <FavoriteBuilderModal
+          open={favoriteSeed !== null}
+          onClose={() => setFavoriteSeed(null)}
+          seed={favoriteSeed ?? undefined}
+          onSave={onSaveFavorite}
+        />
       )}
     </div>
   );
