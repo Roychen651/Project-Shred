@@ -63,4 +63,58 @@ export function MushroomDoodle({ size = 24 }: DoodleIconProps) {
   );
 }
 
-export const VEGGIE_DOODLES = [CarrotDoodle, ChiliDoodle, OnionDoodle, MushroomDoodle];
+// Sprint 41 — four more doodles, this time from the second vegetable/garnish
+// reference sheet supplied alongside the burger and meat-cut sheets (a
+// tomato half, a broccoli floret, a pineapple wedge, an olive slice, among
+// others) — the same "informed by, hand-authored, not traced" treatment as
+// the first four and ProteinCutIcon.
+export function TomatoDoodle({ size = 24 }: DoodleIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="13" r="8" fill="#D8382C" stroke="#A32218" strokeWidth={0.8} />
+      <path d="M12 5c-1.4-1.6-3.2-2-4.6-1.3M12 5c1.4-1.6 3.2-2 4.6-1.3M12 5c-.6-1.2-1.7-2-2.9-2M12 5c.6-1.2 1.7-2 2.9-2" stroke="#4C8C3B" strokeWidth={1.3} strokeLinecap="round" />
+      <path d="M9 10c1.3 2.4 1.3 5 0 7.4M15 10c-1.3 2.4-1.3 5 0 7.4" stroke="rgba(255,255,255,0.35)" strokeWidth={0.9} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function BroccoliDoodle({ size = 24 }: DoodleIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 3.5c1.6 0 2.9 1 3.2 2.4 1.5.1 2.6 1.2 2.6 2.6 0 .5-.1 1-.4 1.4 1 .5 1.6 1.5 1.6 2.6 0 1.6-1.4 2.9-3.1 2.9-.3 0-.6 0-.9-.1-.4 1.2-1.6 2.1-3 2.1s-2.6-.9-3-2.1c-.3.1-.6.1-.9.1-1.7 0-3.1-1.3-3.1-2.9 0-1.1.6-2.1 1.6-2.6-.3-.4-.4-.9-.4-1.4 0-1.4 1.1-2.5 2.6-2.6.3-1.4 1.6-2.4 3.2-2.4z"
+        fill="#5B9A4A" stroke="#3E6E30" strokeWidth={0.8} strokeLinejoin="round"
+      />
+      <path d="M11 19h2l.6 2.5h-3.2z" fill="#8AA86B" stroke="#3E6E30" strokeWidth={0.8} strokeLinejoin="round" />
+      <circle cx="9.5" cy="9" r="0.8" fill="rgba(255,255,255,0.3)" />
+      <circle cx="13.5" cy="10.5" r="0.7" fill="rgba(255,255,255,0.25)" />
+    </svg>
+  );
+}
+
+export function PineappleDoodle({ size = 24 }: DoodleIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M4 6c3-3 13-3 16 0-3 5-13 5-16 0z" fill="#E8C93A" stroke="#B89A1E" strokeWidth={0.8} strokeLinejoin="round" />
+      <path d="M6.5 5.2 8 7M9.5 4.5l1.3 2M13 4.5l-1.3 2M16 5l-1.5 2" stroke="#B89A1E" strokeWidth={0.8} strokeLinecap="round" />
+      <path d="M4.5 6.5c1 4 4 9 7.5 9s6.5-5 7.5-9" fill="#F3DE6A" stroke="#B89A1E" strokeWidth={0.8} strokeLinejoin="round" />
+      <path d="M8 8.5c1.5 3 1.5 5.5.5 7.5M16 8.5c-1.5 3-1.5 5.5-.5 7.5M12 9v7.4" stroke="#B89A1E" strokeWidth={0.7} strokeLinecap="round" opacity={0.6} />
+    </svg>
+  );
+}
+
+export function OliveDoodle({ size = 24 }: DoodleIconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <ellipse cx="12" cy="13" rx="5" ry="7" fill="#6B8E4E" stroke="#4A6635" strokeWidth={0.8} />
+      <circle cx="12" cy="13" r="1.6" fill="#F3E4D0" stroke="#4A6635" strokeWidth={0.7} />
+      <path d="M11 4.5c.3-1 1.3-1.6 2.3-1.4" stroke="#4A6635" strokeWidth={1.2} strokeLinecap="round" />
+      <ellipse cx="10" cy="10" rx="1.3" ry="2" fill="rgba(255,255,255,0.3)" />
+    </svg>
+  );
+}
+
+export const VEGGIE_DOODLES = [
+  CarrotDoodle, ChiliDoodle, OnionDoodle, MushroomDoodle,
+  TomatoDoodle, BroccoliDoodle, PineappleDoodle, OliveDoodle,
+];
