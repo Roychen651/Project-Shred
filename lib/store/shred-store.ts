@@ -22,6 +22,7 @@ import { getCurrentSlotId } from '../domain/slots';
 import { dateKey } from '../domain/dates';
 import { genUuid } from '../domain/util';
 import type { ActivityKey, GoalKey } from '../domain/targets';
+import type { CustomWorkout } from '../domain/workouts';
 
 // ---------------------------------------------------------------------------
 // Profiles. ProjectShred.artifact.jsx:1023-1032, 6067-6087.
@@ -153,6 +154,13 @@ export interface ShredState {
   // Sprint 16 — progressive overload
   exerciseLogs: ExerciseLogsByDate;
 
+  // Sprint 28 — custom workouts. Same known gap as customIngredients/
+  // customRestaurants/customHacks below: not yet part of hydrateFromServer,
+  // since none of this app's custom-* collections are wired to Supabase sync
+  // yet (documented since Sprint 8's summary) — session-only until that
+  // whole class of data gets a dedicated sync pass.
+  customWorkouts: CustomWorkout[];
+
   // Sprint 13 — custom ingredients
   customIngredients: CustomIngredient[];
 
@@ -222,6 +230,10 @@ export interface ShredState {
 
   logExerciseSet: (dateKey: string, exerciseName: string, patch: ExerciseSet) => void;
 
+  saveCustomWorkout: (workout: CustomWorkout) => void;
+  updateCustomWorkout: (id: string, patch: Partial<Pick<CustomWorkout, 'name' | 'exercises'>>) => void;
+  deleteCustomWorkout: (id: string) => void;
+
   saveCustomIngredient: (ing: CustomIngredient) => void;
 
   updateActiveProfile: (patch: Partial<Profile>) => void;
@@ -285,6 +297,7 @@ export function createShredStore(initial?: Partial<ShredState>) {
     activeProfileId: 'mine',
     favorites: DEFAULT_FAVORITES,
     exerciseLogs: {},
+    customWorkouts: [],
     customIngredients: [],
     customRestaurants: [],
     customHacks: [],
@@ -373,6 +386,12 @@ export function createShredStore(initial?: Partial<ShredState>) {
         [dk]: { ...(state.exerciseLogs[dk] || {}), [exerciseName]: { ...(state.exerciseLogs[dk]?.[exerciseName] || {}), ...patch } },
       },
     })),
+
+    saveCustomWorkout: (workout) => set((state) => ({ customWorkouts: [...state.customWorkouts, workout] })),
+    updateCustomWorkout: (id, patch) => set((state) => ({
+      customWorkouts: state.customWorkouts.map((w) => (w.id === id ? { ...w, ...patch } : w)),
+    })),
+    deleteCustomWorkout: (id) => set((state) => ({ customWorkouts: state.customWorkouts.filter((w) => w.id !== id) })),
 
     saveCustomIngredient: (ing) => set((state) => ({ customIngredients: [...state.customIngredients, ing] })),
 

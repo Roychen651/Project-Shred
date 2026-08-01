@@ -24,7 +24,7 @@ import { useWireSync } from '@/lib/store/wireSync';
 import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/targets';
 import type { SlotId } from '@/lib/domain/slots';
 import type { WorkoutDayKey } from '@/lib/data/workouts';
-import type { ExerciseSet } from '@/lib/domain/workouts';
+import type { ExerciseSet, CustomWorkout } from '@/lib/domain/workouts';
 import { buildDailyLog, buildWeeklyReport, type DayLog } from '@/lib/domain/analytics';
 import { dateKey, addDays } from '@/lib/domain/dates';
 
@@ -47,6 +47,9 @@ import { RestaurantMatrixSheetBody } from '@/components/nutrition/RestaurantMatr
 import { PlateComposerSheetBody } from '@/components/nutrition/PlateComposerSheetBody';
 
 import { WorkoutPanel } from '@/components/workouts/WorkoutPanel';
+import { CustomWorkoutSection } from '@/components/workouts/CustomWorkoutSection';
+import { CustomWorkoutBuilder } from '@/components/workouts/CustomWorkoutBuilder';
+import { CustomWorkoutRunnerSheetBody } from '@/components/workouts/CustomWorkoutRunnerSheetBody';
 
 import { GlassCard } from '@/components/ui/GlassCard';
 import { TiltCard } from '@/components/ui/TiltCard';
@@ -59,11 +62,12 @@ import { DualTrendChart } from '@/components/insights/DualTrendChart';
 import { ComplianceHeatmap } from '@/components/insights/ComplianceHeatmap';
 import { WeeklyReportModal } from '@/components/insights/WeeklyReportModal';
 import { MetabolicInsightCard } from '@/components/insights/MetabolicInsightCard';
+import { AiCoachWidget } from '@/components/insights/AiCoachWidget';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { useSyncStatusStore } from '@/lib/store/sync-status';
 
 type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
-type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | 'daylog' | null;
+type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | 'daylog' | 'workoutbuilder' | 'workoutrunner' | null;
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
@@ -136,6 +140,8 @@ export default function Home() {
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [weeklyReportOpen, setWeeklyReportOpen] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState<CustomWorkout | null>(null);
+  const [runningWorkoutId, setRunningWorkoutId] = useState<string | null>(null);
 
   // Sprint 10 — computed directly during render, not via useEffect+state (this
   // codebase has hit the react-hooks/set-state-in-effect trap repeatedly —
@@ -480,20 +486,42 @@ export default function Home() {
             )}
 
             {activeTab === 'workouts' && (
-              <WorkoutPanel
-                exerciseLogs={store.exerciseLogs}
-                selectedDateKey={store.selectedDateKey}
-                onWorkoutActivity={(done: boolean, workoutDayKey: WorkoutDayKey) =>
-                  store.setWorkoutActivity(store.selectedDateKey, done, workoutDayKey)
-                }
-                onLogSet={(exerciseName: string, patch: ExerciseSet) =>
-                  store.logExerciseSet(store.selectedDateKey, exerciseName, patch)
-                }
-              />
+              <div>
+                <WorkoutPanel
+                  exerciseLogs={store.exerciseLogs}
+                  selectedDateKey={store.selectedDateKey}
+                  onWorkoutActivity={(done: boolean, workoutDayKey: WorkoutDayKey) =>
+                    store.setWorkoutActivity(store.selectedDateKey, done, workoutDayKey)
+                  }
+                  onLogSet={(exerciseName: string, patch: ExerciseSet) =>
+                    store.logExerciseSet(store.selectedDateKey, exerciseName, patch)
+                  }
+                />
+                {/* Sprint 28 — a separate section, deliberately not merged
+                    into WorkoutDayKey's fixed A1/B1/A2/B2 union (see the
+                    scope note in CustomWorkoutSection.tsx). */}
+                <CustomWorkoutSection
+                  workouts={store.customWorkouts}
+                  onCreate={() => { setEditingWorkout(null); setActiveSheet('workoutbuilder'); }}
+                  onEdit={(w) => { setEditingWorkout(w); setActiveSheet('workoutbuilder'); }}
+                  onDelete={(id) => store.deleteCustomWorkout(id)}
+                  onStart={(w) => { setRunningWorkoutId(w.id); setActiveSheet('workoutrunner'); }}
+                />
+              </div>
             )}
 
             {activeTab === 'insights' && (
               <div className="flex flex-col gap-4">
+                {/* Sprint 28 — ARENA 00, the same position the artifact's
+                    original AiCoachWidget always held (above everything
+                    else). Kept full-width rather than forced into a square
+                    bento cell: its content genuinely changes height (a CTA
+                    button vs. a full report), and the heatmap/trend chart
+                    below it need real width to stay legible — the same
+                    "don't force a square where the content doesn't fit one"
+                    call already made for the Nutrition tab in Sprint 27. */}
+                <AiCoachWidget consumed={consumed} targets={targets} dayMode={dayMode} />
+
                 <motion.button
                   onClick={() => setWeeklyReportOpen(true)}
                   whileTap={{ scale: 0.98 }}
@@ -561,6 +589,40 @@ export default function Home() {
           onDelete={(id) => store.deleteItem(store.selectedDateKey, id)}
           onUpdate={(id, patch) => store.updateItem(store.selectedDateKey, id, patch)}
         />
+      </SheetModal>
+
+      <SheetModal
+        open={activeSheet === 'workoutbuilder'}
+        onClose={() => setActiveSheet(null)}
+        title={editingWorkout ? 'עריכת אימון' : 'בניית אימון אישי'}
+      >
+        <CustomWorkoutBuilder
+          existing={editingWorkout}
+          onClose={() => setActiveSheet(null)}
+          onSave={(workout) => {
+            if (editingWorkout) {
+              store.updateCustomWorkout(workout.id, { name: workout.name, exercises: workout.exercises });
+            } else {
+              store.saveCustomWorkout(workout);
+            }
+          }}
+        />
+      </SheetModal>
+
+      <SheetModal open={activeSheet === 'workoutrunner'} onClose={() => setActiveSheet(null)} title="אימון אישי">
+        {(() => {
+          const runningWorkout = store.customWorkouts.find((w) => w.id === runningWorkoutId);
+          if (!runningWorkout) return null;
+          return (
+            <CustomWorkoutRunnerSheetBody
+              workout={runningWorkout}
+              exerciseLogs={store.exerciseLogs}
+              selectedDateKey={store.selectedDateKey}
+              onWorkoutActivity={(done) => store.setWorkoutActivity(store.selectedDateKey, done, runningWorkout.id)}
+              onLogSet={(exerciseName, patch) => store.logExerciseSet(store.selectedDateKey, exerciseName, patch)}
+            />
+          );
+        })()}
       </SheetModal>
 
       <SettingsModal
