@@ -23,13 +23,13 @@
 // Panel styling also picked up the same glass treatment as GlassCard.
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wand2, UtensilsCrossed, Layers3, type LucideIcon } from 'lucide-react';
+import { Wand2, UtensilsCrossed, Layers3, ChefHat, type LucideIcon } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FAB_BOTTOM, FAB_SIZE } from './ActionFab';
 
 const MENU_BOTTOM = FAB_BOTTOM + FAB_SIZE + 16;
 
-export type FabActionId = 'quicklog' | 'restaurants' | 'plate';
+export type FabActionId = 'quicklog' | 'restaurants' | 'plate' | 'hacks';
 
 interface FabAction {
   id: FabActionId;
@@ -37,10 +37,15 @@ interface FabAction {
   icon: LucideIcon;
 }
 
+// Sprint 36 — a 4th action for the newly-built Kitchen Hacks browser
+// (components/nutrition/KitchenHacksSheetBody.tsx), the same real gap-close
+// that got its own Nutrition-tab tile: 68 home recipes with zero way to
+// reach them before this sprint.
 const ACTIONS: FabAction[] = [
   { id: 'quicklog', label: 'רישום חופשי', icon: Wand2 },
   { id: 'restaurants', label: 'מסעדות', icon: UtensilsCrossed },
   { id: 'plate', label: 'בנה צלחת', icon: Layers3 },
+  { id: 'hacks', label: 'מתכוני בית', icon: ChefHat },
 ];
 
 const listVariants = {

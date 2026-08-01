@@ -15,8 +15,11 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, Layers3, Sparkles, Settings2, ClipboardList, Beef, Wheat, Droplet } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Beef, Wheat, Droplet } from 'lucide-react';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
+import { ShredLogo } from '@/components/ui/ShredLogo';
+import { TabBeamTransition } from '@/components/shell/TabBeamTransition';
+import { KitchenHacksSheetBody } from '@/components/nutrition/KitchenHacksSheetBody';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, JEWEL, tactileGradient, CONTROL_HEIGHT, CONTROL_RADIUS } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
@@ -26,7 +29,7 @@ import type { SlotId } from '@/lib/domain/slots';
 import type { WorkoutDayKey } from '@/lib/data/workouts';
 import type { ExerciseSet, CustomWorkout } from '@/lib/domain/workouts';
 import { buildDailyLog, buildWeeklyReport, type DayLog } from '@/lib/domain/analytics';
-import { dateKey, addDays } from '@/lib/domain/dates';
+import { dateKey, addDays, shiftDateKey } from '@/lib/domain/dates';
 
 import { BottomNav, type NavTabId } from '@/components/shell/BottomNav';
 import { ActionFab } from '@/components/shell/ActionFab';
@@ -68,7 +71,7 @@ import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { useSyncStatusStore } from '@/lib/store/sync-status';
 
 type DayMode = keyof Pick<ComputedTargets, 'training' | 'rest'>;
-type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'caloriemath' | 'daylog' | 'workoutbuilder' | 'workoutrunner' | null;
+type ActiveSheet = 'quicklog' | 'restaurants' | 'plate' | 'hacks' | 'caloriemath' | 'daylog' | 'workoutbuilder' | 'workoutrunner' | null;
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
@@ -149,6 +152,15 @@ export default function Home() {
   const T = useTheme();
   const store = useShredStore();
   const [activeTab, setActiveTab] = useState<NavTabId>('today');
+  // Sprint 36 — every tab switch (bottom nav, FAB shortcuts, SmartContextCard's
+  // "edit" jump) routes through here so the beam overlay fires consistently,
+  // not just from one entry point. No-op on a same-tab tap (re-tapping the
+  // active tab shouldn't replay the beam).
+  const [beamTab, setBeamTab] = useState<NavTabId | null>(null);
+  const goToTab = (next: NavTabId) => {
+    if (next !== activeTab) setBeamTab(next);
+    setActiveTab(next);
+  };
   const [dayMode, setDayMode] = useState<DayMode>('training');
   const [fabOpen, setFabOpen] = useState(false);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
@@ -197,8 +209,8 @@ export default function Home() {
 
   const handlePickAction = (id: FabActionId) => {
     setFabOpen(false);
-    setActiveTab('nutrition');
-    setActiveSheet(id === 'quicklog' ? 'quicklog' : id === 'restaurants' ? 'restaurants' : 'plate');
+    goToTab('nutrition');
+    setActiveSheet(id);
   };
 
   const handleLog = (specs: LogItemSpec[], slotId: SlotId) => {
@@ -296,12 +308,7 @@ export default function Home() {
         {/* ===== header ===== */}
         <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div
-              className="flex items-center justify-center rounded-2xl"
-              style={{ width: 42, height: 42, background: `linear-gradient(135deg, ${T.accent}, ${T.macro.protein})`, boxShadow: T.glow(T.accent, 14, '30') }}
-            >
-              <Sparkles size={20} color="#07080B" />
-            </div>
+            <ShredLogo />
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: FONT_DISPLAY }}>PROJECT SHRED</h1>
@@ -430,7 +437,7 @@ export default function Home() {
                     <SmartContextCard
                       items={dayItems}
                       onQuickComplete={(slotId) => store.markSlotCompleted(store.selectedDateKey, slotId)}
-                      onEdit={(slotId) => { setActiveTab('nutrition'); setActiveSheet(slotId === 'lunch' ? 'restaurants' : 'plate'); }}
+                      onEdit={(slotId) => { goToTab('nutrition'); setActiveSheet(slotId === 'lunch' ? 'restaurants' : 'plate'); }}
                     />
                   </div>
 
@@ -450,14 +457,38 @@ export default function Home() {
 
             {activeTab === 'nutrition' && (
               <div className="flex flex-col gap-3">
-                <motion.div variants={tabItemVariants}>
+                {/* Sprint 36 — a real swipe gesture, not just a tappable
+                    prev/next pair: dragging the date strip horizontally past
+                    a small threshold shifts the selected day, same direction
+                    convention DateNavigator's own chevrons already use
+                    (drag right = previous day, drag left = next day, per the
+                    app's left-to-right chronological convention documented
+                    in DateNavigator.tsx). onDragEnd only fires once per
+                    gesture, so this can't double-fire the way a raw onPan
+                    tracking every pixel could. */}
+                <motion.div
+                  variants={tabItemVariants}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.5}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.x > 60) store.setSelectedDateKey(shiftDateKey(store.selectedDateKey, -1));
+                    else if (info.offset.x < -60) store.setSelectedDateKey(shiftDateKey(store.selectedDateKey, 1));
+                  }}
+                >
                   <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
                 </motion.div>
-                {/* Sprint 27 — Bento asymmetry here too: the restaurant
-                    matrix (the higher-frequency action — eating out/quick
-                    lunch beats composing a raw-ingredient plate on most
-                    days) gets the full-width hero cell, the plate composer
-                    and the day-log button pair up as two squares below it. */}
+                {/* Sprint 27 — Bento asymmetry: the restaurant matrix (the
+                    higher-frequency action — eating out/quick lunch beats
+                    composing a raw-ingredient plate on most days) gets the
+                    full-width hero cell.
+                    Sprint 36 — the plate composer and the new Kitchen Hacks
+                    browser pair up as the two "add food" squares below it
+                    (both are browse-and-log surfaces); the day log moves to
+                    its own full-width bar underneath since it's a different
+                    mode entirely (reviewing, not adding) — and every tile
+                    here now gets the same TiltCard 3D treatment, not just
+                    the first two. */}
                 <motion.div variants={tabItemVariants} className="grid grid-cols-2 gap-3">
                   <div className="col-span-2">
                     <TiltCard>
@@ -496,22 +527,47 @@ export default function Home() {
                     </motion.button>
                   </TiltCard>
 
+                  {/* Sprint 36 — the new Kitchen Hacks browser (68 home
+                      recipes, lib/data/hacks.ts — see KitchenHacksSheetBody's
+                      header note): existed as fully-vetted data since Sprint
+                      4 with zero UI ever reaching it. */}
+                  <TiltCard>
+                    <motion.button
+                      onClick={() => setActiveSheet('hacks')}
+                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }}
+                      transition={tapSpring}
+                      className="w-full h-full flex flex-col items-start gap-3 p-5 rounded-[32px] text-right"
+                      style={glassSurface(T)}
+                    >
+                      <ChefHat size={32} color={T.macro.kcal} strokeWidth={1.75} />
+                      <span className="text-base font-black" style={{ letterSpacing: '-0.02em' }}>מתכוני בית</span>
+                      <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>68 מתכונים · בישול עצמי</span>
+                    </motion.button>
+                  </TiltCard>
+
                   {/* Sprint 26 — the other reported gap: once something was
                       logged, there was no way to see the full list again,
                       let alone fix a wrong tap. This is the one place that
                       shows every item for the selected date with edit/delete. */}
-                  <motion.button
-                    onClick={() => setActiveSheet('daylog')}
-                    whileTap={{ scale: 0.97 }}
-                    whileHover={{ scale: 1.02 }}
-                    transition={tapSpring}
-                    className="w-full h-full flex flex-col items-start gap-3 p-5 rounded-[32px] text-right"
-                    style={glassSurface(T)}
-                  >
-                    <ClipboardList size={30} color={T.accent} strokeWidth={1.75} />
-                    <span className="text-base font-black" style={{ letterSpacing: '-0.02em' }}>היומן של היום</span>
-                    <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>{dayItems.length} פריטים · צפו ועריכה</span>
-                  </motion.button>
+                  <div className="col-span-2">
+                    <TiltCard>
+                      <motion.button
+                        onClick={() => setActiveSheet('daylog')}
+                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.01 }}
+                        transition={tapSpring}
+                        className="w-full flex items-center gap-4 p-5 rounded-[32px] text-right"
+                        style={glassSurface(T)}
+                      >
+                        <ClipboardList size={30} color={T.accent} strokeWidth={1.75} />
+                        <div>
+                          <span className="text-base font-black block" style={{ letterSpacing: '-0.02em' }}>היומן של היום</span>
+                          <span className="text-[10px] font-light uppercase" style={{ color: T.t.textDim, letterSpacing: '0.15em' }}>{dayItems.length} פריטים · צפו ועריכה</span>
+                        </div>
+                      </motion.button>
+                    </TiltCard>
+                  </div>
                 </motion.div>
               </div>
             )}
@@ -595,7 +651,11 @@ export default function Home() {
 
       {!anyOverlayOpen && <FabMenu open={fabOpen} onClose={() => setFabOpen(false)} onPickAction={handlePickAction} />}
       {!anyOverlayOpen && <ActionFab open={fabOpen} onToggle={() => setFabOpen((o) => !o)} />}
-      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      <BottomNav activeTab={activeTab} setActiveTab={goToTab} />
+
+      <AnimatePresence>
+        {beamTab && <TabBeamTransition key={beamTab} tab={beamTab} onDone={() => setBeamTab(null)} />}
+      </AnimatePresence>
 
       <SheetModal open={activeSheet === 'quicklog'} onClose={() => setActiveSheet(null)} title="רישום חופשי מהיר">
         <QuickLogSheetBody onConfirm={handleLog} customIngredients={store.customIngredients} customHacks={store.customHacks} onSaveFavorite={store.saveFavorite} />
@@ -607,6 +667,10 @@ export default function Home() {
 
       <SheetModal open={activeSheet === 'plate'} onClose={() => setActiveSheet(null)} title="בונה צלחת אישית">
         <PlateComposerSheetBody onConfirm={handleLog} customIngredients={store.customIngredients} onSaveCustomIngredient={store.saveCustomIngredient} />
+      </SheetModal>
+
+      <SheetModal open={activeSheet === 'hacks'} onClose={() => setActiveSheet(null)} title="מתכוני בית">
+        <KitchenHacksSheetBody onConfirm={handleLog} />
       </SheetModal>
 
       <SheetModal open={activeSheet === 'caloriemath'} onClose={() => setActiveSheet(null)} title="מאיפה היעד הקלורי הזה?">
