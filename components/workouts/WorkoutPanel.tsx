@@ -16,6 +16,7 @@ import { FONT_DISPLAY, FONT_MONO, JEWEL } from '@/lib/theme/tokens';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { AnimatedPulsingDumbbell } from '@/components/ui/AnimatedIllustrations';
+import { PremiumMotivator } from '@/components/ui/PremiumMotivator';
 import { WORKOUTS, type WorkoutDayKey } from '@/lib/data/workouts';
 import { getLastLoggedSet, type ExerciseLogsByDate, type ExerciseSet } from '@/lib/domain/workouts';
 import { ExerciseRow } from './ExerciseRow';
@@ -122,6 +123,14 @@ export function WorkoutPanel({ exerciseLogs, selectedDateKey, onWorkoutActivity,
         <span className="text-sm font-bold" style={{ color }}>{workout.label}</span>
         <span className="text-xs" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>{doneSets}/{totalSets} סטים הושלמו</span>
       </div>
+
+      {/* Sprint 22 — a genuine "haven't started yet" nudge for this specific
+          workout day, not a decorative banner shown unconditionally. */}
+      {doneSets === 0 && (
+        <div className="mb-4">
+          <PremiumMotivator variant="workout-start" />
+        </div>
+      )}
 
       <div>
         {workout.exercises.map((ex, i) => (

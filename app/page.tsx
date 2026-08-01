@@ -37,6 +37,7 @@ import { SyncStatusIndicator } from '@/components/shell/SyncStatusIndicator';
 import { CompositeHeroRing } from '@/components/today/CompositeHeroRing';
 import { HeroRingLegend } from '@/components/today/HeroRingLegend';
 import { SmartContextCard } from '@/components/today/SmartContextCard';
+import { PremiumMotivator } from '@/components/ui/PremiumMotivator';
 
 import { QuickLogSheetBody } from '@/components/nutrition/QuickLogSheetBody';
 import { RestaurantMatrixSheetBody } from '@/components/nutrition/RestaurantMatrixSheetBody';
@@ -234,6 +235,24 @@ export default function Home() {
             }}
           />
         )}
+        {/* Sprint 22 — a third, warm-bronze wash for light mode specifically
+            (Biosora-reference request: a genuinely multi-hue organic blend,
+            not two thin accent/jade blobs alone). Kept deliberately low-alpha
+            and positioned off-center: Sprint 15 already found that pushing
+            light-mode blob alpha up to dark-mode strength reads as an
+            "untreated color blotch" on a pale cream base rather than a soft
+            wash, so this adds a third hue instead of just turning up the
+            two existing ones. */}
+        {T.mode === 'light' && (
+          <div
+            className="shred-mesh-blob-3"
+            style={{
+              position: 'absolute', top: '38%', left: '8%', width: '50vw', height: '50vw', maxWidth: 480, maxHeight: 480,
+              background: `radial-gradient(circle, ${JEWEL.light.bronze}16 0%, transparent 70%)`,
+              filter: 'blur(80px)',
+            }}
+          />
+        )}
       </div>
 
       <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 pt-8 relative">
@@ -320,6 +339,16 @@ export default function Home() {
                     onEdit={(slotId) => { setActiveTab('nutrition'); setActiveSheet(slotId === 'lunch' ? 'restaurants' : 'plate'); }}
                   />
                 </motion.div>
+                {/* Sprint 22 — a genuine whole-day empty state, distinct from
+                    SmartContextCard's own per-slot empty illustration above
+                    (that one says "this specific meal is unlogged"; this one
+                    says "nothing at all yet today"), shown only when it's
+                    actually true. */}
+                {dayItems.length === 0 && (
+                  <motion.div variants={tabItemVariants} className="w-full">
+                    <PremiumMotivator variant="nutrition-empty" />
+                  </motion.div>
+                )}
               </div>
             )}
 
