@@ -20,6 +20,7 @@ import { FieldInput } from './FieldInput';
 import { Stepper } from '@/components/ui/Stepper';
 import { ACTIVITY_LEVELS, GOALS, type ActivityKey, type GoalKey } from '@/lib/domain/targets';
 import { createClient } from '@/lib/supabase/client';
+import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
 import type { Profile } from '@/lib/store/shred-store';
 
 export interface SettingsModalProps {
@@ -37,6 +38,11 @@ const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 export function SettingsModal({ open, onClose, profile, updateProfile, bmr, tdee, onOpenCalorieMath }: SettingsModalProps) {
   const T = useTheme();
   const router = useRouter();
+  // Sprint 43 — same vh-mismatch fix as FavoriteBuilderModal/SheetModal (see
+  // useViewportHeight's header): a raw `88vh` can size against a taller-
+  // than-actually-visible reference on mobile, cutting content off under
+  // the browser chrome instead of clipping evenly.
+  const vh = useViewportHeight();
   if (!open) return null;
 
   // createClient() throws SYNCHRONOUSLY if the Supabase env vars aren't live
@@ -69,7 +75,7 @@ export function SettingsModal({ open, onClose, profile, updateProfile, bmr, tdee
         className="w-full rounded-2xl overflow-hidden flex flex-col"
         style={{
           maxWidth: 460,
-          maxHeight: '88vh',
+          maxHeight: Math.round(vh * 0.88),
           background: T.mode === 'dark' ? `${T.t.modalBg}E8` : `${T.t.modalBg}F7`,
           border: `1px solid ${T.accent}33`,
           boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 28, '35')}, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.75)'}, inset 0 0 0 1px ${T.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)'}`,

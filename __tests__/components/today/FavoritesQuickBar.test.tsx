@@ -78,4 +78,28 @@ describe('FavoritesQuickBar', () => {
     await user.click(screen.getByText('מחק מועדף זה'));
     expect(onDelete).toHaveBeenCalledWith('fav-1');
   });
+
+  // Sprint 43 — real bug: this modal's open state never reached
+  // app/page.tsx's anyOverlayOpen gate, so the floating FAB/bottom-nav
+  // stayed mounted and visible while it was open (a screenshot showed the
+  // modal rendering squished with the nav bleeding through/around it).
+  it('fires onOverlayChange(true) when the builder opens and (false) when it closes, so the FAB/nav can unmount', async () => {
+    const user = userEvent.setup();
+    const onOverlayChange = vi.fn();
+    render(<ThemeProvider><FavoritesQuickBar favorites={FAVORITES} onLog={vi.fn()} onSave={vi.fn()} onDelete={vi.fn()} onOverlayChange={onOverlayChange} /></ThemeProvider>);
+    await user.click(screen.getByText('מועדף'));
+    expect(onOverlayChange).toHaveBeenLastCalledWith(true);
+    await user.click(screen.getByLabelText('סגור'));
+    expect(onOverlayChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('fires onOverlayChange(true)/(false) around the edit-pencil flow too', async () => {
+    const user = userEvent.setup();
+    const onOverlayChange = vi.fn();
+    render(<ThemeProvider><FavoritesQuickBar favorites={FAVORITES} onLog={vi.fn()} onSave={vi.fn()} onDelete={vi.fn()} onOverlayChange={onOverlayChange} /></ThemeProvider>);
+    await user.click(screen.getAllByLabelText('ערוך מועדף')[0]);
+    expect(onOverlayChange).toHaveBeenLastCalledWith(true);
+    await user.click(screen.getByText('מחק מועדף זה'));
+    expect(onOverlayChange).toHaveBeenLastCalledWith(false);
+  });
 });

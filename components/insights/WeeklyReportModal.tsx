@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { ClipboardList, X, MessageCircle, Check, Copy } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
+import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 import type { WeeklyReport } from '@/lib/domain/analytics';
@@ -23,6 +24,9 @@ export interface WeeklyReportModalProps {
 
 export function WeeklyReportModal({ open, onClose, report, profile }: WeeklyReportModalProps) {
   const T = useTheme();
+  // Sprint 43 — same vh-mismatch fix as FavoriteBuilderModal/SheetModal (see
+  // useViewportHeight's header).
+  const vh = useViewportHeight();
   const [copied, setCopied] = useState(false);
   if (!open) return null;
 
@@ -57,7 +61,7 @@ export function WeeklyReportModal({ open, onClose, report, profile }: WeeklyRepo
         onClick={(e) => e.stopPropagation()}
         className="w-full rounded-2xl overflow-hidden"
         style={{
-          maxWidth: 460, maxHeight: '88vh', overflowY: 'auto',
+          maxWidth: 460, maxHeight: Math.round(vh * 0.88), overflowY: 'auto',
           background: T.mode === 'dark' ? `${T.t.modalBg}E8` : `${T.t.modalBg}F7`,
           border: `1px solid ${T.accent}33`,
           boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 20, '30')}`,

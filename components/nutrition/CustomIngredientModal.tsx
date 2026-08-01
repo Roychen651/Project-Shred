@@ -26,6 +26,7 @@ import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
 import { BEVERAGES } from '@/lib/data/beverages';
 import type { Ingredient, IngredientCategory } from '@/lib/domain/ingredients';
 import { genUuid } from '@/lib/domain/util';
+import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
 import type { CustomIngredient } from '@/lib/store/shred-store';
 
 const DUPLICATE_SOURCE: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS, ...BEVERAGES];
@@ -64,6 +65,11 @@ interface CustomIngredientModalInnerProps {
 
 function CustomIngredientModalInner({ onClose, onSave }: CustomIngredientModalInnerProps) {
   const T = useTheme();
+  // Sprint 43 — same vh-mismatch fix as FavoriteBuilderModal/SheetModal
+  // (see useViewportHeight's header): a raw `88vh` can be sized against a
+  // taller-than-actually-visible reference on mobile, cutting content off
+  // under the browser chrome instead of clipping evenly.
+  const vh = useViewportHeight();
   const [draft, setDraft] = useState(emptyDraft());
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const [duplicateSearch, setDuplicateSearch] = useState('');
@@ -148,7 +154,7 @@ function CustomIngredientModalInner({ onClose, onSave }: CustomIngredientModalIn
         className="w-full rounded-2xl overflow-hidden flex flex-col"
         style={{
           maxWidth: 440,
-          maxHeight: '88vh',
+          maxHeight: Math.round(vh * 0.88),
           background: T.mode === 'dark' ? `${T.t.modalBg}E8` : `${T.t.modalBg}F7`,
           border: `1px solid ${T.accent}33`,
           boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 28, '35')}, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.75)'}, inset 0 0 0 1px ${T.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)'}`,

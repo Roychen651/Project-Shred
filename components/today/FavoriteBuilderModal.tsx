@@ -17,6 +17,7 @@ import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 import { genUuid } from '@/lib/domain/util';
 import { Stepper } from '@/components/ui/Stepper';
+import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
 import type { Favorite } from '@/lib/store/shred-store';
 
 const EMOJI_CHOICES = ['🍗', '🥚', '🍚', '🍞', '🥛', '🧀', '🍌', '🍎', '🥑', '🥤', '☕', '🍫', '🥜', '🍕', '🥗', '🍲'];
@@ -61,6 +62,15 @@ function emptyDraft(seed?: FavoriteDraftSeed) {
 
 function FavoriteBuilderModalInner({ onClose, onSave, seed }: Omit<FavoriteBuilderModalProps, 'open'>) {
   const T = useTheme();
+  // Sprint 43 — the raw `88vh` this modal used before is exactly the class of
+  // bug already fixed for SheetModal (see useViewportHeight's header): CSS
+  // vh can resolve against a taller-than-actually-visible reference in some
+  // mobile/embedded contexts, so a flex-centered modal sized off it doesn't
+  // clip evenly — its excess pushes past the real fold, reading as "squished
+  // toward the bottom" with content cut off under the browser chrome.
+  // Measuring the real visible height in JS (already proven for sheets)
+  // fixes it here too.
+  const vh = useViewportHeight();
   const [draft, setDraft] = useState(emptyDraft(seed));
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -121,7 +131,7 @@ function FavoriteBuilderModalInner({ onClose, onSave, seed }: Omit<FavoriteBuild
         className="w-full rounded-2xl overflow-hidden flex flex-col"
         style={{
           maxWidth: 420,
-          maxHeight: '88vh',
+          maxHeight: Math.round(vh * 0.88),
           background: T.mode === 'dark' ? `${T.t.modalBg}E8` : `${T.t.modalBg}F7`,
           border: `1px solid ${T.accent}33`,
           boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 28, '35')}, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.75)'}, inset 0 0 0 1px ${T.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)'}`,
@@ -133,7 +143,7 @@ function FavoriteBuilderModalInner({ onClose, onSave, seed }: Omit<FavoriteBuild
           <h3 className="text-lg font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>
             {seed?.id ? 'עריכת מועדף' : 'מועדף חדש'}
           </h3>
-          <motion.button onClick={onClose} whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.06 }} transition={tapSpring} className="p-1.5 rounded-lg" style={{ background: T.t.chipBg }}>
+          <motion.button onClick={onClose} whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.06 }} transition={tapSpring} className="p-1.5 rounded-lg" style={{ background: T.t.chipBg }} aria-label="סגור">
             <X size={16} color={T.t.textSecondary} />
           </motion.button>
         </div>

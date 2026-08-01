@@ -27,6 +27,7 @@ import { FieldInput } from '@/components/settings/FieldInput';
 import { Stepper } from '@/components/ui/Stepper';
 import { AnimatedDumbbell } from '@/components/ui/AnimatedIllustrations';
 import { ACTIVITY_LEVELS, GOALS, computeProfileTargets, type ActivityKey, type GoalKey } from '@/lib/domain/targets';
+import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
 import type { Profile } from '@/lib/store/shred-store';
 
 export interface OnboardingWizardProps {
@@ -42,6 +43,9 @@ const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export function OnboardingWizard({ profile, updateProfile, onComplete }: OnboardingWizardProps) {
   const T = useTheme();
+  // Sprint 43 — same vh-mismatch fix as FavoriteBuilderModal/SheetModal (see
+  // useViewportHeight's header).
+  const vh = useViewportHeight();
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>({
     name: profile.name,
@@ -70,7 +74,7 @@ export function OnboardingWizard({ profile, updateProfile, onComplete }: Onboard
         className="w-full rounded-2xl overflow-hidden flex flex-col"
         style={{
           maxWidth: 460,
-          maxHeight: '90vh',
+          maxHeight: Math.round(vh * 0.9),
           background: T.mode === 'dark' ? `${T.t.modalBg}E8` : `${T.t.modalBg}F7`,
           border: `1px solid ${T.accent}33`,
           boxShadow: `${T.t.modalShadowExtra}, ${T.glow(T.accent, 28, '35')}, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.75)'}, inset 0 0 0 1px ${T.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.5)'}`,

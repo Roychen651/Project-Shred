@@ -31,6 +31,7 @@
 // the one-tap fast path for the common "just log the default" case.
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Plus, Pencil, ChevronDown } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
@@ -43,17 +44,33 @@ export interface FavoritesQuickBarProps {
   onLog: (fav: Favorite, qty?: number) => void;
   onSave: (fav: Favorite) => void;
   onDelete: (id: string) => void;
+  /** Sprint 43 — see the note by `builderOpen` below: this modal's open
+   * state used to be invisible to app/page.tsx's `anyOverlayOpen`, so the
+   * FAB/bottom-nav stayed mounted and painted underneath (but still
+   * clickable/visible around) it. Fires true/false as the modal opens and
+   * closes so the parent can fold it into that same gate. */
+  onOverlayChange?: (open: boolean) => void;
 }
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
-export function FavoritesQuickBar({ favorites, onLog, onSave, onDelete }: FavoritesQuickBarProps) {
+export function FavoritesQuickBar({ favorites, onLog, onSave, onDelete, onOverlayChange }: FavoritesQuickBarProps) {
   const T = useTheme();
   const [justLoggedId, setJustLoggedId] = useState<string | null>(null);
   const [editingSeed, setEditingSeed] = useState<FavoriteDraftSeed | null>(null);
+  // Sprint 43 — real bug found from a screenshot of this exact modal
+  // rendering squished toward the bottom of the screen with the bottom nav
+  // visible around/through it: this state was 100% local to this component,
+  // so opening it never touched app/page.tsx's `anyOverlayOpen` — the FAB
+  // and bottom nav both stayed mounted while it was open (every OTHER
+  // modal/sheet in the app already gates through that flag; this was the
+  // one gap). `setBuilderOpen` below is now paired with `onOverlayChange`
+  // everywhere it's called.
   const [builderOpen, setBuilderOpen] = useState(false);
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const [adjustQty, setAdjustQty] = useState(1);
+
+  const closeBuilder = () => { setBuilderOpen(false); onOverlayChange?.(false); };
 
   const flashLogged = (id: string) => {
     setJustLoggedId(id);
@@ -76,8 +93,8 @@ export function FavoritesQuickBar({ favorites, onLog, onSave, onDelete }: Favori
     flashLogged(fav.id);
   };
 
-  const openNew = () => { setEditingSeed(null); setBuilderOpen(true); };
-  const openEdit = (fav: Favorite) => { setEditingSeed(fav); setBuilderOpen(true); };
+  const openNew = () => { setEditingSeed(null); setBuilderOpen(true); onOverlayChange?.(true); };
+  const openEdit = (fav: Favorite) => { setEditingSeed(fav); setBuilderOpen(true); onOverlayChange?.(true); };
 
   return (
     <>
@@ -192,15 +209,39 @@ export function FavoritesQuickBar({ favorites, onLog, onSave, onDelete }: Favori
         </motion.button>
       </div>
 
-      <FavoriteBuilderModal
-        open={builderOpen}
-        onClose={() => setBuilderOpen(false)}
-        seed={editingSeed ?? undefined}
-        onSave={onSave}
-      />
-
-      {editingSeed?.id && (
-        <DeleteFavoriteLink open={builderOpen} favId={editingSeed.id} onDelete={onDelete} onClose={() => setBuilderOpen(false)} />
+      {/* Sprint 43 — REAL root cause, not just a z-index tweak: this
+          component (and therefore this modal) renders as a DOM descendant of
+          the Today tab's `motion.div variants={tabItemVariants}` wrapper,
+          which carries an active Framer Motion `transform` for its 3D
+          staggered entrance (Sprint 19). Per the CSS spec, an ancestor with
+          `transform` becomes the containing block for `position: fixed`
+          descendants — so this modal was never actually fixed to the
+          viewport at all, just to that (shorter, already-scrolled) wrapper
+          box. That's what a screenshot showed as "squished toward the
+          bottom" with the bottom nav's true fixed element visibly painting
+          on top of it (an unrelated, truly-fixed sibling elsewhere in the
+          tree wasn't affected by the trapped containing block, so it kept
+          winning the paint order regardless of z-index). `createPortal`
+          renders this subtree as a direct child of `<body>` instead,
+          guaranteeing it is never trapped by any ancestor's transform —
+          the same fix used industry-wide for "modal inside an animated
+          container." Every OTHER modal/sheet in this app already avoids
+          this because app/page.tsx declares them as top-level siblings,
+          outside any transformed tab-content wrapper — this component was
+          the one exception, since it lives inside the Today tab's content. */}
+      {builderOpen && typeof document !== 'undefined' && createPortal(
+        <>
+          <FavoriteBuilderModal
+            open={builderOpen}
+            onClose={closeBuilder}
+            seed={editingSeed ?? undefined}
+            onSave={onSave}
+          />
+          {editingSeed?.id && (
+            <DeleteFavoriteLink open={builderOpen} favId={editingSeed.id} onDelete={onDelete} onClose={closeBuilder} />
+          )}
+        </>,
+        document.body
       )}
     </>
   );

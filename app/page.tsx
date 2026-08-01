@@ -176,6 +176,11 @@ export default function Home() {
   const [weeklyReportOpen, setWeeklyReportOpen] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState<CustomWorkout | null>(null);
   const [runningWorkoutId, setRunningWorkoutId] = useState<string | null>(null);
+  // Sprint 43 — FavoritesQuickBar's edit/new-favorite modal lives on the
+  // Today tab directly, not inside any SheetModal, so it was the one real
+  // gap in the anyOverlayOpen guard below: opening it never made the FAB
+  // unmount. See FavoritesQuickBar's onOverlayChange prop.
+  const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
 
   // Sprint 10 — computed directly during render, not via useEffect+state (this
   // codebase has hit the react-hooks/set-state-in-effect trap repeatedly —
@@ -199,7 +204,7 @@ export default function Home() {
   // never float above ANY overlay's own action buttons, sheet or modal alike.
   // fabOpen is deliberately NOT part of this — the FAB stays visible (and
   // rotated to "×") while its own menu is open, so tapping it again closes it.
-  const anyOverlayOpen = activeSheet !== null || settingsOpen || weeklyReportOpen || showOnboarding;
+  const anyOverlayOpen = activeSheet !== null || settingsOpen || weeklyReportOpen || showOnboarding || favoriteModalOpen;
 
   // Sprint 7 — derives the last 7 days' DayLog entries from real itemsByDate/
   // dayMeta (mirroring supabase/migrations/0003's daily_log view) to feed the
@@ -335,7 +340,7 @@ export default function Home() {
                   className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
                   style={{ background: T.t.chipBg, color: T.t.textDim, fontFamily: FONT_MONO }}
                 >
-                  v4.4.0-Sprint42
+                  v4.5.0-Sprint43
                 </span>
               </div>
               <p className="text-xs" style={{ color: T.t.textDim }}>{activeProfile.name} · {targets.label}</p>
@@ -410,6 +415,7 @@ export default function Home() {
                     onLog={store.logFavorite}
                     onSave={store.saveFavorite}
                     onDelete={store.deleteFavorite}
+                    onOverlayChange={setFavoriteModalOpen}
                   />
                 </motion.div>
 
