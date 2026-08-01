@@ -13,6 +13,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { VEGGIE_DOODLES } from './VeggieDoodleIcons';
 
 // Sprint 39 — the emoji set was cross-checked against a reference sheet of
 // vegetable/produce illustrations supplied as design material (tomato,
@@ -23,6 +24,13 @@ import { motion } from 'framer-motion';
 const FOOD_EMOJI = ['🥕', '🥦', '🍅', '🥑', '🌽', '🫑', '🍗', '🥩', '🧀', '🍞', '🍓', '🥚', '🍋', '🍄', '🧅', '🌶️', '🍍', '🫒', '🥬', '🍆'];
 const PARTICLE_COUNT = 16;
 const DURATION_MS = 1000;
+// Sprint 40 — matching the same emoji swap against the reference sheet with
+// an actual hand-drawn use of it: 1 in 4 particles renders as a real
+// doodle-style SVG (VeggieDoodleIcons.tsx, informed by the same reference
+// sheet) instead of a unicode glyph, so the "vegetable confetti" burst is
+// genuinely, visibly drawn from that reference material — not only cross-
+// checked against it.
+const DOODLE_EVERY = 4;
 
 export interface FoodConfettiProps {
   onDone: () => void;
@@ -44,8 +52,10 @@ export function FoodConfetti({ onDone }: FoodConfettiProps) {
     Array.from({ length: PARTICLE_COUNT }, (_, i) => {
       const angle = (Math.PI * 2 * i) / PARTICLE_COUNT + (Math.random() - 0.5) * 0.5;
       const distance = 80 + Math.random() * 130;
+      const isDoodle = i % DOODLE_EVERY === 0;
       return {
         emoji: FOOD_EMOJI[Math.floor(Math.random() * FOOD_EMOJI.length)],
+        Doodle: isDoodle ? VEGGIE_DOODLES[(i / DOODLE_EVERY) % VEGGIE_DOODLES.length] : null,
         x: Math.cos(angle) * distance,
         yPeak: -40 - Math.random() * 40,
         yFall: 70 + Math.random() * 50,
@@ -74,7 +84,7 @@ export function FoodConfetti({ onDone }: FoodConfettiProps) {
             }}
             transition={{ duration: 0.9, delay: p.delay, ease: [0.2, 0.75, 0.4, 1], times: [0, 0.4, 1] }}
           >
-            {p.emoji}
+            {p.Doodle ? <p.Doodle size={p.size} /> : p.emoji}
           </motion.span>
         ))}
       </div>

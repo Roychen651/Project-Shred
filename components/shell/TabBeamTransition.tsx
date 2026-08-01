@@ -160,12 +160,24 @@ function BurgerLayerShape({ index, cx, w, y, accent }: { index: number; cx: numb
 function BurgerAssemble({ color, accent }: { color: string; accent: string }) {
   const cx = 44;
   const widths = [58, 62, 58, 60, 56];
-  const startYs = [-70, -50, 60, 80, 100];
+  // Sprint 40 — the previous travel distances (up to 76 units) sent each
+  // layer far enough from the stack that, mid-flight and still only
+  // partially opaque, an individual layer (wide ~60 units, short ~12) read
+  // as its own isolated horizontal bar floating over the content behind it
+  // — i.e. exactly the "stripe" complaint this transition was rebuilt in
+  // Sprint 39 to eliminate, just relocated from the removed diagonal sweep
+  // into the burger assembly itself. Fixed the same way: shrink the travel
+  // so no layer is ever more than ~24 units from its landing spot — still
+  // visibly "converging" (the literal ask: layers move apart and together
+  // vertically) but never isolated far enough from the stack to read as an
+  // unrelated line.
+  const offsets = [-22, -18, 20, 22, 24];
 
   return (
     <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
-      {startYs.map((startY, i) => {
+      {offsets.map((offset, i) => {
         const settleY = 6 + i * 13;
+        const startY = settleY + offset;
         return (
           <motion.g
             key={i}
