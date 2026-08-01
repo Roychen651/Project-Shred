@@ -14,8 +14,8 @@ import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
 import { MacroStrip } from '@/components/ui/MacroStrip';
+import { MacroLine } from '@/components/ui/MacroLine';
 import { FavoriteBuilderModal, type FavoriteDraftSeed } from '@/components/today/FavoriteBuilderModal';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
 import { parseFoodText, buildParserCorpus, type ParsedFoodItem, type ParserDishLike } from '@/lib/domain/foodParser';
@@ -40,12 +40,14 @@ const STATIC_DISHES: ParserDishLike[] = [...HACKS, ...EATING_OUT_MENU];
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 // Sprint 31 — visual pass: this row predates the app's later typographic
-// conventions (ItemLogRow's font-bold name + one condensed FONT_MONO macro
-// line, clean icon-buttons) and had drifted noticeably behind them — a
-// direct, specific complaint ("design that isn't finished/mature"), not a
-// vague one. Also drops the old scattered kcal/ח/פ/ש badge run — same
-// numbers, one line, matching how every other logged-item list in the app
-// (the day log, the composed plate) already presents macros.
+// conventions and had drifted noticeably behind them — a direct, specific
+// complaint ("design that isn't finished/mature"), not a vague one.
+// Sprint 35 — the macro line itself got a second pass: it had copied
+// ItemLogRow's "12ח 36פ 4ש" concatenated-letter format, which turned out to
+// be the same complaint one level down (a direct example quote: "משעמם. 12ח
+// 36פ 4ש"). Now shares MacroLine (components/ui/MacroLine.tsx) with every
+// other logged-item/dish row in the app — one small colored icon per macro
+// instead of a run of Hebrew abbreviation letters.
 function ParsedItemRow({ item, onRemove, onSaveFavorite }: { item: ParsedFoodItem; onRemove: () => void; onSaveFavorite: () => void }) {
   const T = useTheme();
   return (
@@ -60,9 +62,7 @@ function ParsedItemRow({ item, onRemove, onSaveFavorite }: { item: ParsedFoodIte
     >
       <div className="flex-1 min-w-0">
         <div className="text-sm font-bold truncate" style={{ color: T.t.textPrimary }}>{item.name}</div>
-        <div className="text-[11px]" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>
-          {item.amount} · {item.kcal} קל׳ · {item.protein}ח {item.carbs}פ {item.fat}ש
-        </div>
+        <MacroLine kcal={item.kcal} protein={item.protein} carbs={item.carbs} fat={item.fat} prefix={item.amount} className="mt-0.5" />
       </div>
       <motion.button
         onClick={onSaveFavorite}

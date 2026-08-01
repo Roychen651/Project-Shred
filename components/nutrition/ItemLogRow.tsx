@@ -11,11 +11,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Pencil, Trash2 } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { tactileGradient } from '@/lib/theme/tokens';
 import { Stepper } from '@/components/ui/Stepper';
+import { MacroLine } from '@/components/ui/MacroLine';
 import { SLOT_DEFS } from '@/lib/domain/slots';
 import { SLOT_ICONS } from './slotIcons';
 import { scaleLoggedItem, type LoggedItem } from '@/lib/domain/items';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export interface ItemLogRowProps {
   item: LoggedItem;
@@ -35,13 +38,14 @@ export function ItemLogRow({ item, onToggle, onDelete, onUpdate }: ItemLogRowPro
         <motion.button
           onClick={onToggle}
           whileTap={{ scale: 0.85 }}
+          whileHover={{ scale: 1.06 }}
+          transition={tapSpring}
           className="flex items-center justify-center rounded-full flex-shrink-0"
-          style={{
-            width: 26,
-            height: 26,
-            background: item.isCompleted ? T.accent : T.t.chipBg,
-            border: `1px solid ${item.isCompleted ? T.accent : T.t.border}`,
-          }}
+          style={
+            item.isCompleted
+              ? { width: 26, height: 26, ...tactileGradient(T.accent) }
+              : { width: 26, height: 26, background: T.t.chipBg, border: `1px solid ${T.t.border}` }
+          }
           aria-label={item.isCompleted ? 'בטל השלמה' : 'סמן כהושלם'}
         >
           {item.isCompleted && <Check size={13} color="#07080B" />}
@@ -49,17 +53,29 @@ export function ItemLogRow({ item, onToggle, onDelete, onUpdate }: ItemLogRowPro
 
         <div className="flex-1 min-w-0">
           <div className="text-sm font-bold truncate" style={{ color: T.t.textPrimary }}>{item.name}</div>
-          <div className="text-[11px]" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>
-            {macros.calories} קל׳ · {macros.protein}ח {macros.carbs}פ {macros.fats}ש
-          </div>
+          <MacroLine kcal={macros.calories} protein={macros.protein} carbs={macros.carbs} fat={macros.fats} className="mt-0.5" />
         </div>
 
-        <button onClick={() => setEditing((v) => !v)} className="p-1.5 rounded-lg flex-shrink-0" style={{ background: editing ? T.t.border : T.t.chipBg }} aria-label="ערוך פריט">
+        <motion.button
+          onClick={() => setEditing((v) => !v)}
+          whileTap={{ scale: 0.88 }}
+          transition={tapSpring}
+          className="p-1.5 rounded-lg flex-shrink-0"
+          style={{ background: editing ? T.t.border : T.t.chipBg }}
+          aria-label="ערוך פריט"
+        >
           <Pencil size={13} color={T.t.textSecondary} />
-        </button>
-        <button onClick={onDelete} className="p-1.5 rounded-lg flex-shrink-0" style={{ background: `${T.macro.fat}18` }} aria-label="מחק פריט">
+        </motion.button>
+        <motion.button
+          onClick={onDelete}
+          whileTap={{ scale: 0.88 }}
+          transition={tapSpring}
+          className="p-1.5 rounded-lg flex-shrink-0"
+          style={{ background: `${T.macro.fat}18` }}
+          aria-label="מחק פריט"
+        >
           <Trash2 size={13} color={T.macro.fat} />
-        </button>
+        </motion.button>
       </div>
 
       <AnimatePresence>
@@ -85,15 +101,17 @@ export function ItemLogRow({ item, onToggle, onDelete, onUpdate }: ItemLogRowPro
                   const Icon = SLOT_ICONS[s.id];
                   const active = s.id === item.slotId;
                   return (
-                    <button
+                    <motion.button
                       key={s.id}
                       onClick={() => onUpdate({ slotId: s.id })}
+                      whileTap={{ scale: 0.92 }}
+                      transition={tapSpring}
                       className="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl"
-                      style={{ background: active ? T.accent : T.t.chipBg, border: `1px solid ${active ? T.accent : T.t.border}` }}
+                      style={active ? { ...tactileGradient(T.accent) } : { background: T.t.chipBg, border: `1px solid ${T.t.border}` }}
                     >
                       <Icon size={13} color={active ? '#07080B' : T.t.textSecondary} />
                       <span className="text-[9px] font-bold" style={{ color: active ? '#07080B' : T.t.textDim }}>{s.label}</span>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>

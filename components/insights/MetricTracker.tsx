@@ -11,14 +11,17 @@
 // entry after that keeps the artifact's exact fallback behavior.
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Scale, Ruler, Plus } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Sparkline } from '@/components/ui/Sparkline';
 import { dateKey } from '@/lib/domain/dates';
 import type { MetricEntry } from '@/lib/store/shred-store';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export interface MetricTrackerProps {
   entries: MetricEntry[];
@@ -80,31 +83,40 @@ export function MetricTracker({ entries, onAddEntry }: MetricTrackerProps) {
       )}
 
       <div className="flex flex-wrap gap-2 items-center pt-4" style={{ borderTop: `1px solid ${T.t.border}` }}>
-        <input
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          placeholder="משקל שבוע חדש"
-          type="number"
-          dir="ltr"
-          className="flex-1 py-2.5 px-3.5 rounded-xl text-sm outline-none"
-          style={{ minWidth: 130, background: T.t.inputBg, border: `1px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
-        />
-        <input
-          value={waist}
-          onChange={(e) => setWaist(e.target.value)}
-          placeholder="היקף מותן חדש"
-          type="number"
-          dir="ltr"
-          className="flex-1 py-2.5 px-3.5 rounded-xl text-sm outline-none"
-          style={{ minWidth: 130, background: T.t.inputBg, border: `1px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
-        />
-        <button
+        <div className="relative flex-1" style={{ minWidth: 130 }}>
+          <Scale size={13} color={T.t.textDim} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="משקל שבוע חדש"
+            type="number"
+            dir="ltr"
+            className="w-full py-2.5 pr-3.5 rounded-xl text-sm outline-none"
+            style={{ paddingLeft: 32, background: T.t.inputBg, border: `1px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
+          />
+        </div>
+        <div className="relative flex-1" style={{ minWidth: 130 }}>
+          <Ruler size={13} color={T.t.textDim} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            value={waist}
+            onChange={(e) => setWaist(e.target.value)}
+            placeholder="היקף מותן חדש"
+            type="number"
+            dir="ltr"
+            className="w-full py-2.5 pr-3.5 rounded-xl text-sm outline-none"
+            style={{ paddingLeft: 32, background: T.t.inputBg, border: `1px solid ${T.t.border}`, textAlign: 'left', color: T.t.textPrimary, fontFamily: FONT_MONO, fontWeight: 600 }}
+          />
+        </div>
+        <motion.button
           onClick={addEntry}
+          whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.03 }}
+          transition={tapSpring}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold"
-          style={{ background: T.accent, color: '#07080B', boxShadow: T.glow(T.accent, 12, '40') }}
+          style={{ ...tactileGradient(T.accent), color: '#07080B' }}
         >
           <Plus size={15} /> הוסף
-        </button>
+        </motion.button>
       </div>
       {entries.length === 0 && (
         <p className="text-xs mt-2" style={{ color: T.t.textDim }}>ברשומה הראשונה יש להזין גם משקל וגם היקף מותן.</p>

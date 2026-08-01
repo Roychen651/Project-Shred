@@ -10,12 +10,16 @@
 // logging surface in the app uses (Sprint 15's "universal slot selection").
 
 import { useMemo, useState } from 'react';
-import { Search, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Plus, Check } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { tactileGradient } from '@/lib/theme/tokens';
+import { MacroLine } from '@/components/ui/MacroLine';
 import { EATING_OUT_MENU, EATING_OUT_CATEGORIES } from '@/lib/data/eatingOut';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
 import type { LogItemSpec } from '@/lib/store/shred-store';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export interface RestaurantMatrixSheetBodyProps {
   onConfirm: (specs: LogItemSpec[], slotId: SlotId) => void;
@@ -50,20 +54,21 @@ export function RestaurantMatrixSheetBody({ onConfirm, defaultSlotId }: Restaura
       <div>
         <p className="text-xs font-semibold mb-1.5" style={{ color: T.t.textSecondary }}>שיבוץ לחלון זמן</p>
         <div className="grid grid-cols-5 gap-1.5">
-          {SLOT_DEFS.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSlotId(s.id)}
-              className="py-2 px-1 rounded-lg text-xs font-semibold"
-              style={{
-                background: slotId === s.id ? T.accent : T.t.chipBg,
-                color: slotId === s.id ? '#07080B' : T.t.textSecondary,
-                border: `1px solid ${slotId === s.id ? T.accent : T.t.border}`,
-              }}
-            >
-              {s.emoji}
-            </button>
-          ))}
+          {SLOT_DEFS.map((s) => {
+            const active = slotId === s.id;
+            return (
+              <motion.button
+                key={s.id}
+                onClick={() => setSlotId(s.id)}
+                whileTap={{ scale: 0.92 }}
+                transition={tapSpring}
+                className="py-2 px-1 rounded-lg text-xs font-semibold"
+                style={active ? { ...tactileGradient(T.accent), color: '#07080B' } : { background: T.t.chipBg, color: T.t.textSecondary, border: `1px solid ${T.t.border}` }}
+              >
+                {s.emoji}
+              </motion.button>
+            );
+          })}
         </div>
       </div>
 
@@ -79,47 +84,68 @@ export function RestaurantMatrixSheetBody({ onConfirm, defaultSlotId }: Restaura
       </div>
 
       <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-        <button
+        <motion.button
           onClick={() => setCategory(null)}
+          whileTap={{ scale: 0.94 }}
+          transition={tapSpring}
           className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold"
-          style={{ background: category === null ? T.accent : T.t.chipBg, color: category === null ? '#07080B' : T.t.textSecondary, border: `1px solid ${category === null ? T.accent : T.t.border}` }}
+          style={category === null ? { ...tactileGradient(T.accent), color: '#07080B' } : { background: T.t.chipBg, color: T.t.textSecondary, border: `1px solid ${T.t.border}` }}
         >
           הכל
-        </button>
-        {EATING_OUT_CATEGORIES.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setCategory(c.id)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold"
-            style={{ background: category === c.id ? T.accent : T.t.chipBg, color: category === c.id ? '#07080B' : T.t.textSecondary, border: `1px solid ${category === c.id ? T.accent : T.t.border}` }}
-          >
-            {c.label}
-          </button>
-        ))}
+        </motion.button>
+        {EATING_OUT_CATEGORIES.map((c) => {
+          const active = category === c.id;
+          return (
+            <motion.button
+              key={c.id}
+              onClick={() => setCategory(c.id)}
+              whileTap={{ scale: 0.94 }}
+              transition={tapSpring}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold"
+              style={active ? { ...tactileGradient(T.accent), color: '#07080B' } : { background: T.t.chipBg, color: T.t.textSecondary, border: `1px solid ${T.t.border}` }}
+            >
+              {c.label}
+            </motion.button>
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-1.5">
         {filtered.length === 0 && (
           <p className="text-sm text-center py-6" style={{ color: T.t.textDim }}>לא נמצאו מנות תואמות.</p>
         )}
-        {filtered.map((item) => (
-          <div key={item.id} className="flex items-center justify-between gap-2 p-3 rounded-xl" style={{ background: T.t.chipBg }}>
-            <div>
-              <div className="text-sm font-semibold" style={{ color: T.t.textPrimary }}>{item.name}</div>
-              <div className="text-xs" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>
-                {item.kcal} קל׳ · {item.protein}ח · {item.carbs}פ · {item.fat}ש
+        {filtered.map((item) => {
+          const justAdded = justLoggedId === item.id;
+          return (
+            <div key={item.id} className="flex items-center justify-between gap-2 p-3 rounded-xl" style={{ background: T.t.chipBg, border: `1px solid ${T.t.border}` }}>
+              <div className="min-w-0">
+                <div className="text-sm font-bold truncate" style={{ color: T.t.textPrimary }}>{item.name}</div>
+                <MacroLine kcal={item.kcal} protein={item.protein} carbs={item.carbs} fat={item.fat} className="mt-0.5" />
               </div>
+              <motion.button
+                onClick={() => logItem(item)}
+                whileTap={{ scale: 0.88 }}
+                whileHover={{ scale: 1.06 }}
+                transition={tapSpring}
+                className="flex items-center justify-center rounded-full flex-shrink-0"
+                style={justAdded ? { width: 34, height: 34, background: T.macro.protein, color: '#07080B' } : { width: 34, height: 34, ...tactileGradient(T.accent), color: '#07080B' }}
+                aria-label={`הוסף ${item.name}`}
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  {justAdded ? (
+                    <motion.span key="check" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={tapSpring}>
+                      <Check size={16} />
+                    </motion.span>
+                  ) : (
+                    <motion.span key="plus" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={tapSpring}>
+                      <Plus size={16} />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
             </div>
-            <button
-              onClick={() => logItem(item)}
-              className="flex items-center justify-center rounded-full flex-shrink-0"
-              style={{ width: 34, height: 34, background: justLoggedId === item.id ? T.macro.protein : T.accent, color: '#07080B' }}
-              aria-label={`הוסף ${item.name}`}
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

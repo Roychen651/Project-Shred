@@ -5,9 +5,12 @@
 // WhatsApp-ready Hebrew text, and copies it via navigator.clipboard.
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { ClipboardList, X, MessageCircle, Check, Copy } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 import type { WeeklyReport } from '@/lib/domain/analytics';
 import type { Profile } from '@/lib/store/shred-store';
 
@@ -94,14 +97,17 @@ export function WeeklyReportModal({ open, onClose, report, profile }: WeeklyRepo
 
           <p className="text-xs" style={{ color: T.t.textDim }}>ממוצע חלבון יומי השבוע: <span style={{ color: T.t.textPrimary, fontFamily: FONT_MONO }}>{report.avgProtein} גרם</span></p>
 
-          <button
+          <motion.button
             onClick={copyToClipboard}
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.01 }}
+            transition={tapSpring}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm mt-2"
-            style={{ background: copied ? T.macro.protein : T.accent, color: '#07080B' }}
+            style={copied ? { background: T.macro.protein, color: '#07080B' } : { ...tactileGradient(T.accent), color: '#07080B' }}
           >
             {copied ? <Check size={16} /> : <MessageCircle size={16} />}
             {copied ? 'הועתק!' : 'העתק דוח ל-WhatsApp'}
-          </button>
+          </motion.button>
           <p className="text-xs text-center" style={{ color: T.t.textDim }}>
             <Copy size={11} style={{ display: 'inline', marginLeft: 4 }} /> הטקסט מועתק ללוח והדבקה ב-WhatsApp/כל אפליקציה
           </p>

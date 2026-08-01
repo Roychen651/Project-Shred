@@ -6,9 +6,12 @@
 // setManualDayOverride + setWorkoutActivity in the real store.
 
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
 import type { HeatmapCell } from '@/lib/domain/analytics';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
 export interface DayEditorSavePatch {
   kcal: number;
@@ -45,13 +48,15 @@ export function DayEditor({ cell, onSave, onClose }: { cell: HeatmapCell; onSave
         אימון בוצע ביום זה
       </label>
       <div className="flex gap-2">
-        <button
+        <motion.button
           onClick={() => { onSave({ kcal: Number(kcal) || 0, protein: Number(protein) || 0, workoutDone }); onClose(); }}
+          whileTap={{ scale: 0.96 }}
+          transition={tapSpring}
           className="flex-1 py-2 rounded-lg text-xs font-bold"
-          style={{ background: T.accent, color: '#07080B' }}
+          style={{ ...tactileGradient(T.accent), color: '#07080B' }}
         >
           שמור
-        </button>
+        </motion.button>
         <button onClick={onClose} className="px-3 py-2 rounded-lg text-xs" style={{ background: T.t.inputBg, color: T.t.textSecondary }}>ביטול</button>
       </div>
     </div>

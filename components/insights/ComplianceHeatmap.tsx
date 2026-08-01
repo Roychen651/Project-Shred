@@ -15,10 +15,13 @@
 // what the artifact did, so it's left out rather than silently becoming a
 // bulk-delete button. Individual days stay editable via DayEditor either way.
 import { useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Pencil, LayoutGrid } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, tactileGradient } from '@/lib/theme/tokens';
 import { GlassCard } from '@/components/ui/GlassCard';
+
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { HeatmapDetail } from './HeatmapDetail';
 import { DayEditor, type DayEditorSavePatch } from './DayEditor';
@@ -58,6 +61,7 @@ export function ComplianceHeatmap({ itemsByDate, dayMeta, computed, onSaveDay }:
           <Eyebrow>מפת חום היצמדות · {HEATMAP_WEEKS} שבועות אחרונים</Eyebrow>
           <h3 className="text-lg font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>מפת חום שבועית/חודשית</h3>
         </div>
+        <LayoutGrid size={20} color={T.accent} />
       </div>
 
       <div dir="ltr" className="overflow-x-auto pb-1">
@@ -68,14 +72,17 @@ export function ComplianceHeatmap({ itemsByDate, dayMeta, computed, onSaveDay }:
                 const color = heatColor(cell.score, T.macro);
                 const isSelected = cell.key === selectedKey;
                 return (
-                  <button
+                  <motion.button
                     key={cell.key}
                     onMouseEnter={() => setSelectedKey(cell.key)}
                     onClick={() => { setSelectedKey(cell.key); setEditing(false); }}
-                    className="rounded-sm flex-shrink-0"
+                    whileHover={{ scale: 1.35 }}
+                    transition={tapSpring}
+                    className="rounded-[4px] flex-shrink-0"
                     style={{
                       width: 13, height: 13,
                       background: color || T.t.chipBg,
+                      boxShadow: color && isSelected ? T.glow(color, 8, '55') : undefined,
                       border: isSelected ? `1.5px solid ${T.accent}` : `1px solid ${T.t.border}`,
                       opacity: color ? 1 : 0.5,
                     }}
@@ -87,12 +94,12 @@ export function ComplianceHeatmap({ itemsByDate, dayMeta, computed, onSaveDay }:
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mt-3 text-xs" style={{ color: T.t.textDim }}>
+      <div className="flex items-center gap-2.5 mt-3.5 text-xs" style={{ color: T.t.textDim }}>
         <span>פחות</span>
-        <span className="rounded-sm" style={{ width: 11, height: 11, background: T.t.chipBg, display: 'inline-block' }} />
-        <span className="rounded-sm" style={{ width: 11, height: 11, background: T.macro.fat, display: 'inline-block' }} />
-        <span className="rounded-sm" style={{ width: 11, height: 11, background: T.macro.kcal, display: 'inline-block' }} />
-        <span className="rounded-sm" style={{ width: 11, height: 11, background: T.macro.protein, display: 'inline-block' }} />
+        <span className="rounded-full" style={{ width: 11, height: 11, background: T.t.chipBg, border: `1px solid ${T.t.border}`, display: 'inline-block' }} />
+        <span className="rounded-full" style={{ width: 11, height: 11, background: T.macro.fat, display: 'inline-block' }} />
+        <span className="rounded-full" style={{ width: 11, height: 11, background: T.macro.kcal, display: 'inline-block' }} />
+        <span className="rounded-full" style={{ width: 11, height: 11, background: T.macro.protein, display: 'inline-block' }} />
         <span>יותר</span>
       </div>
 
@@ -101,13 +108,16 @@ export function ComplianceHeatmap({ itemsByDate, dayMeta, computed, onSaveDay }:
         {selectedCell && (
           <div className="mt-3">
             {!editing ? (
-              <button
+              <motion.button
                 onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg"
-                style={{ background: T.t.chipBg, color: T.t.textSecondary, border: `1px solid ${T.t.border}` }}
+                whileTap={{ scale: 0.96 }}
+                whileHover={{ scale: 1.02 }}
+                transition={tapSpring}
+                className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl"
+                style={{ ...tactileGradient(T.accent), color: '#07080B' }}
               >
                 <Pencil size={12} /> ערוך יום זה (מילוי רטרואקטיבי)
-              </button>
+              </motion.button>
             ) : (
               <DayEditor
                 cell={selectedCell}
