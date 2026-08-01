@@ -37,6 +37,7 @@ import { SyncStatusIndicator } from '@/components/shell/SyncStatusIndicator';
 import { CompositeHeroRing } from '@/components/today/CompositeHeroRing';
 import { HeroRingLegend } from '@/components/today/HeroRingLegend';
 import { SmartContextCard } from '@/components/today/SmartContextCard';
+import { MacroStatTiles } from '@/components/today/MacroStatTiles';
 import { PremiumMotivator } from '@/components/ui/PremiumMotivator';
 
 import { QuickLogSheetBody } from '@/components/nutrition/QuickLogSheetBody';
@@ -325,6 +326,14 @@ export default function Home() {
                 </motion.div>
                 <motion.div variants={tabItemVariants}>
                   <HeroRingLegend />
+                </motion.div>
+                {/* Sprint 25 — carbs/fat had no surface anywhere on this tab
+                    (the ring only ever tracked kcal/protein); this closes
+                    that real gap with the floating-badge tile pattern from
+                    the new Dribbble references, with room above for the
+                    corner badges that poke past each tile's own edge. */}
+                <motion.div variants={tabItemVariants} className="w-full mt-3">
+                  <MacroStatTiles consumed={consumed} targets={targets} />
                 </motion.div>
                 {/* Sprint 20 — extra top clearance for SmartContextCard's
                     floating badge (Sprint 19), which pokes -14px above the
