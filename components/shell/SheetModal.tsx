@@ -122,6 +122,7 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
                   onPointerDown={(e) => e.stopPropagation()}
                   className="p-1.5 rounded-lg"
                   style={{ background: T.t.chipBg }}
+                  aria-label="סגור"
                 >
                   <X size={15} color={T.t.textSecondary} />
                 </button>

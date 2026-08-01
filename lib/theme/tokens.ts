@@ -143,9 +143,9 @@ export interface ThemePreset {
 // input fills move to translucent white (rgba(255,255,255,0.1) /
 // rgba(255,255,255,0.03)) instead of opaque hex, which is what actually
 // produces the "hairline edge over black glass" look this register is after;
-// text goes to genuinely near-white. Light mode is unreachable from the UI
-// again (toggle removed, see app/page.tsx and shred-store.ts) — kept in code
-// rather than deleted, same reasoning as the Sprint 14 note this replaces.
+// text goes to genuinely near-white. This branch is UNCHANGED by Sprint 21's
+// light-mode reactivation below — dark mode is still fully available via the
+// header toggle, just no longer the forced-only default.
 export const THEME_PRESETS: Record<ThemeMode, ThemePreset> = {
   dark: {
     bg: '#050505',
@@ -177,6 +177,14 @@ export const THEME_PRESETS: Record<ThemeMode, ThemePreset> = {
   // a whisper of warmth on both, still clearly distinct from each other,
   // reads as considered instead of default. Shadow deepened slightly too —
   // "mature" needs real, soft elevation, not a hairline.
+  //
+  // Sprint 21 — reactivated (see the Sprint 21 note on THEME_PRESETS above
+  // and shred-store.ts) after being unreachable-but-kept since Sprint 18.
+  // These values themselves were never touched while dark-only — everything
+  // built in Sprints 18-20 (GlassCard's smoked glass, TiltCard's glare,
+  // the mesh-gradient blobs, the placeholder color) was written assuming
+  // permanent dark mode, so those got audited and fixed for light mode as
+  // part of this reactivation rather than assumed to already work.
   light: {
     bg: '#F7F1E7',
     bgGrad: 'radial-gradient(ellipse 130% 80% at 50% -10%, #FFFDF9 0%, #F7F1E7 55%)',

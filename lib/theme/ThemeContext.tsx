@@ -56,15 +56,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setFeedback = useShredStore((s) => s.setFeedback);
 
   const accent = getAccentHex(mode, accentKey);
+  const t = THEME_PRESETS[mode];
 
   // Sprint 18 — exposes the live accent as a CSS custom property so plain
   // globals.css rules (the real :focus glow on every input, app-wide — see
   // that file) can react to accent changes without needing useTheme() at the
   // point of each rule. React inline styles can't target :focus/::placeholder
   // at all, so this is the one place that bridge has to exist.
+  //
+  // Sprint 21 — added --placeholder-color alongside it. globals.css's
+  // `::placeholder` rule was hardcoded to a translucent WHITE from Sprint 18,
+  // written back when dark mode was the app's only reachable mode; on light
+  // mode's cream/white inputs that made every placeholder invisible. Same
+  // bridge, same reason: a pseudo-element can't read useTheme().
   useEffect(() => {
     document.documentElement.style.setProperty('--accent-hex', accent);
-  }, [accent]);
+    document.documentElement.style.setProperty('--placeholder-color', t.textDim);
+  }, [accent, t.textDim]);
 
   const value = useMemo<ShredTheme>(() => ({
     mode, accentKey, density, feedback,

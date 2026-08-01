@@ -21,6 +21,7 @@
 // useViewportHeight.ts's identical note). This is the same fix, reused.
 import { useRef, useSyncExternalStore, type ReactNode, type CSSProperties } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'framer-motion';
+import { useTheme } from '@/lib/theme/ThemeContext';
 
 function subscribeToHoverCapability(): () => void {
   return () => {};
@@ -50,6 +51,7 @@ export interface TiltCardProps {
 }
 
 export function TiltCard({ children, className = '', style = {}, maxTilt = 8, glare = true, borderRadius = 32 }: TiltCardProps) {
+  const T = useTheme();
   const ref = useRef<HTMLDivElement>(null);
   const tiltEnabled = useSyncExternalStore(subscribeToHoverCapability, getHoverCapability, getServerHoverCapability);
 
@@ -57,7 +59,17 @@ export function TiltCard({ children, className = '', style = {}, maxTilt = 8, gl
   const py = useMotionValue(0.5);
   const rotateX = useSpring(useTransform(py, [0, 1], [maxTilt, -maxTilt]), { stiffness: 300, damping: 30 });
   const rotateY = useSpring(useTransform(px, [0, 1], [-maxTilt, maxTilt]), { stiffness: 300, damping: 30 });
-  const glareBg = useMotionTemplate`radial-gradient(circle at ${useTransform(px, (v) => `${v * 100}%`)} ${useTransform(py, (v) => `${v * 100}%`)}, rgba(255,255,255,0.14), transparent 55%)`;
+  // Sprint 21 — a white highlight blended with `overlay` reads as a real
+  // glossy shine against dark cards, but `overlay` on a near-white light-mode
+  // card is close to a no-op (overlaying white onto white changes nothing).
+  // Light mode instead darkens subtly toward the cursor with `multiply`, the
+  // conventional "soft shadow following the light" cue on light surfaces —
+  // same physical idea (a highlight tracks the cursor), different mechanism
+  // because the two backgrounds need opposite contrast directions.
+  const isDark = T.mode === 'dark';
+  const glareColor = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(33,28,22,0.06)';
+  const glareBlend = isDark ? 'overlay' : 'multiply';
+  const glareBg = useMotionTemplate`radial-gradient(circle at ${useTransform(px, (v) => `${v * 100}%`)} ${useTransform(py, (v) => `${v * 100}%`)}, ${glareColor}, transparent 55%)`;
 
   const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -93,7 +105,7 @@ export function TiltCard({ children, className = '', style = {}, maxTilt = 8, gl
           <motion.div
             aria-hidden
             className="pointer-events-none absolute inset-0"
-            style={{ background: glareBg, mixBlendMode: 'overlay', borderRadius }}
+            style={{ background: glareBg, mixBlendMode: glareBlend, borderRadius }}
           />
         )}
       </motion.div>

@@ -289,13 +289,14 @@ export function createShredStore(initial?: Partial<ShredState>) {
     customRestaurants: [],
     customHacks: [],
     metricEntries: [],
-    // Sprint 18 — dark mode is forced again, reversing Sprint 15's reversal
-    // of Sprint 14's original lock. This is the second time this exact
-    // toggle has flipped in this project's history (see tokens.ts's Sprint
-    // 18 note and CLAUDE.md) — each time on a direct, explicit, differently-
-    // justified instruction from the same person. Noted plainly rather than
-    // silently overwritten so the flip-flop is traceable, not hidden.
-    mode: 'dark',
+    // Sprint 21 — light mode restored as the default again, confirmed
+    // explicitly against the same Nixtio/Biosora reference that drove
+    // Sprint 15's reversal. This is the fourth flip of this exact toggle in
+    // the project's history (dark->light->dark->light, Sprints 14/15/18/21
+    // respectively) — each one on a direct, explicit instruction from the
+    // same person. Documented plainly each time rather than silently
+    // overwritten, same as every prior flip.
+    mode: 'light',
     accentKey: 'emerald',
     density: 'comfortable',
     feedback: true,
@@ -305,9 +306,9 @@ export function createShredStore(initial?: Partial<ShredState>) {
 
     setSelectedDateKey: (newDateKey) => set({ selectedDateKey: newDateKey }),
 
-    // Sprint 18 — `data.mode` is dropped again (mirrors Sprint 14): a server-
-    // saved 'light' from before this lock must not override the forced
-    // default on load, or a returning user could "leak" back into light mode.
+    // Sprint 21 — `data.mode` round-trips normally again: with the toggle
+    // back, a saved preference should apply on load like every other
+    // setting (mirrors the Sprint 15 note this replaces).
     hydrateFromServer: (data) => set({
       itemsByDate: data.itemsByDate,
       dayMeta: data.dayMeta,
@@ -315,6 +316,7 @@ export function createShredStore(initial?: Partial<ShredState>) {
       metricEntries: data.metricEntries,
       ...(data.profiles ? { profiles: data.profiles } : {}),
       ...(data.activeProfileId ? { activeProfileId: data.activeProfileId } : {}),
+      ...(data.mode ? { mode: data.mode } : {}),
       ...(data.accentKey ? { accentKey: data.accentKey } : {}),
       ...(data.density ? { density: data.density } : {}),
       ...(data.feedback !== undefined ? { feedback: data.feedback } : {}),

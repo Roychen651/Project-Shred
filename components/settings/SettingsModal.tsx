@@ -82,7 +82,7 @@ export function SettingsModal({ open, onClose, profile, updateProfile, bmr, tdee
             <Settings2 size={18} color={T.accent} />
             <h3 className="text-lg font-bold" style={{ color: T.t.textPrimary, fontFamily: FONT_DISPLAY }}>הגדרות</h3>
           </div>
-          <motion.button onClick={onClose} whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.06 }} transition={tapSpring} className="p-1.5 rounded-lg" style={{ background: T.t.chipBg }}>
+          <motion.button onClick={onClose} whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.06 }} transition={tapSpring} className="p-1.5 rounded-lg" style={{ background: T.t.chipBg }} aria-label="סגור">
             <X size={16} color={T.t.textSecondary} />
           </motion.button>
         </div>

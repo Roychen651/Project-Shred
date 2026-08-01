@@ -54,7 +54,13 @@ export function SmartContextCard({ items, onQuickComplete, onEdit }: SmartContex
           of the card's padding box instead of sitting flat inside it */}
       <div
         className="absolute z-10 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold"
-        style={{ top: -14, right: 20, background: T.t.chipBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO, boxShadow: '0 8px 20px -6px rgba(0,0,0,0.6)' }}
+        style={{
+          top: -14, right: 20, background: T.t.chipBg, border: `1px solid ${T.t.border}`, color: T.t.textPrimary, fontFamily: FONT_MONO,
+          // Sprint 21 — was a flat rgba(0,0,0,0.6), correct for dark but a
+          // touch harsh/mismatched against the app's own warm rgba(33,28,22,
+          // ...) shadow convention used everywhere else in light mode.
+          boxShadow: T.mode === 'dark' ? '0 8px 20px -6px rgba(0,0,0,0.6)' : '0 8px 20px -6px rgba(33,28,22,0.35)',
+        }}
       >
         {slot.time} · עכשיו
       </div>

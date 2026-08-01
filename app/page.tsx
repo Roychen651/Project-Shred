@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, UtensilsCrossed, Layers3, Sparkles, Settings2, ClipboardList } from 'lucide-react';
 import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, JEWEL, tactileGradient } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
@@ -273,6 +273,17 @@ export default function Home() {
               aria-label="הגדרות"
             >
               <Settings2 size={16} color={T.t.textSecondary} />
+            </motion.button>
+            <motion.button
+              onClick={() => T.setMode(T.mode === 'dark' ? 'light' : 'dark')}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.06 }}
+              transition={tapSpring}
+              className="flex items-center justify-center rounded-2xl"
+              style={{ width: 38, height: 38, background: T.t.inputBg, border: `1px solid ${T.t.border}` }}
+              aria-label="מצב תצוגה"
+            >
+              {T.mode === 'dark' ? <MoonIcon size={16} color={T.t.textSecondary} /> : <SunIcon size={16} color={T.t.textSecondary} />}
             </motion.button>
           </div>
         </div>

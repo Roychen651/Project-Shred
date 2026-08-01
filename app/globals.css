@@ -52,8 +52,12 @@ select:focus {
     0 0 0 2px color-mix(in srgb, var(--accent-hex, #3F8D6E) 30%, transparent),
     inset 0 0 0 1px color-mix(in srgb, var(--accent-hex, #3F8D6E) 50%, transparent);
 }
+/* Sprint 21 — was hardcoded to a translucent white, which is exactly right
+ * for dark mode and exactly invisible on light mode's cream/white inputs.
+ * `--placeholder-color` is set from THEME_PRESETS[mode].textDim by
+ * ThemeContext.tsx, so it's correct in both registers automatically. */
 ::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--placeholder-color, rgba(255, 255, 255, 0.3));
 }
 button {
   transition: transform 0.16s cubic-bezier(0.32, 0.72, 0, 1), filter 0.16s ease, box-shadow 0.2s ease;
