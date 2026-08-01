@@ -51,3 +51,26 @@ function subscribe(onChange: () => void): () => void {
 export function useViewportHeight(): number {
   return useSyncExternalStore(subscribe, getHeight, getServerHeight);
 }
+
+// Sprint 29 — a real, reported bug: when the on-screen keyboard opens on iOS
+// Safari, `visualViewport.height` shrinks (which useViewportHeight above
+// already tracks correctly, sizing the sheet panel shorter) but the
+// `position: fixed` OVERLAY WRAPPER around it does not follow along — a
+// `fixed` element with `inset: 0` is positioned relative to the LAYOUT
+// viewport (the page as if no keyboard existed), not the visual one. The
+// keyboard shrinks the visible area from the bottom, and `visualViewport`
+// also gains a nonzero `offsetTop` in that state on some engines, so a sheet
+// simply anchored to "bottom of the fixed overlay" can end up bottom-aligned
+// to a position that's now below/behind the keyboard — the sheet appears to
+// "fall" out of view, exactly the reported symptom. Reading `offsetTop`
+// alongside `height` lets SheetModal translate its overlay to stay glued to
+// whatever's actually visible, keyboard or not.
+function getOffsetTop(): number {
+  return window.visualViewport ? window.visualViewport.offsetTop : 0;
+}
+function getServerOffsetTop(): number {
+  return 0;
+}
+export function useViewportOffsetTop(): number {
+  return useSyncExternalStore(subscribe, getOffsetTop, getServerOffsetTop);
+}

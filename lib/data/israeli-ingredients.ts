@@ -135,4 +135,83 @@ export const ISRAELI_INGREDIENTS: Ingredient[] = [
   { id: 'il-schug-red', name: 'סחוג אדום חריף', category: 'condiments', hasCookedVariant: false, raw: { kcal: 55, protein: 2, carbs: 6, fat: 3 } },
   { id: 'il-fried-cauliflower', name: 'כרובית מטוגנת (מנה)', category: 'veg', hasCookedVariant: false, raw: { kcal: 160, protein: 3, carbs: 12, fat: 11 } },
   { id: 'il-pickled-vegetables-mix', name: 'ירקות כבושים (מנה)', category: 'veg', hasCookedVariant: false, raw: { kcal: 30, protein: 0.8, carbs: 5, fat: 0.5 } },
+
+  // ---- Round 2 (Sprint 29) — legumes, nuts & seeds (~10) ----
+  // Same generic/honest-estimate discipline as everything above. This round
+  // targets categories that were thin even after 15+ prior data-expansion
+  // sprints in the artifact's own history (see CLAUDE.md) — real gaps like
+  // more legume varieties, tree nuts beyond walnuts/cashews/almonds, and
+  // seeds, cross-checked against the existing INGREDIENT_DB entries first so
+  // nothing here duplicates an item that already exists there.
+  { id: 'il-black-beans-cooked', name: 'שעועית שחורה מבושלת', category: 'protein', hasCookedVariant: false, raw: { kcal: 132, protein: 8.9, carbs: 24, fat: 0.5 } },
+  { id: 'il-kidney-beans-cooked', name: 'שעועית אדומה מבושלת', category: 'protein', hasCookedVariant: false, raw: { kcal: 127, protein: 8.7, carbs: 22.8, fat: 0.5 } },
+  { id: 'il-mung-beans-cooked', name: 'אפונת מש מבושלת', category: 'protein', hasCookedVariant: false, raw: { kcal: 105, protein: 7, carbs: 19, fat: 0.4 } },
+  { id: 'il-split-peas-cooked', name: 'אפונה מבוקעת מבושלת', category: 'protein', hasCookedVariant: false, raw: { kcal: 118, protein: 8.3, carbs: 21, fat: 0.4 } },
+  { id: 'il-pistachios', name: 'פיסטוקים', category: 'fat', hasCookedVariant: false, raw: { kcal: 562, protein: 20, carbs: 28, fat: 45 } },
+  { id: 'il-hazelnuts', name: 'אגוזי לוז', category: 'fat', hasCookedVariant: false, raw: { kcal: 628, protein: 15, carbs: 17, fat: 61 } },
+  { id: 'il-pecans', name: 'אגוזי פקאן', category: 'fat', hasCookedVariant: false, raw: { kcal: 691, protein: 9, carbs: 14, fat: 72 } },
+  { id: 'il-macadamia', name: 'אגוזי מקדמיה', category: 'fat', hasCookedVariant: false, raw: { kcal: 718, protein: 8, carbs: 14, fat: 76 } },
+  { id: 'il-chia-seeds', name: "זרעי צ'יה", category: 'fat', hasCookedVariant: false, raw: { kcal: 486, protein: 17, carbs: 42, fat: 31 } },
+  { id: 'il-flax-seeds-ground', name: 'זרעי פשתן טחונים', category: 'fat', hasCookedVariant: false, raw: { kcal: 534, protein: 18, carbs: 29, fat: 42 } },
+
+  // ---- Round 2 — cheeses (~6) ----
+  { id: 'il-cheddar', name: "גבינת צ'דר", category: 'fat', hasCookedVariant: false, raw: { kcal: 403, protein: 25, carbs: 1.3, fat: 33 } },
+  { id: 'il-gouda', name: 'גבינת גאודה', category: 'fat', hasCookedVariant: false, raw: { kcal: 356, protein: 25, carbs: 2.2, fat: 27 } },
+  { id: 'il-parmesan-grated', name: 'פרמזן מגורר', category: 'fat', hasCookedVariant: false, raw: { kcal: 431, protein: 38, carbs: 4, fat: 29 } },
+  { id: 'il-halloumi', name: 'גבינת האלומי', category: 'fat', hasCookedVariant: false, raw: { kcal: 321, protein: 22, carbs: 2, fat: 25 } },
+  { id: 'il-brie', name: 'גבינת ברי', category: 'fat', hasCookedVariant: false, raw: { kcal: 334, protein: 21, carbs: 0.5, fat: 28 } },
+  { id: 'il-edam-cheese', name: 'גבינת אדם', category: 'fat', hasCookedVariant: false, raw: { kcal: 356, protein: 25, carbs: 1.4, fat: 28 } },
+
+  // ---- Round 2 — fish & seafood (~5) ----
+  { id: 'il-mussels', name: 'צדפות בלו', category: 'protein', hasCookedVariant: true, cookedFactor: 0.85, raw: { kcal: 86, protein: 12, carbs: 3.7, fat: 2.2 } },
+  { id: 'il-anchovies', name: 'אנשובי', category: 'protein', hasCookedVariant: false, raw: { kcal: 131, protein: 20, carbs: 0, fat: 4.8 } },
+  { id: 'il-mullet', name: 'דג בורי', category: 'protein', hasCookedVariant: true, cookedFactor: 0.85, raw: { kcal: 117, protein: 19, carbs: 0, fat: 4 } },
+  { id: 'il-herring', name: 'דג הרינג', category: 'protein', hasCookedVariant: true, cookedFactor: 0.85, raw: { kcal: 158, protein: 18, carbs: 0, fat: 9 } },
+  { id: 'il-whitefish-fillet', name: 'פילה דג לבן', category: 'protein', hasCookedVariant: true, cookedFactor: 0.85, raw: { kcal: 90, protein: 19, carbs: 0, fat: 1.2 } },
+
+  // ---- Round 2 — vegetables (~12) ----
+  { id: 'il-eggplant', name: 'חציל', category: 'veg', hasCookedVariant: false, raw: { kcal: 25, protein: 1, carbs: 6, fat: 0.2 } },
+  { id: 'il-celery', name: 'סלרי', category: 'veg', hasCookedVariant: false, raw: { kcal: 16, protein: 0.7, carbs: 3, fat: 0.2 } },
+  { id: 'il-arugula', name: 'רוקט', category: 'veg', hasCookedVariant: false, raw: { kcal: 25, protein: 2.6, carbs: 3.7, fat: 0.7 } },
+  { id: 'il-bean-sprouts', name: 'נבטי שעועית', category: 'veg', hasCookedVariant: false, raw: { kcal: 30, protein: 3, carbs: 6, fat: 0.2 } },
+  { id: 'il-parsley', name: 'פטרוזיליה', category: 'veg', hasCookedVariant: false, raw: { kcal: 36, protein: 3, carbs: 6.3, fat: 0.8 } },
+  { id: 'il-cilantro', name: 'כוסברה', category: 'veg', hasCookedVariant: false, raw: { kcal: 23, protein: 2.1, carbs: 3.7, fat: 0.5 } },
+  { id: 'il-mint-fresh', name: 'נענע טרייה', category: 'veg', hasCookedVariant: false, raw: { kcal: 44, protein: 3.3, carbs: 8.4, fat: 0.7 } },
+  { id: 'il-radish', name: 'צנון', category: 'veg', hasCookedVariant: false, raw: { kcal: 16, protein: 0.7, carbs: 3.4, fat: 0.1 } },
+  { id: 'il-asparagus', name: 'אספרגוס', category: 'veg', hasCookedVariant: false, raw: { kcal: 20, protein: 2.2, carbs: 3.9, fat: 0.1 } },
+  { id: 'il-brussels-sprouts', name: 'כרוב ניצנים', category: 'veg', hasCookedVariant: false, raw: { kcal: 43, protein: 3.4, carbs: 9, fat: 0.3 } },
+  { id: 'il-fennel', name: 'שומר', category: 'veg', hasCookedVariant: false, raw: { kcal: 31, protein: 1.2, carbs: 7.3, fat: 0.2 } },
+  { id: 'il-okra-fresh', name: 'במיה טרייה', category: 'veg', hasCookedVariant: false, raw: { kcal: 33, protein: 1.9, carbs: 7.5, fat: 0.2 } },
+
+  // ---- Round 2 — fruits (~10) ----
+  { id: 'il-dates-fresh', name: 'תמרים טריים', category: 'fruit', hasCookedVariant: false, raw: { kcal: 282, protein: 2.5, carbs: 75, fat: 0.4 } },
+  { id: 'il-cherries', name: 'דובדבנים', category: 'fruit', hasCookedVariant: false, raw: { kcal: 63, protein: 1.1, carbs: 16, fat: 0.2 } },
+  { id: 'il-nectarine', name: 'נקטרינה', category: 'fruit', hasCookedVariant: false, raw: { kcal: 44, protein: 1.1, carbs: 10.5, fat: 0.3 } },
+  { id: 'il-persimmon', name: 'אפרסמון', category: 'fruit', hasCookedVariant: false, raw: { kcal: 70, protein: 0.6, carbs: 18.6, fat: 0.2 } },
+  { id: 'il-watermelon', name: 'אבטיח', category: 'fruit', hasCookedVariant: false, raw: { kcal: 30, protein: 0.6, carbs: 7.6, fat: 0.2 } },
+  { id: 'il-melon', name: 'מלון', category: 'fruit', hasCookedVariant: false, raw: { kcal: 34, protein: 0.8, carbs: 8.2, fat: 0.2 } },
+  { id: 'il-strawberries', name: 'תותים', category: 'fruit', hasCookedVariant: false, raw: { kcal: 32, protein: 0.7, carbs: 7.7, fat: 0.3 } },
+  { id: 'il-blackberries', name: 'פטל שחור', category: 'fruit', hasCookedVariant: false, raw: { kcal: 43, protein: 1.4, carbs: 9.6, fat: 0.5 } },
+  { id: 'il-clementine', name: 'קלמנטינה', category: 'fruit', hasCookedVariant: false, raw: { kcal: 47, protein: 0.8, carbs: 12, fat: 0.2 } },
+  { id: 'il-passion-fruit-fresh', name: 'פסיפלורה טרייה', category: 'fruit', hasCookedVariant: false, raw: { kcal: 97, protein: 2.2, carbs: 23, fat: 0.7 } },
+
+  // ---- Round 2 — carbs & grains (~8) ----
+  { id: 'il-buckwheat-cooked', name: 'כוסמת מבושלת', category: 'carb', hasCookedVariant: false, raw: { kcal: 92, protein: 3.4, carbs: 20, fat: 0.6 } },
+  { id: 'il-freekeh-cooked', name: 'פריכה (חיטה ירוקה) מבושלת', category: 'carb', hasCookedVariant: false, raw: { kcal: 130, protein: 5, carbs: 24, fat: 1.3 } },
+  { id: 'il-semolina-cooked', name: 'סולת מבושלת', category: 'carb', hasCookedVariant: false, raw: { kcal: 90, protein: 3, carbs: 18.5, fat: 0.4 } },
+  { id: 'il-rice-noodles-cooked', name: 'אטריות אורז מבושלות', category: 'carb', hasCookedVariant: false, raw: { kcal: 109, protein: 1.8, carbs: 25, fat: 0.2 } },
+  { id: 'il-whole-wheat-couscous', name: 'קוסקוס מלא', category: 'carb', hasCookedVariant: true, cookedFactor: 2.2, raw: { kcal: 348, protein: 12.8, carbs: 72, fat: 1.6 } },
+  { id: 'il-breadcrumbs', name: 'פירורי לחם', category: 'carb', hasCookedVariant: false, raw: { kcal: 395, protein: 13, carbs: 72, fat: 5.3 } },
+  { id: 'il-oats-raw', name: 'קוואקר גולמי', category: 'carb', hasCookedVariant: false, raw: { kcal: 379, protein: 13.5, carbs: 67.7, fat: 6.5 } },
+  { id: 'il-protein-pancake-cooked', name: 'פנקייק חלבון מוכן', category: 'carb', hasCookedVariant: false, raw: { kcal: 210, protein: 18, carbs: 22, fat: 6 } },
+
+  // ---- Round 2 — condiments & spices (~8) ----
+  { id: 'il-cinnamon', name: 'קינמון', category: 'condiments', hasCookedVariant: false, raw: { kcal: 247, protein: 4, carbs: 81, fat: 1.2 } },
+  { id: 'il-cocoa-powder-unsweetened', name: 'קקאו טבעי לא ממותק', category: 'condiments', hasCookedVariant: false, raw: { kcal: 228, protein: 20, carbs: 58, fat: 14 } },
+  { id: 'il-capers', name: 'קפרס', category: 'condiments', hasCookedVariant: false, raw: { kcal: 23, protein: 2.4, carbs: 4.9, fat: 0.9 } },
+  { id: 'il-wasabi-paste', name: 'משחת וואסאבי', category: 'condiments', hasCookedVariant: false, raw: { kcal: 109, protein: 2.9, carbs: 23, fat: 0.6 } },
+  { id: 'il-sriracha-sauce', name: "רוטב סריראצ'ה", category: 'condiments', hasCookedVariant: false, raw: { kcal: 93, protein: 1.9, carbs: 19, fat: 0.9 } },
+  { id: 'il-nutritional-yeast', name: 'שמרי תזונה', category: 'condiments', hasCookedVariant: false, raw: { kcal: 325, protein: 45, carbs: 36, fat: 6 } },
+  { id: 'il-cornstarch', name: 'קורנפלור', category: 'condiments', hasCookedVariant: false, raw: { kcal: 381, protein: 0.3, carbs: 91, fat: 0.1 } },
+  { id: 'il-turmeric', name: 'כורכום', category: 'condiments', hasCookedVariant: false, raw: { kcal: 312, protein: 9.7, carbs: 67, fat: 3.3 } },
 ];

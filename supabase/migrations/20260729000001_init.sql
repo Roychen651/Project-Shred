@@ -336,7 +336,7 @@ create table public.custom_ingredients (
 
   name                text not null,
   category            text not null default 'protein'
-                        check (category in ('protein', 'carb', 'fat', 'veg', 'fruit', 'dairy_snacks', 'condiments')),
+                        check (category in ('protein', 'carb', 'fat', 'veg', 'fruit', 'dairy_snacks', 'condiments', 'beverages')),
 
   has_cooked_variant  boolean not null default false,
   cooked_factor       numeric(5,3) check (cooked_factor > 0),

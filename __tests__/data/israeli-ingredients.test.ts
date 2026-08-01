@@ -42,10 +42,15 @@ describe('ISRAELI_INGREDIENTS — structural integrity', () => {
   it('no entry name references a specific real brand (spot-checks the generic-only boundary)', () => {
     // Not exhaustive — a deliberate spot-check for the most likely brand names to
     // leak in, matching the explicit "generic, not branded" scope of this file.
+    // Word-boundary match (not substring): a plain .includes() false-positives on
+    // e.g. "כוסברה" (cilantro), which contains "סברה" (the Sabra brand) as a
+    // substring without being any reference to it — Hebrew doesn't insert word
+    // breaks at every semantic boundary the way compound English words might.
     const brandNames = ['דנונה', 'תנובה', 'עלית', 'אסם', 'שטראוס', 'מולר', 'יופלייט', 'גולדה', 'אחלה', 'סברה', 'ברמן', 'אנג\'ל'];
     for (const ing of ISRAELI_INGREDIENTS) {
+      const words = new Set(ing.name.split(/[^א-ת']+/).filter(Boolean));
       for (const brand of brandNames) {
-        expect(ing.name.includes(brand), `${ing.id} ("${ing.name}") references brand "${brand}"`).toBe(false);
+        expect(words.has(brand), `${ing.id} ("${ing.name}") references brand "${brand}"`).toBe(false);
       }
     }
   });

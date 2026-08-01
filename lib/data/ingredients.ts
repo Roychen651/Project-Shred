@@ -19,6 +19,7 @@ export const INGREDIENT_CATEGORIES: { id: IngredientCategory; label: string; tin
   { id: 'fruit', label: 'פירות', tint: 'accent' },
   { id: 'dairy_snacks', label: 'חלב וחטיפים', tint: 'accent' },
   { id: 'condiments', label: 'רטבים ותבלינים', tint: 'accent' },
+  { id: 'beverages', label: 'משקאות', tint: 'accent' },
 ];
 
 export const INGREDIENT_DB: Ingredient[] = [

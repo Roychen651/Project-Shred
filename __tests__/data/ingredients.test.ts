@@ -76,9 +76,9 @@ describe('INGREDIENT_DB — spot-checks against the artifact source', () => {
 });
 
 describe('INGREDIENT_CATEGORIES', () => {
-  it('has all 7 categories from Sprint 15.6', () => {
+  it('has all 8 categories (7 from Sprint 15.6 + beverages from Sprint 29)', () => {
     expect(INGREDIENT_CATEGORIES.map((c) => c.id).sort()).toEqual(
-      ['carb', 'condiments', 'dairy_snacks', 'fat', 'fruit', 'protein', 'veg'].sort()
+      ['beverages', 'carb', 'condiments', 'dairy_snacks', 'fat', 'fruit', 'protein', 'veg'].sort()
     );
   });
 

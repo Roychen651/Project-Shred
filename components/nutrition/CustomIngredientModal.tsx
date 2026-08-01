@@ -23,11 +23,12 @@ import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 import { INGREDIENT_DB, INGREDIENT_CATEGORIES } from '@/lib/data/ingredients';
 import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
+import { BEVERAGES } from '@/lib/data/beverages';
 import type { Ingredient, IngredientCategory } from '@/lib/domain/ingredients';
 import { genUuid } from '@/lib/domain/util';
 import type { CustomIngredient } from '@/lib/store/shred-store';
 
-const DUPLICATE_SOURCE: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS];
+const DUPLICATE_SOURCE: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS, ...BEVERAGES];
 
 export interface CustomIngredientModalProps {
   open: boolean;

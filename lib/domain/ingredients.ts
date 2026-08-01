@@ -7,7 +7,7 @@
 
 import { roundNum } from './util';
 
-export type IngredientCategory = 'protein' | 'carb' | 'fat' | 'veg' | 'fruit' | 'dairy_snacks' | 'condiments';
+export type IngredientCategory = 'protein' | 'carb' | 'fat' | 'veg' | 'fruit' | 'dairy_snacks' | 'condiments' | 'beverages';
 export type IngredientState = 'raw' | 'cooked';
 
 export interface Macros100 {
@@ -64,7 +64,7 @@ export interface CustomIngredientLike {
   raw: Macros100;
 }
 
-const VALID_CATEGORIES = new Set<IngredientCategory>(['protein', 'carb', 'fat', 'veg', 'fruit', 'dairy_snacks', 'condiments']);
+const VALID_CATEGORIES = new Set<IngredientCategory>(['protein', 'carb', 'fat', 'veg', 'fruit', 'dairy_snacks', 'condiments', 'beverages']);
 
 // A saved custom ingredient is always single-state (see CLAUDE.md — a
 // packaged product's label already reflects how it's normally weighed), so

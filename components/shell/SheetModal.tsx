@@ -36,7 +36,7 @@ import { useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
+import { useViewportHeight, useViewportOffsetTop } from '@/lib/hooks/useViewportHeight';
 import { FONT_DISPLAY } from '@/lib/theme/tokens';
 
 export interface SheetModalProps {
@@ -55,6 +55,7 @@ const DISMISS_VELOCITY = 600; // px/s
 export function SheetModal({ open, onClose, title, children, bare }: SheetModalProps) {
   const T = useTheme();
   const vh = useViewportHeight();
+  const viewportOffsetTop = useViewportOffsetTop();
   const panelHeight = Math.round(vh * 0.85);
   const dragControls = useDragControls();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -69,8 +70,13 @@ export function SheetModal({ open, onClose, title, children, bare }: SheetModalP
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-40 flex items-end justify-center"
-          style={{ background: T.t.overlayBg }}
+          className="fixed z-40 flex items-end justify-center"
+          // Sprint 29 — top/height driven by the real, measured visual
+          // viewport (see useViewportOffsetTop's note) instead of `inset-0`,
+          // so the overlay — and the sheet bottom-aligned inside it — stays
+          // glued to whatever's actually visible when the keyboard opens,
+          // rather than the bottom of the page underneath it.
+          style={{ background: T.t.overlayBg, top: viewportOffsetTop, left: 0, right: 0, height: vh }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

@@ -34,6 +34,7 @@ import { Search, Plus, Trash2, UserPlus } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { INGREDIENT_DB, INGREDIENT_CATEGORIES } from '@/lib/data/ingredients';
 import { ISRAELI_INGREDIENTS } from '@/lib/data/israeli-ingredients';
+import { BEVERAGES } from '@/lib/data/beverages';
 import { getIngredientMacros, customIngredientToIngredient, type Ingredient, type IngredientState } from '@/lib/domain/ingredients';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
 import { MacroStrip } from '@/components/ui/MacroStrip';
@@ -41,7 +42,10 @@ import { PortionInput, gramsForPortion, formatPortionLabel } from './PortionInpu
 import { CustomIngredientModal } from './CustomIngredientModal';
 import type { LogItemSpec, CustomIngredient } from '@/lib/store/shred-store';
 
-const STATIC_INGREDIENTS: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS];
+// Sprint 29 — BEVERAGES (coffee/tea/soft drinks/juices/alcohol etc., see that
+// file's header) merged in the same way ISRAELI_INGREDIENTS was in Sprint 12:
+// computed once at module scope, no per-render cost added.
+const STATIC_INGREDIENTS: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS, ...BEVERAGES];
 
 interface PlateLine {
   id: string;
