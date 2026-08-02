@@ -43,7 +43,23 @@ export function CalendarMonthView({ selectedDateKey, onChange, itemsByDate, dayM
   const [viewMonth, setViewMonth] = useState(initial.getMonth());
 
   const today = dateKey(new Date());
-  const grid = buildMonthGrid(viewYear, viewMonth);
+  // Sprint 46 — buildMonthGrid always returns 6 fixed weeks (deliberately,
+  // so the grid never reflows height between months — see its own header).
+  // But a real wall calendar only ever shows as many rows as the month
+  // actually needs (4 when the month starts on Sunday and is short, 5 most
+  // of the time, 6 only when it both starts late in the week and runs
+  // long) — direct feedback asked for exactly that "opens like a real
+  // calendar" shape. Trimmed here, presentation-side, rather than changing
+  // buildMonthGrid itself: the pure function's fixed-6-week contract is
+  // already pinned by dates.test.ts and is the right building block either
+  // way (a variable-length grid would still need to search from index 0
+  // for the last real week). A trailing week only gets dropped when EVERY
+  // cell in it is outside the month — a leading week (which always
+  // contains real days-1 through however many) is never touched.
+  const fullGrid = buildMonthGrid(viewYear, viewMonth);
+  let lastRealWeek = fullGrid.length - 1;
+  while (lastRealWeek > 3 && fullGrid[lastRealWeek].every((d) => !d.inMonth)) lastRealWeek--;
+  const grid = fullGrid.slice(0, lastRealWeek + 1);
 
   const shiftMonth = (delta: number) => {
     const d = new Date(viewYear, viewMonth + delta, 1);

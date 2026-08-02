@@ -84,7 +84,7 @@ export function KitchenHacksSheetBody({ onConfirm, defaultSlotId }: KitchenHacks
         />
       </div>
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
+      <div className="flex gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
         <motion.button
           onClick={() => setCategory(null)}
           whileTap={{ scale: 0.94 }}

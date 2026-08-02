@@ -13,9 +13,24 @@
 // reachable if three tiles are locked into one nested grid-cols-3 wrapper.
 // The page-level grid now places each tile directly, passing whatever
 // className (col-span-1 / col-span-2) fits that tile's role in the layout.
-
-import type { ComponentType } from 'react';
+//
+// Sprint 46 — direct, repeated feedback that Arena 01 (this + the hero
+// ring) needed a real design step-up, not another audit. The actual gap:
+// these tiles told you the percentage as a floating number badge but never
+// SHOWED fill state visually — a dashboard-viz miss (see
+// dashboard-data-viz-design: "the ONE or TWO numbers that matter... give
+// them real visual weight," and don't rely on numbers alone for a trend/
+// state signal). Each tile now wraps its icon in a small radial progress
+// ring — the same SVG stroke-arc technique CompositeHeroRing already uses,
+// scaled down — so fill state reads at a glance from the ring alone, the
+// number is a confirmation, not the only signal. The surface itself moved
+// from a flat single-alpha wash to a two-stop gradient with a real top
+// inner-highlight (glass catching light from above), and the percentage
+// badge got a small trend arrow to match the icon+color dashboard-viz rule
+// (never color alone).
+import { useId, type ComponentType } from 'react';
 import { motion } from 'framer-motion';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
 
@@ -31,28 +46,35 @@ export interface MacroStatTileProps {
 
 export function MacroStatTile({ macroKey, label, icon: Icon, value, target, className = '', delay = 0 }: MacroStatTileProps) {
   const T = useTheme();
+  const uid = useId().replace(/:/g, '');
   const color = T.macro[macroKey];
   const roundedValue = Math.round(value);
   const roundedTarget = Math.round(target);
   const pct = roundedTarget > 0 ? Math.round((roundedValue / roundedTarget) * 100) : 0;
   const delta = pct - 100;
   const isOver = delta > 0;
+  const fillPct = Math.max(0, Math.min(roundedTarget > 0 ? roundedValue / roundedTarget : 0, 1));
+
+  const ringSize = 40, stroke = 4.5;
+  const r = (ringSize - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const gradId = `macro-tile-grad-${macroKey}-${uid}`;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
-      className={`relative flex flex-col justify-between gap-3 p-5 rounded-[32px] ${className}`}
+      className={`relative flex flex-col justify-between gap-3 p-5 rounded-[32px] overflow-hidden ${className}`}
       style={{
-        background: `${color}14`,
-        border: `1px solid ${color}22`,
-        boxShadow: `${T.glow(color, 20, '26')}, 0 10px 22px -10px ${color}55`,
+        background: `linear-gradient(160deg, ${color}20 0%, ${color}0A 60%)`,
+        border: `1px solid ${color}28`,
+        boxShadow: `${T.glow(color, 22, '2c')}, 0 12px 26px -12px ${color}5c, inset 0 1px 0 ${T.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.65)'}`,
       }}
     >
       {roundedTarget > 0 && (
         <span
-          className="absolute flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+          className="absolute flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
           style={{
             top: -8,
             insetInlineEnd: -6,
@@ -62,15 +84,34 @@ export function MacroStatTile({ macroKey, label, icon: Icon, value, target, clas
             boxShadow: '0 4px 10px -3px rgba(0,0,0,0.35)',
           }}
         >
+          {isOver ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
           {isOver ? '+' : ''}{delta}%
         </span>
       )}
-      <span
-        className="flex items-center justify-center rounded-full flex-shrink-0"
-        style={{ width: 30, height: 30, background: `${color}26` }}
-      >
-        <Icon size={14} color={color} />
+
+      {/* Sprint 46 — the icon badge is now a real small progress ring, not a
+          flat colored circle: fill state is visible without reading the
+          number at all. */}
+      <span className="relative flex items-center justify-center flex-shrink-0" style={{ width: ringSize, height: ringSize }}>
+        <svg width={ringSize} height={ringSize} style={{ transform: 'rotate(-90deg)' }}>
+          <defs>
+            <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={`color-mix(in srgb, ${color}, white 30%)`} />
+              <stop offset="100%" stopColor={color} />
+            </linearGradient>
+          </defs>
+          <circle cx={ringSize / 2} cy={ringSize / 2} r={r} stroke={`${color}22`} strokeWidth={stroke} fill="none" />
+          <circle
+            cx={ringSize / 2} cy={ringSize / 2} r={r} stroke={`url(#${gradId})`} strokeWidth={stroke} fill="none"
+            strokeDasharray={circ} strokeDashoffset={circ * (1 - fillPct)} strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(.4,0,.2,1)' }}
+          />
+        </svg>
+        <span className="absolute flex items-center justify-center rounded-full" style={{ width: 22, height: 22, background: `${color}26` }}>
+          <Icon size={11} color={color} />
+        </span>
       </span>
+
       <div>
         <div
           className="text-xl font-black leading-none"

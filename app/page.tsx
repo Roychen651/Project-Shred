@@ -148,28 +148,44 @@ function SegBtn({ active, onClick, icon: Icon, children }: { active: boolean; on
       whileTap={{ scale: 0.95 }}
       whileHover={{ scale: 1.03 }}
       transition={tapSpring}
-      className="relative px-3.5 text-xs font-bold flex items-center justify-center gap-1.5"
+      className="relative px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 overflow-hidden"
       style={{
         height: CONTROL_HEIGHT - 8,
         borderRadius: CONTROL_RADIUS,
+        // Sprint 46 — real bug, not a contrast tweak: the fill pill below
+        // used `-z-10` (negative z-index) to sit behind the icon/label.
+        // Negative z-index only reliably stacks BELOW an ancestor's own
+        // painted background when that ancestor establishes a stacking
+        // context of its own — this button's `position: relative` alone
+        // doesn't (no explicit z-index on the button itself), so the pill
+        // was escaping into the PARENT's stacking context and rendering
+        // underneath the day-mode capsule's own background instead of
+        // just behind this button's text — invisible in practice, exactly
+        // the "can't tell which is active" report. Fixed the standard way:
+        // z-index 0/1 (never negative) plus `overflow-hidden` on the
+        // button itself, which forces it to actually establish a
+        // stacking context so the fill can never escape upward again.
         color: active ? '#07080B' : T.t.textDim,
-        opacity: active ? 1 : 0.7,
+        opacity: active ? 1 : 0.65,
       }}
     >
       {active && (
         <motion.div
           layoutId="dayModeIndicator"
           transition={tapSpring}
-          className="absolute inset-0 -z-10"
+          className="absolute inset-0"
           style={{
             ...tactileGradient(T.accent),
+            zIndex: 0,
             borderRadius: CONTROL_RADIUS,
             boxShadow: `${T.glow(T.accent, 14, '38')}, inset 0 1px 0 rgba(255,255,255,0.35)`,
           }}
         />
       )}
-      <Icon size={13} color={active ? '#07080B' : T.t.textDim} />
-      {children}
+      <span className="relative flex items-center gap-1.5" style={{ zIndex: 1 }}>
+        <Icon size={13} color={active ? '#07080B' : T.t.textDim} />
+        {children}
+      </span>
     </motion.button>
   );
 }

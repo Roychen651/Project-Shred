@@ -99,7 +99,7 @@ export function FavoritesQuickBar({ favorites, onLog, onSave, onDelete, onOverla
 
   return (
     <>
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
+      <div className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
         {favorites.map((fav) => {
           const unitCount = fav.unitCount ?? 1;
           const isAdjusting = adjustingId === fav.id;

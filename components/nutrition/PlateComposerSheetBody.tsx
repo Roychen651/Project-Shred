@@ -180,7 +180,7 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredi
       </div>
 
       {!search.trim() && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
+        <div className="flex gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
           {INGREDIENT_CATEGORIES.map((c) => (
             <button
               key={c.id}

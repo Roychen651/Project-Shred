@@ -9,4 +9,4 @@
 // a quiet footer line in Settings (the same "Settings → About → version"
 // spot virtually every consumer app uses) and a one-time console.log on
 // mount — instead of the main dashboard next to the logo.
-export const BUILD_TAG = 'v4.7.0';
+export const BUILD_TAG = 'v4.8.0';

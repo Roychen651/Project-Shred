@@ -36,7 +36,7 @@ export function PortionInput({ unit, qty, onUnitChange, onQtyChange }: PortionIn
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
+      <div className="flex gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
         {PORTION_UNITS.map((u) => {
           const active = unit === u.id;
           return (
