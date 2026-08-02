@@ -13,9 +13,9 @@
 // with retroactive day editing, and a weekly WhatsApp-ready report — see
 // components/insights/ for the per-component porting notes.
 
-import { useState, type ComponentType } from 'react';
+import { useEffect, useState, type ComponentType } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Wheat, Droplet, Flame, Dumbbell } from 'lucide-react';
+import { Moon as MoonIcon, Sun as SunIcon, Layers3, ChefHat, Settings2, ClipboardList, Wheat, Droplet, Flame, Dumbbell, Calculator } from 'lucide-react';
 import { ProteinCutIcon } from '@/components/ui/ProteinCutIcon';
 import { AnimatedJumpingLettuce } from '@/components/ui/AnimatedIllustrations';
 import { ShredLogo } from '@/components/ui/ShredLogo';
@@ -26,7 +26,9 @@ import { useTheme, type ShredTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, JEWEL, tactileGradient, CONTROL_HEIGHT, CONTROL_RADIUS } from '@/lib/theme/tokens';
 import { useShredStore, type LogItemSpec } from '@/lib/store/shred-store';
 import { useWireSync } from '@/lib/store/wireSync';
+import { BUILD_TAG } from '@/lib/buildInfo';
 import { computeProfileTargets, type ComputedTargets } from '@/lib/domain/targets';
+import { applyTargetOverride } from '@/lib/domain/targetOverride';
 import type { SlotId } from '@/lib/domain/slots';
 import type { WorkoutDayKey } from '@/lib/data/workouts';
 import type { ExerciseSet, CustomWorkout } from '@/lib/domain/workouts';
@@ -69,6 +71,7 @@ import { DualTrendChart } from '@/components/insights/DualTrendChart';
 import { ComplianceHeatmap } from '@/components/insights/ComplianceHeatmap';
 import { WeeklyReportModal } from '@/components/insights/WeeklyReportModal';
 import { MetabolicInsightCard } from '@/components/insights/MetabolicInsightCard';
+import { TargetTuningPanel } from '@/components/insights/TargetTuningPanel';
 import { AiCoachWidget } from '@/components/insights/AiCoachWidget';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { useSyncStatusStore } from '@/lib/store/sync-status';
@@ -203,6 +206,16 @@ export default function Home() {
   // unmount. See FavoritesQuickBar's onOverlayChange prop.
   const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
 
+  // Sprint 45 — the visible header build pill (Sprint 27-44) was removed as
+  // a brand-protection fix (an internal sprint-numbered string next to the
+  // logo reads as unfinished tooling on the primary screen), but the
+  // diagnostic it provided was genuinely useful — it caught real stale
+  // Vercel deployments in Sprints 38, 41 and 43. This keeps that signal
+  // alive in a devtools-only channel instead of the main UI.
+  useEffect(() => {
+    console.log(`[PROJECT SHRED] build ${BUILD_TAG}`);
+  }, []);
+
   // Sprint 10 — computed directly during render, not via useEffect+state (this
   // codebase has hit the react-hooks/set-state-in-effect trap repeatedly —
   // see AddToHomeScreenPrompt/ExerciseRow/WorkoutPanel). hydrationSettled
@@ -216,7 +229,12 @@ export default function Home() {
   const showOnboarding = hydrationSettled && !hydrationFailed && !store.hasSeenOnboarding;
 
   const activeProfile = store.profiles[store.activeProfileId];
-  const computed = computeProfileTargets(activeProfile);
+  // Sprint 45 — the raw Mifflin-St Jeor output stays untouched (bmr/tdee and
+  // the science explainer read this), the override is applied as a separate
+  // wrapping step so "what the formula says" and "what the person tuned it
+  // to" are never conflated. See lib/domain/targetOverride.ts.
+  const rawComputed = computeProfileTargets(activeProfile);
+  const computed = applyTargetOverride(rawComputed, store.targetOverrides[activeProfile.id]);
   const targets = computed[dayMode];
   const dayItems = store.dayItems(store.selectedDateKey);
   const consumed = store.consumedForDate(store.selectedDateKey);
@@ -350,19 +368,6 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: FONT_DISPLAY }}>PROJECT SHRED</h1>
-                {/* Sprint 27 — a small visible build marker, not a literal
-                    "cache buster" (a UI string can't affect Vercel/browser
-                    caching — that's a deployment-layer concern, already
-                    covered in Sprint 17/23's notes). What this actually
-                    helps with is the real, recurring pain: confirming at a
-                    glance whether the page in front of you is the build you
-                    think it is. */}
-                <span
-                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                  style={{ background: T.t.chipBg, color: T.t.textDim, fontFamily: FONT_MONO }}
-                >
-                  v4.6.0-Sprint44
-                </span>
               </div>
               <p className="text-xs" style={{ color: T.t.textDim }}>{activeProfile.name} · {targets.label}</p>
             </div>
@@ -441,7 +446,13 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div variants={tabItemVariants} className="w-full">
-                  <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
+                  <DateNavigator
+                    selectedDateKey={store.selectedDateKey}
+                    onChange={store.setSelectedDateKey}
+                    itemsByDate={store.itemsByDate}
+                    dayMeta={store.dayMeta}
+                    computed={computed}
+                  />
                 </motion.div>
 
                 {/* Sprint 27 — a real Bento grid (CSS grid with explicit
@@ -530,7 +541,13 @@ export default function Home() {
                     else if (info.offset.x < -60) store.setSelectedDateKey(shiftDateKey(store.selectedDateKey, 1));
                   }}
                 >
-                  <DateNavigator selectedDateKey={store.selectedDateKey} onChange={store.setSelectedDateKey} />
+                  <DateNavigator
+                    selectedDateKey={store.selectedDateKey}
+                    onChange={store.setSelectedDateKey}
+                    itemsByDate={store.itemsByDate}
+                    dayMeta={store.dayMeta}
+                    computed={computed}
+                  />
                 </motion.div>
                 {/* Sprint 27 — Bento asymmetry: the restaurant matrix (the
                     higher-frequency action — eating out/quick lunch beats
@@ -678,7 +695,46 @@ export default function Home() {
                   <span className="text-xs" style={{ color: T.t.textDim }}>דיוק ממוצע {weeklyReport.avgCompliance}%</span>
                 </motion.button>
 
-                <MetabolicInsightCard metricEntries={store.metricEntries} goal={activeProfile.goal} />
+                <MetabolicInsightCard
+                  metricEntries={store.metricEntries}
+                  goal={activeProfile.goal}
+                  onApplyAdjustment={(kcalDelta) =>
+                    store.setTargetOverride(activeProfile.id, {
+                      ...store.targetOverrides[activeProfile.id],
+                      kcal: computed.rest.kcal + kcalDelta,
+                    })
+                  }
+                />
+
+                {/* Sprint 45 — "מאיפה היעד הקלורי הזה?" already existed
+                    (Sprint 7's CalorieMathSheetBody) but was only reachable
+                    from Settings, a real gap for an Insights tab that's
+                    supposed to be the analytics/science home. Reads the RAW
+                    formula output (rawComputed), never the overridden one —
+                    see the note where rawComputed is computed. */}
+                <motion.button
+                  onClick={() => setActiveSheet('caloriemath')}
+                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01 }}
+                  transition={tapSpring}
+                  className="flex items-center justify-between p-4 rounded-[32px] text-right"
+                  style={glassSurface(T)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Calculator size={20} color={T.accent} />
+                    <span className="text-sm font-bold" style={{ color: T.t.textPrimary }}>מאיפה היעד הקלורי הזה?</span>
+                  </div>
+                  <span className="text-xs" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>BMR {rawComputed.bmr} · TDEE {rawComputed.tdee}</span>
+                </motion.button>
+
+                <TargetTuningPanel
+                  key={activeProfile.id}
+                  defaultRest={rawComputed.rest}
+                  effectiveRest={computed.rest}
+                  hasOverride={Boolean(store.targetOverrides[activeProfile.id])}
+                  onApply={(override) => store.setTargetOverride(activeProfile.id, override)}
+                  onReset={() => store.setTargetOverride(activeProfile.id, null)}
+                />
 
                 <ComplianceHeatmap
                   itemsByDate={store.itemsByDate}
@@ -732,7 +788,7 @@ export default function Home() {
       </SheetModal>
 
       <SheetModal open={activeSheet === 'caloriemath'} onClose={() => setActiveSheet(null)} title="מאיפה היעד הקלורי הזה?">
-        <CalorieMathSheetBody profile={activeProfile} computed={computed} dayMode={dayMode} />
+        <CalorieMathSheetBody profile={activeProfile} computed={rawComputed} dayMode={dayMode} />
       </SheetModal>
 
       <SheetModal open={activeSheet === 'daylog'} onClose={() => setActiveSheet(null)} title="היומן של היום">

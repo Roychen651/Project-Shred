@@ -17,6 +17,7 @@ import { tactileGradient } from '@/lib/theme/tokens';
 import { MacroLine } from '@/components/ui/MacroLine';
 import { EATING_OUT_MENU, EATING_OUT_CATEGORIES } from '@/lib/data/eatingOut';
 import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
 import type { LogItemSpec } from '@/lib/store/shred-store';
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
@@ -83,7 +84,7 @@ export function RestaurantMatrixSheetBody({ onConfirm, defaultSlotId }: Restaura
         />
       </div>
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
         <motion.button
           onClick={() => setCategory(null)}
           whileTap={{ scale: 0.94 }}

@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_DISPLAY, FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
 import { PORTION_UNITS } from '@/lib/data/portionUnits';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
 
@@ -35,7 +36,7 @@ export function PortionInput({ unit, qty, onUnitChange, onQtyChange }: PortionIn
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
         {PORTION_UNITS.map((u) => {
           const active = unit === u.id;
           return (

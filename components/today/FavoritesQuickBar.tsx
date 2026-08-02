@@ -37,6 +37,7 @@ import { Check, Plus, Pencil, ChevronDown } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO } from '@/lib/theme/tokens';
 import { FavoriteBuilderModal, type FavoriteDraftSeed } from './FavoriteBuilderModal';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
 import type { Favorite } from '@/lib/store/shred-store';
 
 export interface FavoritesQuickBarProps {
@@ -98,7 +99,7 @@ export function FavoritesQuickBar({ favorites, onLog, onSave, onDelete, onOverla
 
   return (
     <>
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
         {favorites.map((fav) => {
           const unitCount = fav.unitCount ?? 1;
           const isAdjusting = adjustingId === fav.id;

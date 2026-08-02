@@ -16,22 +16,31 @@
 // chronologically, not by prose direction).
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/lib/theme/ThemeContext';
 import { FONT_MONO, FONT_DISPLAY, CONTROL_HEIGHT, CONTROL_RADIUS } from '@/lib/theme/tokens';
 import { dateKey, shiftDateKey, formatHebrewDate, formatShortDate } from '@/lib/domain/dates';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
+import { CalendarMonthView } from './CalendarMonthView';
+import type { DayMetaLike } from '@/lib/domain/analytics';
+import type { LoggedItem } from '@/lib/domain/items';
+import type { ComputedTargets } from '@/lib/domain/targets';
 
 export interface DateNavigatorProps {
   selectedDateKey: string;
   onChange: (dateKey: string) => void;
+  itemsByDate: Record<string, LoggedItem[]>;
+  dayMeta: Record<string, DayMetaLike>;
+  computed: ComputedTargets;
 }
 
 const tapSpring = { type: 'spring' as const, stiffness: 420, damping: 22 };
 
-export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps) {
+export function DateNavigator({ selectedDateKey, onChange, itemsByDate, dayMeta, computed }: DateNavigatorProps) {
   const T = useTheme();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const today = dateKey(new Date());
   const isToday = selectedDateKey === today;
   const strip = Array.from({ length: 14 }, (_, i) => shiftDateKey(today, i - 10));
@@ -52,7 +61,7 @@ export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps)
         </motion.button>
 
         <motion.button
-          onClick={() => setPickerOpen((v) => !v)}
+          onClick={() => { setPickerOpen((v) => !v); setCalendarOpen(false); }}
           whileTap={{ scale: 0.97 }}
           whileHover={{ scale: 1.01 }}
           transition={tapSpring}
@@ -79,6 +88,25 @@ export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps)
           aria-label="יום הבא"
         >
           <ChevronRight size={16} color={T.t.textSecondary} />
+        </motion.button>
+
+        {/* Sprint 45 — the 14-day strip below is fine for a few days either
+            way, but was the only way to navigate dates at all; this opens a
+            real Sunday-first month grid for genuine long-range jumps. */}
+        <motion.button
+          onClick={() => { setCalendarOpen((v) => !v); setPickerOpen(false); }}
+          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.06 }}
+          transition={tapSpring}
+          className="flex items-center justify-center flex-shrink-0"
+          style={{
+            width: CONTROL_HEIGHT, height: CONTROL_HEIGHT, borderRadius: CONTROL_RADIUS,
+            background: calendarOpen ? `${T.accent}18` : T.t.inputBg,
+            border: `1px solid ${calendarOpen ? T.accent : T.t.border}`,
+          }}
+          aria-label="תצוגת לוח שנה חודשית"
+        >
+          <LayoutGrid size={15} color={calendarOpen ? T.accent : T.t.textSecondary} />
         </motion.button>
       </div>
 
@@ -113,7 +141,7 @@ export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps)
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div dir="ltr" className="flex gap-2 overflow-x-auto py-3 mt-1">
+            <div dir="ltr" className="flex gap-2 overflow-x-auto py-3 mt-1" onWheel={scrollHorizontallyOnWheel}>
               {strip.map((dk) => {
                 const active = dk === selectedDateKey;
                 const isTodayCell = dk === today;
@@ -138,6 +166,25 @@ export function DateNavigator({ selectedDateKey, onChange }: DateNavigatorProps)
                 );
               })}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {calendarOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <CalendarMonthView
+              selectedDateKey={selectedDateKey}
+              onChange={(dk) => { onChange(dk); setCalendarOpen(false); }}
+              itemsByDate={itemsByDate}
+              dayMeta={dayMeta}
+              computed={computed}
+            />
           </motion.div>
         )}
       </AnimatePresence>

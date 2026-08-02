@@ -21,6 +21,7 @@ import { Stepper } from '@/components/ui/Stepper';
 import { ACTIVITY_LEVELS, GOALS, type ActivityKey, type GoalKey } from '@/lib/domain/targets';
 import { createClient } from '@/lib/supabase/client';
 import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
+import { BUILD_TAG } from '@/lib/buildInfo';
 import type { Profile } from '@/lib/store/shred-store';
 
 export interface SettingsModalProps {
@@ -205,6 +206,10 @@ export function SettingsModal({ open, onClose, profile, updateProfile, bmr, tdee
           >
             <LogOut size={15} /> התנתקות
           </motion.button>
+
+          <p className="text-center text-[10px]" style={{ color: T.t.textDim, fontFamily: FONT_MONO, opacity: 0.6 }}>
+            PROJECT SHRED · {BUILD_TAG}
+          </p>
         </div>
       </div>
     </div>

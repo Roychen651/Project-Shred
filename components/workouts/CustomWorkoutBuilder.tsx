@@ -17,6 +17,7 @@ import { FONT_MONO } from '@/lib/theme/tokens';
 import { EXERCISE_DB, MUSCLE_GROUPS, type ExerciseDbEntry } from '@/lib/data/exercises';
 import { genUuid } from '@/lib/domain/util';
 import { Stepper } from '@/components/ui/Stepper';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
 import type { CustomWorkout, CustomWorkoutExercise } from '@/lib/domain/workouts';
 
 export interface CustomWorkoutBuilderProps {
@@ -84,7 +85,7 @@ export function CustomWorkoutBuilder({ existing, onSave, onClose }: CustomWorkou
       </div>
 
       {!search.trim() && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
           {MUSCLE_GROUPS.map((g) => (
             <button
               key={g.key}

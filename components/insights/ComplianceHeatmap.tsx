@@ -29,6 +29,7 @@ import { buildDailyLog, buildHeatmapColumns, heatColor, HEATMAP_WEEKS, type DayM
 import { dateKey, addDays } from '@/lib/domain/dates';
 import type { LoggedItem } from '@/lib/domain/items';
 import type { ComputedTargets } from '@/lib/domain/targets';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
 
 export interface ComplianceHeatmapProps {
   itemsByDate: Record<string, LoggedItem[]>;
@@ -64,7 +65,7 @@ export function ComplianceHeatmap({ itemsByDate, dayMeta, computed, onSaveDay }:
         <LayoutGrid size={20} color={T.accent} />
       </div>
 
-      <div dir="ltr" className="overflow-x-auto pb-1">
+      <div dir="ltr" className="overflow-x-auto pb-1" onWheel={scrollHorizontallyOnWheel}>
         <div className="flex gap-1 w-max">
           {columns.map((col, ci) => (
             <div key={ci} className="flex flex-col gap-1">

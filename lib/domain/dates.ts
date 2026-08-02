@@ -57,3 +57,36 @@ export function formatHebrewDate(key: string, now: Date = new Date()): string {
   const [, m, d] = key.split('-');
   return `${parseInt(d, 10)} ב${HEBREW_MONTHS[parseInt(m, 10) - 1]}`;
 }
+
+export function formatHebrewMonthYear(year: number, month: number): string {
+  return `${HEBREW_MONTHS[month]} ${year}`;
+}
+
+export interface MonthGridDay {
+  key: string;
+  dayNum: number;
+  inMonth: boolean;
+}
+
+// Sprint 45 — a real calendar month grid (Sunday-first, per the mandate's
+// explicit request), not the 14-day horizontal strip DateNavigator already
+// had. Always 6 weeks × 7 days (42 cells): shorter months just carry more
+// leading/trailing out-of-month days, which keeps the grid a fixed height
+// instead of reflowing the UI around it every month. Local-time discipline
+// throughout (built on addDays/dateKey, never toISOString) — see this
+// file's header on why that matters here specifically.
+export function buildMonthGrid(year: number, month: number): MonthGridDay[][] {
+  const first = new Date(year, month, 1);
+  const startWeekday = first.getDay(); // 0 = Sunday
+  let cursor = addDays(first, -startWeekday);
+  const weeks: MonthGridDay[][] = [];
+  for (let w = 0; w < 6; w++) {
+    const week: MonthGridDay[] = [];
+    for (let d = 0; d < 7; d++) {
+      week.push({ key: dateKey(cursor), dayNum: cursor.getDate(), inMonth: cursor.getMonth() === month });
+      cursor = addDays(cursor, 1);
+    }
+    weeks.push(week);
+  }
+  return weeks;
+}

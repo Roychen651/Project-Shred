@@ -27,6 +27,7 @@ import { BEVERAGES } from '@/lib/data/beverages';
 import type { Ingredient, IngredientCategory } from '@/lib/domain/ingredients';
 import { genUuid } from '@/lib/domain/util';
 import { useViewportHeight } from '@/lib/hooks/useViewportHeight';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
 import type { CustomIngredient } from '@/lib/store/shred-store';
 
 const DUPLICATE_SOURCE: Ingredient[] = [...INGREDIENT_DB, ...ISRAELI_INGREDIENTS, ...BEVERAGES];
@@ -247,7 +248,7 @@ function CustomIngredientModalInner({ onClose, onSave }: CustomIngredientModalIn
             >
               קטגוריה
             </label>
-            <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
               {INGREDIENT_CATEGORIES.map((c) => (
                 <motion.button
                   key={c.id}

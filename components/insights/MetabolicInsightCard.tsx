@@ -17,22 +17,33 @@
 // insight), and a real card otherwise — including the reassuring "on_track"
 // case, since silence there could read as "the app isn't watching."
 
-import { TrendingDown, TrendingUp, CircleAlert, CircleCheck, Info } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingDown, TrendingUp, CircleAlert, CircleCheck, Info, Check } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_DISPLAY, FONT_MONO, tactileGradient } from '@/lib/theme/tokens';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { analyzeMetabolicAdaptation } from '@/lib/domain/adaptation';
 import type { MetricEntry } from '@/lib/domain/analytics';
 import type { GoalKey } from '@/lib/domain/targets';
 
+const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
+
 export interface MetabolicInsightCardProps {
   metricEntries: MetricEntry[];
   goal: GoalKey;
+  /** Sprint 45 — "Apply AI Recommendation": one tap folds
+   * insight.suggestedKcalAdjustment straight into the person's rest-day
+   * calorie target via the target-override mechanism. Optional: a caller
+   * with nowhere to apply it to (no active profile context) can omit this
+   * and the card just reports the insight, as it always has. */
+  onApplyAdjustment?: (kcalDelta: number) => void;
 }
 
-export function MetabolicInsightCard({ metricEntries, goal }: MetabolicInsightCardProps) {
+export function MetabolicInsightCard({ metricEntries, goal, onApplyAdjustment }: MetabolicInsightCardProps) {
   const T = useTheme();
+  const [applied, setApplied] = useState(false);
   if (goal === 'maintain') return null;
 
   const insight = analyzeMetabolicAdaptation(metricEntries, goal);
@@ -67,6 +78,29 @@ export function MetabolicInsightCard({ metricEntries, goal }: MetabolicInsightCa
           {trendIcon}
           {insight.weeklyDeltaKg >= 0 ? '+' : ''}{insight.weeklyDeltaKg} ק״ג/שבוע בממוצע
         </div>
+      )}
+
+      {onApplyAdjustment && insight.suggestedKcalAdjustment !== 0 && (
+        <motion.button
+          onClick={() => { onApplyAdjustment(insight.suggestedKcalAdjustment); setApplied(true); setTimeout(() => setApplied(false), 1800); }}
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.01 }}
+          transition={tapSpring}
+          className="w-full mt-3 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 overflow-hidden"
+          style={applied ? { background: T.macro.protein, color: '#07080B' } : { ...tactileGradient(T.macro.kcal), color: '#07080B' }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {applied ? (
+              <motion.span key="applied" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-1.5">
+                <Check size={14} /> היעד עודכן!
+              </motion.span>
+            ) : (
+              <motion.span key="apply" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-1.5">
+                החל המלצה ({insight.suggestedKcalAdjustment > 0 ? '+' : ''}{insight.suggestedKcalAdjustment} קל׳)
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
       )}
     </GlassCard>
   );

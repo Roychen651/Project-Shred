@@ -23,6 +23,7 @@ import { dateKey } from '../domain/dates';
 import { genUuid } from '../domain/util';
 import type { ActivityKey, GoalKey } from '../domain/targets';
 import type { CustomWorkout } from '../domain/workouts';
+import type { TargetOverrideInput } from '../domain/targetOverride';
 
 // ---------------------------------------------------------------------------
 // Profiles. ProjectShred.artifact.jsx:1023-1032, 6067-6087.
@@ -156,6 +157,14 @@ export interface ShredState {
   profiles: Record<string, Profile>;
   activeProfileId: string;
 
+  // Sprint 45 — manual macro/calorie target tuning, keyed by profile id (not
+  // global) so switching profiles never carries one person's override onto
+  // another's computed targets. See lib/domain/targetOverride.ts for the
+  // wrapping-not-modifying rationale. Same known gap as customWorkouts/
+  // customIngredients below: not yet part of hydrateFromServer/persist —
+  // session-only until this app's custom-* sync pass covers it too.
+  targetOverrides: Record<string, TargetOverrideInput>;
+
   // Sprint 15.11 — favorites
   favorites: Favorite[];
 
@@ -252,6 +261,11 @@ export interface ShredState {
   deleteProfile: (id: string) => void;
   setActiveProfileId: (id: string) => void;
 
+  /** Sprint 45 — null/undefined-valued fields clear that one field back to
+   * the computed default; pass `null` for the whole override to reset a
+   * profile fully. */
+  setTargetOverride: (profileId: string, override: TargetOverrideInput | null) => void;
+
   saveRestaurant: (draft: CustomRestaurant) => void;
   deleteRestaurant: (id: string) => void;
   saveHack: (draft: CustomHack) => void;
@@ -306,6 +320,7 @@ export function createShredStore(initial?: Partial<ShredState>) {
     dayMeta: {},
     profiles: DEFAULT_PROFILES,
     activeProfileId: 'mine',
+    targetOverrides: {},
     favorites: DEFAULT_FAVORITES,
     exerciseLogs: {},
     customWorkouts: [],
@@ -438,6 +453,15 @@ export function createShredStore(initial?: Partial<ShredState>) {
       return { profiles: next, activeProfileId: state.activeProfileId === id ? fallbackId : state.activeProfileId };
     }),
     setActiveProfileId: (id) => set({ activeProfileId: id }),
+
+    setTargetOverride: (profileId, override) => set((state) => {
+      if (!override) {
+        const next = { ...state.targetOverrides };
+        delete next[profileId];
+        return { targetOverrides: next };
+      }
+      return { targetOverrides: { ...state.targetOverrides, [profileId]: override } };
+    }),
 
     saveRestaurant: (draft) => set((state) => {
       const exists = state.customRestaurants.some((r) => r.id === draft.id);

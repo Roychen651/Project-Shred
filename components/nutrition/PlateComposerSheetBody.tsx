@@ -46,6 +46,7 @@ import { SLOT_DEFS, type SlotId } from '@/lib/domain/slots';
 import { MacroStrip } from '@/components/ui/MacroStrip';
 import { PortionInput, gramsForPortion, formatPortionLabel } from './PortionInput';
 import { CustomIngredientModal } from './CustomIngredientModal';
+import { scrollHorizontallyOnWheel } from '@/lib/hooks/horizontalWheelScroll';
 import type { LogItemSpec, CustomIngredient } from '@/lib/store/shred-store';
 
 const tapSpring = { type: 'spring' as const, stiffness: 400, damping: 24 };
@@ -179,7 +180,7 @@ export function PlateComposerSheetBody({ onConfirm, defaultSlotId, customIngredi
       </div>
 
       {!search.trim() && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} onWheel={scrollHorizontallyOnWheel}>
           {INGREDIENT_CATEGORIES.map((c) => (
             <button
               key={c.id}
