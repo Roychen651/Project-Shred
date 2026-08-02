@@ -762,13 +762,25 @@ export default function Home() {
                   }}
                 />
 
-                {trendEntries.length > 0 && (
+                {/* Sprint 47 — a single data point drew literally nothing
+                    (DualTrendChart's path is just one SVG "M" moveto with
+                    no line segment to it), which read as a broken/empty
+                    chart rather than an honest "not enough data yet" state.
+                    Gated on >=2 now, with a real placeholder for exactly 1
+                    entry instead of an empty-looking chart. */}
+                {trendEntries.length >= 2 ? (
                   <GlassCard className="p-5">
                     <DualTrendChart entries={trendEntries} />
                   </GlassCard>
-                )}
+                ) : trendEntries.length === 1 ? (
+                  <GlassCard className="p-5">
+                    <p className="text-sm text-center py-4" style={{ color: T.t.textDim }}>
+                      נרשמה מדידה ראשונה. תעדו מדידה נוספת כדי לראות כאן את קו המגמה.
+                    </p>
+                  </GlassCard>
+                ) : null}
 
-                <MetricTracker entries={store.metricEntries} onAddEntry={store.addMetricEntry} />
+                <MetricTracker entries={store.metricEntries} onAddEntry={store.addMetricEntry} profile={activeProfile} />
               </div>
             )}
           </motion.div>

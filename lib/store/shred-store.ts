@@ -116,6 +116,13 @@ export interface MetricEntry {
   date: string;
   weight?: number;
   waist?: number;
+  // Sprint 47 — direct request: track chest circumference alongside
+  // weight/waist with the same trend/sparkline treatment. Same known gap
+  // as every other field added post-Sprint-8 (see supabaseSync.ts's
+  // MetricEntryRow — explicit column selection, no `chest` column yet):
+  // session-only until a migration adds the column; not silently dropped,
+  // just not yet synced.
+  chest?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -474,7 +481,30 @@ export function createShredStore(initial?: Partial<ShredState>) {
     }),
     deleteHack: (id) => set((state) => ({ customHacks: state.customHacks.filter((h) => h.id !== id) })),
 
-    addMetricEntry: (entry) => set((state) => ({ metricEntries: [...state.metricEntries, { ...entry, id: genUuid() }] })),
+    // Sprint 47 — real, reported gap: logging a new weigh-in only ever
+    // appended to the metricEntries trend log; profile.weight (the ONLY
+    // number computeProfileTargets() actually reads for BMR/TDEE) never
+    // moved, so losing real weight never once touched the calorie target —
+    // "nothing changes when I log this" was accurate, not a misreading.
+    // Real weigh-ins now also become the active profile's current weight
+    // (and waist, for the same "this profile's numbers should reflect the
+    // latest known measurement" reasoning), so the next render's
+    // computeProfileTargets() call picks it up immediately — no separate
+    // sync step, no stale cache, because targets are already recomputed
+    // fresh on every render from store state, not cached.
+    addMetricEntry: (entry) => set((state) => {
+      const metricEntries = [...state.metricEntries, { ...entry, id: genUuid() }];
+      const current = state.profiles[state.activeProfileId];
+      if (!current) return { metricEntries };
+      const patch: Partial<Profile> = {};
+      if (entry.weight !== undefined) patch.weight = entry.weight;
+      if (entry.waist !== undefined) patch.waist = entry.waist;
+      if (Object.keys(patch).length === 0) return { metricEntries };
+      return {
+        metricEntries,
+        profiles: { ...state.profiles, [state.activeProfileId]: { ...current, ...patch } },
+      };
+    }),
 
     setWorkoutActivity: (dk, done, dayKey) => set((state) => ({
       dayMeta: { ...state.dayMeta, [dk]: { ...(state.dayMeta[dk] || EMPTY_DAY_META), workoutDone: done, workoutDay: dayKey } },

@@ -32,7 +32,7 @@ import { useId, type ComponentType } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useTheme } from '@/lib/theme/ThemeContext';
-import { FONT_DISPLAY, FONT_MONO } from '@/lib/theme/tokens';
+import { FONT_MONO } from '@/lib/theme/tokens';
 
 export interface MacroStatTileProps {
   macroKey: 'protein' | 'carbs' | 'fat';
@@ -114,11 +114,11 @@ export function MacroStatTile({ macroKey, label, icon: Icon, value, target, clas
 
       <div>
         <div
-          className="text-xl font-black leading-none"
-          style={{ fontFamily: FONT_DISPLAY, color: T.t.textPrimary, letterSpacing: '-0.02em' }}
+          className="text-xl font-bold leading-none"
+          style={{ fontFamily: FONT_MONO, color: T.t.textPrimary, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}
         >
           {roundedValue}
-          <span className="text-[11px] font-light" style={{ color: T.t.textDim, fontFamily: FONT_MONO }}>/{roundedTarget}גר&apos;</span>
+          <span className="text-[11px] font-light" style={{ color: T.t.textDim }}>/{roundedTarget}גר&apos;</span>
         </div>
         <div className="text-[10px] font-light uppercase mt-0.5" style={{ color: T.t.textDim, letterSpacing: '0.1em' }}>{label}</div>
       </div>

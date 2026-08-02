@@ -170,6 +170,40 @@ describe('profiles', () => {
   });
 });
 
+// Sprint 47 — real reported gap: logging a new weigh-in had no visible
+// effect anywhere (BMR/TDEE/targets never moved) because addMetricEntry
+// never touched profile.weight, the only field computeProfileTargets()
+// actually reads. Pinning the fix directly at the store level.
+describe('addMetricEntry — Sprint 47 weight/waist sync into the active profile', () => {
+  it('a weight-bearing entry updates the active profile\'s weight', () => {
+    store.getState().addMetricEntry({ date: '2026-07-20', weight: 83.5, waist: 90 });
+    expect(store.getState().profiles.mine.weight).toBe(83.5);
+  });
+
+  it('a waist-bearing entry updates the active profile\'s waist', () => {
+    store.getState().addMetricEntry({ date: '2026-07-20', weight: 84, waist: 88 });
+    expect(store.getState().profiles.mine.waist).toBe(88);
+  });
+
+  it('only patches the currently active profile, not every profile', () => {
+    store.getState().addMetricEntry({ date: '2026-07-20', weight: 83.5, waist: 90 });
+    expect(store.getState().profiles.guest.weight).toBe(78);
+  });
+
+  it('an entry with only chest (no weight/waist) leaves profile.weight/waist untouched', () => {
+    const before = store.getState().profiles.mine.weight;
+    store.getState().addMetricEntry({ date: '2026-07-20', chest: 100 });
+    expect(store.getState().profiles.mine.weight).toBe(before);
+  });
+
+  it('still appends the entry to metricEntries regardless of profile sync', () => {
+    store.getState().addMetricEntry({ date: '2026-07-20', weight: 83.5, waist: 90, chest: 100 });
+    const entries = store.getState().metricEntries;
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({ date: '2026-07-20', weight: 83.5, waist: 90, chest: 100 });
+  });
+});
+
 describe('exercise logs', () => {
   it('logExerciseSet merges into any existing entry for the same date/exercise', () => {
     store.getState().logExerciseSet('2026-07-20', 'סקוואט גב', { weight: 100 });
