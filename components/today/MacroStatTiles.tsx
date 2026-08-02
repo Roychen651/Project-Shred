@@ -65,7 +65,17 @@ export function MacroStatTile({ macroKey, label, icon: Icon, value, target, clas
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
-      className={`relative flex flex-col justify-between gap-3 p-5 rounded-[32px] overflow-hidden ${className}`}
+      // Sprint 48 — real regression, found from a screenshot: `overflow-
+      // hidden` (added in Sprint 46 for the gradient background) also
+      // clipped the delta-percentage badge below, which is DELIBERATELY
+      // positioned outside the tile's own box (top:-8, a "floating overlap
+      // badge" — see Sprint 19's header) to read as a chip stuck to the
+      // card's corner. Clipped, only a tiny colored sliver survived —
+      // exactly the "percentages running away" report. `overflow-hidden`
+      // was never actually needed for the gradient in the first place:
+      // `background` is always clipped to `border-radius` by the CSS box
+      // model on its own, with no overflow property required at all.
+      className={`relative flex flex-col justify-between gap-3 p-5 rounded-[32px] ${className}`}
       style={{
         background: `linear-gradient(160deg, ${color}20 0%, ${color}0A 60%)`,
         border: `1px solid ${color}28`,
